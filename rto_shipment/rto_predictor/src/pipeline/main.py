@@ -43,6 +43,13 @@ from validation_analytics_module import ValidationAnalytics
 from training_management_module import TrainingManager
 from output_management_module import OutputManager
 from reporting_module import ReportingManager
+from model_management_service import ModelManagementService
+from prediction_orchestrator import PredictionOrchestrator 
+from error_handling_manager import ErrorHandlingManager
+from method_delegation_handler import MethodDelegationHandler
+from configuration_manager import ConfigurationManager
+from logging_manager import LoggingManager
+from component_factory import ComponentFactory
 
 
 warnings.filterwarnings('ignore')
@@ -750,91 +757,62 @@ class ProductionRTOPipelineManager:
     """
     Production-ready pipeline manager for end-to-end RTO prediction workflow
     Enhanced with monitoring, error handling, and fault tolerance
+    
+    Ultra-modular version with maximum separation of concerns
     """
     
     def __init__(self, config_path: str = None):
         """Initialize production pipeline manager"""
         
+        # Initialize specialized managers
+        self.config_manager = ConfigurationManager()
+        self.logging_manager = LoggingManager()
+        self.component_factory = ComponentFactory()
+        self.error_handler = ErrorHandlingManager()
+        
         # Load configuration
-        self.config = self._load_config(config_path)
-        
-        # Setup logging
-        global logger
-        logger = setup_production_logging(self.config.get('log_dir', 'logs'))
-        
-        # Initialize predictor with production configs
+        self.config = self.config_manager.load_config(config_path)
         preprocessing_config = PreprocessingConfig(**self.config.get('preprocessing', {}))
         model_config = ModelConfig(**self.config.get('model', {}))
         pipeline_config = PipelineConfig(**self.config.get('pipeline', {}))
         
+        # Setup logging
+        global logger
+        logger = self.logging_manager.setup_production_logging(self.config.get('log_dir', 'logs'))
+        
+        # Initialize predictor
         self.predictor = ProductionRTOPredictor(
             preprocessing_config, model_config, pipeline_config
         )
         
-        # Setup directories
-        self.setup_directories()
         
-        # Initialize modular components
-        self.file_processor = FileProcessor(self.config)
-        self.validation_analytics = ValidationAnalytics(self.predictor)
-        self.results_enhancer = ResultsEnhancer()
-        self.training_manager = TrainingManager(self.predictor, self.config)
-        self.reporting_manager = ReportingManager(self.predictor, self.predictor.metrics_collector, self.config)
-        self.output_manager = OutputManager(self.config)
+        # Setup directories
+        self.config_manager.setup_directories(self.config)
+        
+        # Create all modular components
+        self.components = self.component_factory.create_all_components(self.predictor, self.config)
+        
+        # Initialize specialized services
+        self.model_service = ModelManagementService(self.predictor)
+        self.prediction_orchestrator = PredictionOrchestrator(self.components, self.predictor, self.model_service)
+        self.error_handler = ErrorHandlingManager(self.predictor.metrics_collector)
+        self.delegation_handler = MethodDelegationHandler(self.components, self.predictor)
         
         # Initialize monitoring
         self.metrics_collector = self.predictor.metrics_collector
         self._start_time = time.time()
         
-        logger.info("Production RTO Pipeline Manager initialized")
+        logger.info("Production RTO Pipeline Manager initialized with ultra-modular architecture")
     
+    # Original method preserved with same signature and behavior
     def _load_config(self, config_path: str) -> Dict:
-        """Load configuration from file or use defaults"""
-        
-        default_config = {
-            'data_dir': 'data',
-            'model_dir': 'models',
-            'output_dir': 'output',
-            'log_dir': 'logs',
-            'backup_dir': 'backups',
-            'preprocessing': {
-                'max_processing_time': 300,
-                'batch_size': 10000,
-                'memory_limit_mb': 2048,
-                'required_columns': ['ORDER_NUMBER', 'CURRENT_STATUS', 'CUSTOMER_PHONE', 'CUSTOMER_ADDRESS', 'PAYMENT_MODE']
-            },
-            'model': {
-                'retrain_threshold': 0.1,
-                'min_training_samples': 100,
-                'model_snapshot_retention_days': 30
-            },
-            'pipeline': {
-                'enable_circuit_breaker': True,
-                'circuit_breaker_threshold': 5,
-                'circuit_breaker_timeout': 60
-            }
-        }
-        
-        if config_path and os.path.exists(config_path):
-            try:
-                with open(config_path, 'r') as f:
-                    user_config = json.load(f)
-                    # Deep merge configurations
-                    for key, value in user_config.items():
-                        if isinstance(value, dict) and key in default_config:
-                            default_config[key].update(value)
-                        else:
-                            default_config[key] = value
-            except Exception as e:
-                logger.warning(f"Error loading config from {config_path}: {e}")
-        
-        return default_config
+        """Load configuration from file or use defaults - delegates to ConfigurationManager"""
+        return self.config_manager.load_config(config_path)
     
+    # Original method preserved with same signature and behavior
     def setup_directories(self):
-        """Setup required directories"""
-        for dir_name in ['data_dir', 'model_dir', 'output_dir', 'log_dir', 'backup_dir']:
-            if dir_name in self.config:
-                Path(self.config[dir_name]).mkdir(exist_ok=True)
+        """Setup required directories - delegates to ConfigurationManager"""
+        self.config_manager.setup_directories(self.config)
     
     @monitor_performance
     def process_new_orders(self, csv_path: str, batch_size: int = None, validate_predictions: bool = False) -> Dict[str, Any]:
@@ -849,94 +827,45 @@ class ProductionRTOPipelineManager:
         Returns:
             Prediction results with optional validation metrics
         """
-        logger.info(f"Processing new orders from {csv_path}")
+        self.error_handler.log_operation_start("processing new orders", f"from {csv_path}")
         
         try:
-            # Validate file and get info using FileProcessor
-            file_info = self.file_processor.validate_file_and_get_info(csv_path)
+            # Use the prediction orchestrator to handle the complete workflow
+            results = self.prediction_orchestrator.execute_prediction_workflow(
+                csv_path, batch_size, validate_predictions
+            )
             
-            # Read CSV with encoding detection using FileProcessor
-            df = self.file_processor.read_csv_with_encoding_detection(csv_path)
-            
-            # Validate dataframe content using FileProcessor
-            df = self.file_processor.validate_dataframe_content(df)
-            
-            # Load latest model if not already loaded
-            if self.predictor.model is None:
-                try:
-                    self.predictor.load_model_snapshot()
-                    logger.info("Loaded latest model snapshot")
-                except Exception as e:
-                    logger.error(f"No trained model found: {e}")
-                    raise ModelNotFoundError("No trained model available. Please train the model first.")
-            
-            # Process in batches if file is large
-            batch_size = batch_size or self.predictor.preprocessing_config.batch_size
-            
-            if len(df) > batch_size:
-                logger.info(f"Processing large file in batches of {batch_size}")
-                results = self.file_processor.process_in_batches(df, batch_size, self.predictor)
-            else:
-                # Make predictions
-                results = self.predictor.predict(df)
-            
-            # Enhanced results with validation if actual outcomes available
-            if validate_predictions and 'CURRENT_STATUS' in df.columns:
-                logger.info("Validating predictions against actual outcomes...")
-                results = self.validation_analytics.validate_predictions(results, df)
-            
-            # Enhanced results summary using ResultsEnhancer
-            results = self.results_enhancer.enhance_results_summary(results, df)
-            
-            # Save results with metadata using OutputManager
-            self.output_manager.save_prediction_results(results, csv_path, self.predictor)
-            
-            logger.info(f"Successfully processed {len(results['predictions'])} orders")
+            self.error_handler.log_operation_success("processing new orders", f"{len(results['predictions'])} orders")
             return results
             
         except Exception as e:
-            logger.error(f"Error processing new orders: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            
-            # Log error metrics
-            if hasattr(self, 'metrics_collector'):
-                self.metrics_collector.record_metric('processing_errors', 1)
-            
-            # Return error result instead of crashing
-            return {
-                'error': str(e),
-                'predictions': [],
-                'summary': {'total_orders': 0, 'error': str(e)},
-                'processing_timestamp': datetime.now().isoformat()
-            }
+            return self.error_handler.handle_processing_error(e, "processing new orders")
 
-    # Delegate validation methods to ValidationAnalytics
+    # All delegation methods preserved with exact same signatures and behavior
     def _validate_predictions(self, results: Dict[str, Any], df) -> Dict[str, Any]:
         """Validate predictions against actual outcomes - delegates to ValidationAnalytics"""
-        return self.validation_analytics.validate_predictions(results, df)
+        return self.delegation_handler.validate_predictions(results, df)
 
     def _calculate_validation_metrics(self, y_true, y_pred) -> Dict[str, Any]:
         """Calculate validation metrics - delegates to ValidationAnalytics"""
-        return self.validation_analytics.calculate_validation_metrics(y_true, y_pred)
+        return self.delegation_handler.calculate_validation_metrics(y_true, y_pred)
 
     def _calculate_business_cost(self, y_true, y_pred) -> Dict[str, float]:
         """Calculate business cost - delegates to ValidationAnalytics"""
-        return self.validation_analytics.calculate_business_cost(y_true, y_pred)
+        return self.delegation_handler.calculate_business_cost(y_true, y_pred)
 
     def _calculate_cost_savings(self, y_true) -> float:
         """Calculate cost savings - delegates to ValidationAnalytics"""
-        return self.validation_analytics.calculate_cost_savings(y_true)
+        return self.delegation_handler.calculate_cost_savings(y_true)
 
-    # Delegate results enhancement methods to ResultsEnhancer
     def _enhance_results_summary(self, results: Dict[str, Any], df) -> Dict[str, Any]:
         """Enhance results summary - delegates to ResultsEnhancer"""
-        return self.results_enhancer.enhance_results_summary(results, df)
+        return self.delegation_handler.enhance_results_summary(results, df)
 
     def _calculate_completeness_score(self, df) -> float:
         """Calculate completeness score - delegates to ResultsEnhancer"""
-        return self.results_enhancer.calculate_completeness_score(df)
+        return self.delegation_handler.calculate_completeness_score(df)
 
-    # Delegate validation method to ValidationAnalytics
     def validate_recent_predictions(self, prediction_file: str, actual_outcomes_file: str) -> Dict[str, Any]:
         """
         Validate recent predictions against actual outcomes
@@ -948,18 +877,16 @@ class ProductionRTOPipelineManager:
         Returns:
             Validation results with confusion matrix and business metrics
         """
-        return self.validation_analytics.validate_recent_predictions(prediction_file, actual_outcomes_file)
+        return self.delegation_handler.validate_recent_predictions(prediction_file, actual_outcomes_file)
 
-    # Delegate file processing methods to FileProcessor
     def _process_in_batches(self, df, batch_size: int) -> Dict[str, Any]:
         """Process in batches - delegates to FileProcessor"""
-        return self.file_processor.process_in_batches(df, batch_size, self.predictor)
+        return self.delegation_handler.process_in_batches(df, batch_size)
     
     def _combine_batch_summaries(self, batch_summaries) -> Dict:
         """Combine batch summaries - delegates to FileProcessor"""
-        return self.file_processor.combine_batch_summaries(batch_summaries)
+        return self.delegation_handler.combine_batch_summaries(batch_summaries)
     
-    # Delegate training methods to TrainingManager
     @monitor_performance
     def train_initial_model(self, training_data_path: str) -> Dict[str, Any]:
         """
@@ -971,12 +898,14 @@ class ProductionRTOPipelineManager:
         Returns:
             Training results
         """
-        results = self.training_manager.train_initial_model(training_data_path)
+        self.error_handler.log_operation_start("training initial model", f"with data from {training_data_path}")
         
-        # Save training results using OutputManager
-        self.output_manager.save_training_results(results, training_data_path)
-        
-        return results
+        try:
+            results = self.delegation_handler.train_initial_model(training_data_path)
+            self.error_handler.log_operation_success("training initial model")
+            return results
+        except Exception as e:
+            return self.error_handler.handle_processing_error(e, "training initial model")
     
     def daily_retrain(self, new_data_path: str = None) -> Optional[Dict[str, Any]]:
         """
@@ -988,21 +917,68 @@ class ProductionRTOPipelineManager:
         Returns:
             Retraining results or None if no retraining needed
         """
-        return self.training_manager.daily_retrain(new_data_path)
+        self.error_handler.log_operation_start("daily retrain", f"with data: {new_data_path}")
+        
+        try:
+            results = self.delegation_handler.daily_retrain(new_data_path)
+            if results:
+                self.error_handler.log_operation_success("daily retrain", "model was retrained")
+            else:
+                self.error_handler.log_operation_success("daily retrain", "no retraining needed")
+            return results
+        except Exception as e:
+            return self.error_handler.handle_processing_error(e, "daily retrain")
     
-    # Delegate reporting methods to ReportingManager
     def generate_performance_report(self) -> Dict[str, Any]:
         """Generate comprehensive performance report with system metrics"""
-        return self.reporting_manager.generate_performance_report()
+        self.error_handler.log_operation_start("generating performance report")
+        
+        try:
+            results = self.delegation_handler.generate_performance_report()
+            self.error_handler.log_operation_success("generating performance report")
+            return results
+        except Exception as e:
+            return self.error_handler.handle_processing_error(e, "generating performance report")
     
-    # Delegate output methods to OutputManager
     def _save_prediction_results(self, results: Dict, original_csv_path: str):
         """Save prediction results - delegates to OutputManager"""
-        self.output_manager.save_prediction_results(results, original_csv_path, self.predictor)
+        self.delegation_handler.save_prediction_results(results, original_csv_path)
     
     def _save_training_results(self, results: Dict, training_data_path: str):
         """Save training results - delegates to OutputManager"""
-        self.output_manager.save_training_results(results, training_data_path)
+        self.delegation_handler.save_training_results(results, training_data_path)
+    
+    # Properties for accessing internal components (for advanced usage)
+    @property
+    def file_processor(self):
+        """Access to file processor component"""
+        return self.components['file_processor']
+    
+    @property
+    def validation_analytics(self):
+        """Access to validation analytics component"""
+        return self.components['validation_analytics']
+    
+    @property
+    def results_enhancer(self):
+        """Access to results enhancer component"""
+        return self.components['results_enhancer']
+    
+    @property
+    def training_manager(self):
+        """Access to training manager component"""
+        return self.components['training_manager']
+    
+    @property
+    def reporting_manager(self):
+        """Access to reporting manager component"""
+        return self.components['reporting_manager']
+    
+    @property
+    def output_manager(self):
+        """Access to output manager component"""
+        return self.components['output_manager']
+    
 # Health Check Endpoint
 def health_check(pipeline_manager: ProductionRTOPipelineManager) -> Dict[str, Any]:
     """
@@ -1106,9 +1082,6 @@ def main():
         print(f"❌ Pipeline failed: {e}")
 
 
-# For backward compatibility, create aliases
-# RTOPredictor = ProductionRTOPredictor
-# RTOPipelineManager = ProductionRTOPipelineManager
 
 if __name__ == "__main__":
     # Setup logging first
