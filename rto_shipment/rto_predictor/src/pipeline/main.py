@@ -50,7 +50,11 @@ from method_delegation_handler import MethodDelegationHandler
 from configuration_manager import ConfigurationManager
 from logging_manager import LoggingManager
 from component_factory import ComponentFactory
-
+from fault_tolerance_manager import FaultToleranceDecorators
+from health_monitoring_service import HealthMonitoringService
+from monitoring_metrics_manager import MonitoringDecorators
+from backup_recovery_manager import BackupRecoveryManager
+from transaction_manager import TransactionManager
 
 warnings.filterwarnings('ignore')
 
@@ -328,7 +332,7 @@ class ProductionRTOPredictor:
     """
     Production-ready RTO (Return to Origin) Prediction Pipeline
     
-    Modular version with separated responsibilities
+    Ultra-modular version with maximum separation of concerns
     """
     
     def __init__(self, 
@@ -341,6 +345,12 @@ class ProductionRTOPredictor:
         self.preprocessing_config = preprocessing_config or PreprocessingConfig()
         self.model_config = model_config or ModelConfig()
         self.pipeline_config = pipeline_config or PipelineConfig()
+        
+        # Initialize specialized services
+        self.logging_service = EnhancedLoggingService()
+        self.backup_manager = BackupRecoveryManager(self.pipeline_config)
+        self.transaction_manager = TransactionManager()
+        self.health_monitor = HealthMonitoringService()
         
         # Setup directories
         self._setup_directories()
@@ -393,7 +403,7 @@ class ProductionRTOPredictor:
             'error_count': 0
         }
         
-        logger.info("Production RTO Predictor initialized")
+        logger.info("Production RTO Predictor initialized with ultra-modular architecture")
     
     def _setup_directories(self):
         """Setup required directories"""
@@ -401,7 +411,7 @@ class ProductionRTOPredictor:
             dir_path = Path(getattr(self.pipeline_config, dir_attr))
             dir_path.mkdir(exist_ok=True)
     
-    @monitor_performance
+    @MonitoringDecorators.monitor_performance
     def _validate_input_data(self, df: pd.DataFrame) -> None:
         """Comprehensive input data validation - delegates to DataValidator"""
         return self.data_validator.validate_input_data(df)
@@ -410,14 +420,14 @@ class ProductionRTOPredictor:
         """Comprehensive data quality assessment - delegates to DataValidator"""
         return self.data_validator.data_quality_checks(df)
     
-    @timeout_handler(300)  # 5 minute timeout
-    @retry_on_failure(max_retries=3)
-    @monitor_performance
+    @FaultToleranceDecorators.timeout_handler(300)  # 5 minute timeout
+    @FaultToleranceDecorators.retry_on_failure(max_retries=3)
+    @MonitoringDecorators.monitor_performance
     def preprocess_data(self, df: pd.DataFrame, is_training: bool = True) -> pd.DataFrame:
         """Enhanced preprocessing with error handling and monitoring"""
         logger.info(f"Starting preprocessing for {'training' if is_training else 'prediction'} data...")
         
-        with processing_transaction() as checkpoints:
+        with self.transaction_manager.processing_transaction() as checkpoints:
             try:
                 # Validate input data
                 self._validate_input_data(df)
@@ -493,8 +503,8 @@ class ProductionRTOPredictor:
         """Check and report class balance - delegates to ModelTrainer"""
         self.model_trainer.check_class_balance(df, target_col)
     
-    @timeout_handler(600)  # 10 minute timeout for training
-    @monitor_performance
+    @FaultToleranceDecorators.timeout_handler(600)  # 10 minute timeout for training
+    @MonitoringDecorators.monitor_performance
     def train_model(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Enhanced model training with comprehensive monitoring"""
         logger.info("Starting model training...")
@@ -515,8 +525,8 @@ class ProductionRTOPredictor:
     def _train_model_internal(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Internal training method"""
         
-        # Create backup before training
-        self._create_backup()
+        # Create backup before training using BackupRecoveryManager
+        self.backup_manager.create_backup(self.model_trainer, self.data_preprocessor)
         
         # Preprocess training data
         df_processed = self.preprocess_data(df, is_training=True)
@@ -569,8 +579,8 @@ class ProductionRTOPredictor:
             'data_quality_score': getattr(self, '_last_quality_score', None)
         }
     
-    @timeout_handler(180)  # 3 minute timeout for predictions
-    @monitor_performance
+    @FaultToleranceDecorators.timeout_handler(180)  # 3 minute timeout for predictions
+    @MonitoringDecorators.monitor_performance
     def predict(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Enhanced prediction with comprehensive error handling"""
         if self.model_trainer.model is None:
@@ -619,21 +629,8 @@ class ProductionRTOPredictor:
         }
     
     def _create_backup(self):
-        """Create backup of current model before training"""
-        if self.model_trainer.model is not None:
-            try:
-                backup_dir = Path(self.pipeline_config.backup_dir) / datetime.now().strftime('%Y_%m_%d_%H')
-                backup_dir.mkdir(exist_ok=True)
-                
-                import joblib
-                joblib.dump(self.model_trainer.model, backup_dir / "model_backup.pkl")
-                joblib.dump(self.data_preprocessor.label_encoders, backup_dir / "encoders_backup.pkl")
-                joblib.dump(self.data_preprocessor.scaler, backup_dir / "scaler_backup.pkl")
-                
-                logger.info(f"Model backup created at: {backup_dir}")
-                
-            except Exception as e:
-                logger.warning(f"Failed to create backup: {e}")
+        """Create backup of current model before training - delegates to BackupRecoveryManager"""
+        return self.backup_manager.create_backup(self.model_trainer, self.data_preprocessor)
     
     def get_health_status(self) -> Dict[str, Any]:
         """Get system health status"""
@@ -716,6 +713,19 @@ class ProductionRTOPredictor:
         
         logger.info("Model snapshot loaded successfully")
     
+    # Backup and recovery methods
+    def restore_backup(self, backup_path: str):
+        """Restore model from backup"""
+        return self.backup_manager.restore_backup(backup_path, self.model_trainer, self.data_preprocessor)
+    
+    def list_available_backups(self):
+        """List all available backup directories"""
+        return self.backup_manager.list_available_backups()
+    
+    def cleanup_old_backups(self, max_backups: int = 10):
+        """Clean up old backup directories"""
+        return self.backup_manager.cleanup_old_backups(max_backups)
+    
     # Properties for backward compatibility
     @property
     def model(self):
@@ -750,19 +760,18 @@ class ProductionRTOPredictor:
     @property
     def pincode_stats(self):
         """Access to pincode statistics"""
-        return self.performance_analytics.pincode_stats
-    
+        return self.performance_analytics.pincode_stats    
 # Enhanced Pipeline Manager with production features
 class ProductionRTOPipelineManager:
     """
     Production-ready pipeline manager for end-to-end RTO prediction workflow
     Enhanced with monitoring, error handling, and fault tolerance
     
-    Ultra-modular version with maximum separation of concerns
+    Ultra-modular version with maximum separation of concerns and all production features
     """
     
     def __init__(self, config_path: str = None):
-        """Initialize production pipeline manager"""
+        """Initialize production pipeline manager with ultra-modular architecture"""
         
         # Initialize specialized managers
         self.config_manager = ConfigurationManager()
@@ -772,19 +781,20 @@ class ProductionRTOPipelineManager:
         
         # Load configuration
         self.config = self.config_manager.load_config(config_path)
-        preprocessing_config = PreprocessingConfig(**self.config.get('preprocessing', {}))
-        model_config = ModelConfig(**self.config.get('model', {}))
-        pipeline_config = PipelineConfig(**self.config.get('pipeline', {}))
         
         # Setup logging
         global logger
         logger = self.logging_manager.setup_production_logging(self.config.get('log_dir', 'logs'))
         
-        # Initialize predictor
+        # Initialize predictor with configurations
+        preprocessing_config = PreprocessingConfig(**self.config.get('preprocessing', {}))
+        model_config = ModelConfig(**self.config.get('model', {}))
+        pipeline_config = PipelineConfig(**self.config.get('pipeline', {}))
+        
+        # Initialize ultra-modular predictor
         self.predictor = ProductionRTOPredictor(
             preprocessing_config, model_config, pipeline_config
         )
-        
         
         # Setup directories
         self.config_manager.setup_directories(self.config)
@@ -797,12 +807,13 @@ class ProductionRTOPipelineManager:
         self.prediction_orchestrator = PredictionOrchestrator(self.components, self.predictor, self.model_service)
         self.error_handler = ErrorHandlingManager(self.predictor.metrics_collector)
         self.delegation_handler = MethodDelegationHandler(self.components, self.predictor)
+        self.health_monitor = HealthMonitoringService(self)
         
         # Initialize monitoring
         self.metrics_collector = self.predictor.metrics_collector
         self._start_time = time.time()
         
-        logger.info("Production RTO Pipeline Manager initialized with ultra-modular architecture")
+        logger.info("Ultra Production RTO Pipeline Manager initialized with maximum modularity")
     
     # Original method preserved with same signature and behavior
     def _load_config(self, config_path: str) -> Dict:
@@ -814,7 +825,7 @@ class ProductionRTOPipelineManager:
         """Setup required directories - delegates to ConfigurationManager"""
         self.config_manager.setup_directories(self.config)
     
-    @monitor_performance
+    @MonitoringDecorators.monitor_performance
     def process_new_orders(self, csv_path: str, batch_size: int = None, validate_predictions: bool = False) -> Dict[str, Any]:
         """
         Process new orders from CSV file with enhanced error handling and validation
@@ -887,7 +898,7 @@ class ProductionRTOPipelineManager:
         """Combine batch summaries - delegates to FileProcessor"""
         return self.delegation_handler.combine_batch_summaries(batch_summaries)
     
-    @monitor_performance
+    @MonitoringDecorators.monitor_performance
     def train_initial_model(self, training_data_path: str) -> Dict[str, Any]:
         """
         Train initial model with historical data and enhanced validation
@@ -948,6 +959,32 @@ class ProductionRTOPipelineManager:
         """Save training results - delegates to OutputManager"""
         self.delegation_handler.save_training_results(results, training_data_path)
     
+    # Health monitoring methods
+    def health_check(self) -> Dict[str, Any]:
+        """Comprehensive health check for the RTO pipeline"""
+        return self.health_monitor.health_check()
+    
+    def get_system_metrics(self) -> Dict[str, Any]:
+        """Get detailed system metrics"""
+        return self.health_monitor.get_system_metrics()
+    
+    # Backup and recovery methods (delegated to predictor)
+    def create_backup(self):
+        """Create backup of current model"""
+        return self.predictor._create_backup()
+    
+    def restore_backup(self, backup_path: str):
+        """Restore model from backup"""
+        return self.predictor.restore_backup(backup_path)
+    
+    def list_available_backups(self):
+        """List all available backup directories"""
+        return self.predictor.list_available_backups()
+    
+    def cleanup_old_backups(self, max_backups: int = 10):
+        """Clean up old backup directories"""
+        return self.predictor.cleanup_old_backups(max_backups)
+    
     # Properties for accessing internal components (for advanced usage)
     @property
     def file_processor(self):
@@ -978,46 +1015,21 @@ class ProductionRTOPipelineManager:
     def output_manager(self):
         """Access to output manager component"""
         return self.components['output_manager']
-    
-# Health Check Endpoint
+
+
+# Enhanced Health Check Function (keeping original signature)
 def health_check(pipeline_manager: ProductionRTOPipelineManager) -> Dict[str, Any]:
     """
-    Comprehensive health check for the RTO pipeline
+    Comprehensive health check for the RTO pipeline (original function preserved)
     """
-    try:
-        health_status = pipeline_manager.predictor.get_health_status()
-        
-        # Add additional checks
-        health_status.update({
-            'pipeline_status': 'healthy',
-            'api_version': '1.0.0',
-            'checks': {
-                'model_loaded': health_status['model_loaded'],
-                'memory_ok': health_status['memory_usage_mb'] < 1024,  # Less than 1GB
-                'recent_activity': health_status['last_prediction'] is not None,
-                'error_rate_ok': health_status['error_count'] < 10
-            }
-        })
-        
-        # Overall health determination
-        all_checks_pass = all(health_status['checks'].values())
-        health_status['overall_status'] = 'healthy' if all_checks_pass else 'degraded'
-        
-        return health_status
-        
-    except Exception as e:
-        return {
-            'pipeline_status': 'unhealthy',
-            'error': str(e),
-            'timestamp': datetime.now().isoformat()
-        }
+    return pipeline_manager.health_check()
 
 
-# Example usage with backward compatibility
+# Main function with all original functionality preserved
 def main():
-    """Main function demonstrating production pipeline usage"""
+    """Main function demonstrating production pipeline usage with all enhancements"""
     
-    # Initialize production pipeline (backward compatible)
+    # Initialize ultra-modular production pipeline (backward compatible)
     pipeline = ProductionRTOPipelineManager()
     
     try:
@@ -1025,10 +1037,15 @@ def main():
         health = health_check(pipeline)
         print(f"Pipeline Health: {health['overall_status']}")
         
+        # System metrics
+        metrics = pipeline.get_system_metrics()
+        print(f"Memory Usage: {metrics['process_memory_mb']:.1f}MB")
+        print(f"CPU Usage: {metrics['process_cpu_percent']:.1f}%")
+        
         # Example: Train initial model
         print("Training model...")
-        training_results = pipeline.train_initial_model(r'/Users/anilkumargupta/Documents/study/ttt/ai4u/rto_shipment/rto_predictor/data/to_train/training_data_2025_05_23.csv')
-        print(f"Training completed: {training_results['best_model']}")
+        training_results = pipeline.train_initial_model('/Users/anilkumargupta/Documents/study/ttt/ai4u/rto_shipment/rto_predictor/data/to_train/training_data_2025_05_23.csv')
+        print(f"Training completed: {training_results.get('best_model', 'Unknown')}")
         
         # Example: Process new orders
         print("Processing new orders...")
@@ -1056,38 +1073,48 @@ def main():
                 print(f"\n💰 Cost Analysis:")
                 print(f"Total cost: ${cost['total_cost']:.2f}")
                 print(f"Average cost per order: ${cost['average_cost_per_order']:.2f}")
-                print(f"Cost savings: ${cost}")
         
         # Example: Generate performance report
         print("Generating performance report...")
         report = pipeline.generate_performance_report()
         print("Performance report generated")
         
-        print("\n✅ Production RTO Prediction Pipeline is ready!")
-        print("\nProduction Features Added:")
+        # Example: Backup management
+        print("Creating backup...")
+        backup_path = pipeline.create_backup()
+        if backup_path:
+            print(f"Backup created: {backup_path}")
+        
+        available_backups = pipeline.list_available_backups()
+        print(f"Available backups: {len(available_backups)}")
+        
+        print("\n✅ Ultra Production RTO Prediction Pipeline is ready!")
+        print("\nUltra-Modular Production Features:")
+        print("- Maximum separation of concerns")
         print("- Comprehensive error handling and validation")
-        print("- Performance monitoring and metrics")
+        print("- Advanced performance monitoring and metrics")
         print("- Circuit breaker for fault tolerance")
-        print("- Timeout protection")
-        print("- Retry mechanisms")
-        print("- Health checks")
+        print("- Timeout protection with decorators")
+        print("- Retry mechanisms with exponential backoff")
+        print("- Health checks and system monitoring")
         print("- Batch processing for large files")
         print("- Model versioning and snapshots")
-        print("- Configuration management")
-        print("- Enhanced logging")
-        print("- Backup and recovery")
+        print("- Configuration management with dataclasses")
+        print("- Enhanced logging with specialized loggers")
+        print("- Backup and recovery management")
+        print("- Transaction management with rollback")
+        print("- Complete backward compatibility")
+        print("- Pluggable component architecture")
         
     except Exception as e:
         logger.error(f"Pipeline execution failed: {e}")
         print(f"❌ Pipeline failed: {e}")
 
 
-
 if __name__ == "__main__":
     # Setup logging first
-    logger = setup_production_logging()
-    
-    # Import required modules
-    import sys
+    from enhanced_logging_service import EnhancedLoggingService
+    logging_service = EnhancedLoggingService()
+    logger = logging_service.setup_production_logging()
     
     main()
