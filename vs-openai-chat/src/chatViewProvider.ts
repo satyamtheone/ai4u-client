@@ -3,6 +3,7 @@ import { OpenAIService } from './services/OpenAIService';
 import { BackendService } from './services/BackendService';
 import { ConfigManager, AI4UConfig } from './services/ConfigManager';
 import { UIManager, WebviewMessage } from './services/UIManager';
+import { LearningGateService, LearningGateConfig } from './services/learning/LearningGateService';
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ai4uChatView';
@@ -13,6 +14,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private backendService: BackendService;
     private uiManager: UIManager;
     private configManager = ConfigManager;
+    private learningGateService: LearningGateService;
     
     // Current state
     private currentConfig: AI4UConfig;
@@ -25,6 +27,15 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this.uiManager = new UIManager(_extensionUri);
         this.openaiService = new OpenAIService();
         
+        const gateConfig: LearningGateConfig = {
+            enabled: true,
+            questionsPerGate: 3,
+            gateFrequency: 1, // 🔥 CHANGE TO 1 for testing (every message)
+            difficulty: 'mixed',
+            topics: ['JavaScript', 'TypeScript', 'Python']
+        };    
+        this.learningGateService = new LearningGateService(gateConfig);
+
         // Load configuration
         this.currentConfig = this.configManager.getConfig();
         this.backendService = new BackendService(this.currentConfig.backendUrl || undefined);
@@ -153,6 +164,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 case 'clearSession':
                     await this.handleClearSession();
                     break;
+                case 'submitQuizAnswer':
+                    await this.handleQuizAnswer(data.questionId, data.selectedAnswer);
+                    break;
+                    
+                case 'skipQuiz':
+                    await this.handleSkipQuiz();
+                    break;
                 default:
                     console.warn('AI4U Unknown message type:', data.type);
             }
@@ -165,12 +183,88 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
+    private async handleQuizAnswer(questionId: string, selectedAnswer: number) {
+        try {
+            const result = this.learningGateService.submitAnswer(questionId, selectedAnswer);
+            
+            // Send result to UI
+            this._view?.webview.postMessage({
+                type: 'showQuizResult',
+                result: result
+            });
+
+            // Update UI with new stats
+            const stats = this.learningGateService.getStats();
+            this._view?.webview.postMessage({
+                type: 'updateStats',
+                stats: stats
+            });
+
+        } catch (error) {
+            console.error('AI4U Error submitting quiz answer:', error);
+            this.uiManager.showErrorMessage('Failed to submit quiz answer');
+        }
+    }
+
+    private async handleSkipQuiz() {
+        // Give user 1 limited response
+        const result = {
+            correct: false,
+            unlockedResponses: 1,
+            explanation: 'Quiz skipped - you get 1 limited response.',
+            levelUp: false
+        };
+
+        this._view?.webview.postMessage({
+            type: 'showQuizResult',
+            result: result
+        });
+    }
+
+    // Method to check learning gate status
+    public getLearningGateStatus(): {
+        enabled: boolean;
+        stats: any;
+        config: any;
+    } {
+        return {
+            enabled: this.learningGateService.getConfig().enabled,
+            stats: this.learningGateService.getStats(),
+            config: this.learningGateService.getConfig()
+        };
+    }
+
+    // Method to toggle learning gates
+    public async toggleLearningGates(enabled: boolean) {
+        this.learningGateService.updateConfig({ enabled });
+        
+        // Save to configuration
+        const config = vscode.workspace.getConfiguration('ai4u');
+        await config.update('learningGates.enabled', enabled, vscode.ConfigurationTarget.Global);
+        
+        this.uiManager.showNotification(
+            'info', 
+            `Learning Gates ${enabled ? 'enabled' : 'disabled'}`
+        );
+    }
+
+    // Method to reset learning progress
+    public resetLearningProgress() {
+        this.learningGateService.resetProgress();
+        this.uiManager.showNotification('info', 'Learning progress reset');
+    }
     private async handleUserMessage(message: string) {
         if (!message?.trim()) {
             return;
         }
 
-        // Show loading state
+        // Check if learning gate should be shown
+        if (this.learningGateService.shouldShowGate()) {
+            await this.showLearningGate();
+            return;
+        }
+
+        // Normal message processing
         this.uiManager.showBotResponse('Thinking...', true);
 
         try {
@@ -181,13 +275,26 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             }
         } catch (error) {
             console.error('AI4U Error in handleUserMessage:', error);
-            this.uiManager.showBotResponse(
-                `Unexpected error: ${error}`,
-                false
-            );
+            this.uiManager.showBotResponse(`Unexpected error: ${error}`, false);
         }
     }
 
+    private async showLearningGate() {
+        const question = this.learningGateService.getQuizQuestion();
+        if (!question) {
+            // No questions available, allow normal response
+            return;
+        }
+
+        const stats = this.learningGateService.getStats();
+        
+        // Send quiz to UI
+        this._view?.webview.postMessage({
+            type: 'showQuiz',
+            question: question,
+            stats: stats
+        });
+    }
     private async handleUserMessageLocal(message: string) {
         const response = await this.openaiService.sendMessage(message);
         

@@ -3,6 +3,7 @@ import { HTMLTemplateManager } from './HTMLTemplateManager';
 import { MessageHandler, WebviewMessage, MessageResponse } from './MessageHandler';
 import { UIStateManager, UIState, StateChangeListener } from './UIStateManager';
 import { ThemeManager } from './ThemeManager';
+import { QuizUIComponent } from './learning/QuizUIComponent';
 
 export class UIManager {
     private messageHandler: MessageHandler;
@@ -20,6 +21,22 @@ export class UIManager {
         console.log('Modular UIManager initialized');
     }
 
+    public showQuiz(question: any, stats: any): void {
+        const quizHTML = QuizUIComponent.generateQuizHTML(question, stats); // ← USE HERE
+        this.messageHandler.postMessage({
+            type: 'showQuiz',
+            html: quizHTML
+        });
+    }
+
+    public showQuizResult(result: any): void {
+        const resultHTML = QuizUIComponent.generateQuizResultHTML(result); // ← USE HERE
+        this.messageHandler.postMessage({
+            type: 'showQuizResult', 
+            html: resultHTML
+        });
+    }
+    
     // === Webview Management ===
     public setWebviewView(view: vscode.WebviewView): void {
         this.messageHandler.setWebviewView(view);

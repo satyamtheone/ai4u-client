@@ -1,12 +1,12 @@
 {
   "name": "ai4u",
   "displayName": "AI4U",
-  "description": "AI4U - Your personal AI assistant in VS Code",
-  "version": "0.0.2",
+  "description": "AI4U - Your personal AI assistant with Learning Gates in VS Code",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other"],
+  "categories": ["Other", "Education"],
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
@@ -24,6 +24,21 @@
       {
         "command": "ai4u.toggleBackend",
         "title": "Toggle Backend/Local Mode",
+        "category": "AI4U"
+      },
+      {
+        "command": "ai4u.toggleLearningGates",
+        "title": "Toggle Learning Gates",
+        "category": "AI4U"
+      },
+      {
+        "command": "ai4u.viewProgress",
+        "title": "View Learning Progress",
+        "category": "AI4U"
+      },
+      {
+        "command": "ai4u.resetProgress",
+        "title": "Reset Learning Progress",
         "category": "AI4U"
       }
     ],
@@ -62,6 +77,35 @@
           "type": "number",
           "default": 30000,
           "description": "Request timeout in milliseconds"
+        },
+        "ai4u.learningGates.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable learning gates - quiz questions before AI responses"
+        },
+        "ai4u.learningGates.frequency": {
+          "type": "number",
+          "default": 3,
+          "description": "Show quiz every N messages (1-10)"
+        },
+        "ai4u.learningGates.difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard", "mixed"],
+          "default": "mixed",
+          "description": "Difficulty level of quiz questions"
+        },
+        "ai4u.learningGates.responsesPerQuiz": {
+          "type": "number",
+          "default": 5,
+          "description": "Number of AI responses unlocked per correct answer (1-10)"
+        },
+        "ai4u.learningGates.topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["JavaScript", "TypeScript", "Python", "React", "Algorithms", "Data Structures"],
+          "description": "Topics for quiz questions"
         }
       }
     }
