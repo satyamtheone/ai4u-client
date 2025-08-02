@@ -15,6 +15,16 @@
         "command": "ai4u.openChat",
         "title": "Open AI4U Chat",
         "category": "AI4U"
+      },
+      {
+        "command": "ai4u.checkStatus",
+        "title": "Check AI4U Status",
+        "category": "AI4U"
+      },
+      {
+        "command": "ai4u.toggleBackend",
+        "title": "Toggle Backend/Local Mode",
+        "category": "AI4U"
       }
     ],
     "viewsContainers": {

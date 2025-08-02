@@ -2,34 +2,94 @@ import * as vscode from 'vscode';
 import { ChatViewProvider } from './chatViewProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-    // Create chat view provider
-    const chatProvider = new ChatViewProvider(context.extensionUri);
-    console.log('AI4U ChatViewProvider constructor called');
-    console.log(chatProvider);
-    console.log('AI4U extension activated');
+    console.log('AI4U extension activating...');
     
-    // Register the webview view provider
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-            ChatViewProvider.viewType, // Use the static property
+    try {
+        // Create chat view provider
+        const chatProvider = new ChatViewProvider(context.extensionUri);
+        console.log('AI4U ChatViewProvider created successfully');
+        
+        // Register the webview view provider
+        const webviewProviderDisposable = vscode.window.registerWebviewViewProvider(
+            ChatViewProvider.viewType,
             chatProvider,
             {
                 webviewOptions: {
                     retainContextWhenHidden: true
                 }
             }
-        )
-    );
-    console.log('AI4U Command registered');
-    
-    // Register command to open chat
-    const openChatCommand = vscode.commands.registerCommand('ai4u.openChat', () => {
-        // Open the AI4U container and focus on the chat view
-        vscode.commands.executeCommand('workbench.view.extension.ai4uChatContainer');
-        vscode.commands.executeCommand('ai4uChatView.focus');
-    });
+        );
+        
+        // Register command to open chat
+        const openChatCommand = vscode.commands.registerCommand('ai4u.openChat', () => {
+            // Open the AI4U container and focus on the chat view
+            vscode.commands.executeCommand('workbench.view.extension.ai4uChatContainer');
+            vscode.commands.executeCommand('ai4uChatView.focus');
+        });
 
-    context.subscriptions.push(openChatCommand);
+        // Register command to check status (useful for debugging)
+        const statusCommand = vscode.commands.registerCommand('ai4u.checkStatus', () => {
+            const status = chatProvider.getServiceStatus();
+            const config = chatProvider.getCurrentConfig();
+            
+            const statusMessage = `AI4U Status:
+Mode: ${status.mode.toUpperCase()}
+OpenAI: ${status.openai.connected ? '✅' : '❌'} ${status.openai.message}
+Backend: ${status.backend.connected ? '✅' : '❌'} ${status.backend.message}
+Backend URL: ${config.backendUrl || 'Not configured'}`;
 
-    console.log('AI4U Showing chat view');
+            vscode.window.showInformationMessage(statusMessage, { modal: false });
+        });
+
+        // Register command to toggle backend mode
+        const toggleBackendCommand = vscode.commands.registerCommand('ai4u.toggleBackend', async () => {
+            const config = chatProvider.getCurrentConfig();
+            const newMode = !config.useBackend;
+            
+            try {
+                const configManager = await import('./services/ConfigManager');
+                await configManager.ConfigManager.updateUseBackend(newMode);
+                
+                vscode.window.showInformationMessage(
+                    `AI4U switched to ${newMode ? 'BACKEND' : 'LOCAL'} mode`
+                );
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to toggle mode: ${error}`);
+            }
+        });
+
+        // Add all disposables to context
+        context.subscriptions.push(
+            webviewProviderDisposable,
+            openChatCommand,
+            statusCommand,
+            toggleBackendCommand,
+            chatProvider // Ensure proper cleanup
+        );
+
+        console.log('AI4U extension activated successfully');
+        
+        // Show welcome message on first activation
+        const isFirstActivation = context.globalState.get('ai4u.firstActivation', true);
+        if (isFirstActivation) {
+            context.globalState.update('ai4u.firstActivation', false);
+            
+            vscode.window.showInformationMessage(
+                'AI4U is now active! Open the chat panel to get started.',
+                'Open Chat'
+            ).then(selection => {
+                if (selection === 'Open Chat') {
+                    vscode.commands.executeCommand('ai4u.openChat');
+                }
+            });
+        }
+
+    } catch (error) {
+        console.error('AI4U Failed to activate extension:', error);
+        vscode.window.showErrorMessage(`AI4U activation failed: ${error}`);
+    }
+}
+
+export function deactivate() {
+    console.log('AI4U extension deactivated');
 }

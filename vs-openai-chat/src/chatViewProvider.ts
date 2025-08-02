@@ -1,23 +1,38 @@
 import * as vscode from 'vscode';
-import { OpenAI } from 'openai';
+import { OpenAIService } from './services/OpenAIService';
+import { BackendService } from './services/BackendService';
+import { ConfigManager, AI4UConfig } from './services/ConfigManager';
+import { UIManager, WebviewMessage } from './services/UIManager';
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ai4uChatView';
     private _view?: vscode.WebviewView;
-    private openai?: OpenAI;
-    private sessionId?: string;
-    private backendUrl?: string;
-    private useBackend: boolean = false;
+    
+    // Service instances
+    private openaiService: OpenAIService;
+    private backendService: BackendService;
+    private uiManager: UIManager;
+    private configManager = ConfigManager;
+    
+    // Current state
+    private currentConfig: AI4UConfig;
+    private configDisposable?: vscode.Disposable;
 
     constructor(private readonly _extensionUri: vscode.Uri) {
         console.log('AI4U ChatViewProvider constructor called');
         
-        // Check if backend is configured
-        const config = vscode.workspace.getConfiguration('ai4u');
-        this.backendUrl = config.get('backendUrl');
-        this.useBackend = config.get('useBackend', false);
+        // Initialize services
+        this.uiManager = new UIManager(_extensionUri);
+        this.openaiService = new OpenAIService();
         
-        console.log('AI4U Backend mode:', this.useBackend ? 'enabled' : 'disabled');
+        // Load configuration
+        this.currentConfig = this.configManager.getConfig();
+        this.backendService = new BackendService(this.currentConfig.backendUrl || undefined);
+        
+        // Listen for configuration changes
+        this.setupConfigurationWatcher();
+        
+        console.log('AI4U Services initialized - Mode:', this.currentConfig.useBackend ? 'backend' : 'local');
     }
 
     public resolveWebviewView(
@@ -26,6 +41,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         _token: vscode.CancellationToken,
     ) {
         this._view = webviewView;
+        this.uiManager.setWebviewView(webviewView);
 
         webviewView.webview.options = {
             enableScripts: true,
@@ -33,670 +49,268 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         };
 
         console.log('AI4U Chat view provider created');
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        webviewView.webview.html = this.uiManager.getHtmlContent();
 
         // Handle messages from the webview
-        webviewView.webview.onDidReceiveMessage(async (data) => {
-            switch (data.type) {
-                case 'sendMessage':
-                    if (this.useBackend && this.backendUrl) {
-                        await this.handleUserMessageBackend(data.message);
-                    } else {
-                        await this.handleUserMessageLocal(data.message);
-                    }
-                    break;
-                case 'setApiKey':
-                    this.initializeOpenAI(data.apiKey);
-                    break;
-                case 'toggleBackend':
-                    await this.toggleBackendMode();
-                    break;
-                case 'testConnection':
-                    await this.testBackendConnection();
-                    break;
-                case 'loadHistory':
-                    await this.loadChatHistory();
-                    break;
-                case 'clearSession':
-                    await this.clearSession();
-                    break;
-            }
+        webviewView.webview.onDidReceiveMessage(async (data: WebviewMessage) => {
+            await this.handleWebviewMessage(data);
         });
 
-        // Initialize based on configuration
-        this.initializeMode();
+        // Initialize based on current configuration
+        this.initializeServices();
     }
 
-    private async initializeMode() {
-        if (this.useBackend && this.backendUrl) {
-            await this.testBackendConnection();
-        } else {
-            // Initialize OpenAI with saved API key (original functionality)
-            const apiKey = process.env.OPENAI_API_KEY;
-            console.log('AI4U API key:', apiKey);
-            if (apiKey) {
-                this.initializeOpenAI(apiKey);
+    private setupConfigurationWatcher() {
+        this.configDisposable = this.configManager.onConfigurationChanged((config) => {
+            console.log('AI4U Configuration changed:', config);
+            this.currentConfig = config;
+            
+            // Update backend service with new URL (only if provided)
+            if (config.backendUrl) {
+                this.backendService.setBackendUrl(config.backendUrl);
             }
+            
+            // Re-initialize services
+            this.initializeServices();
+        });
+    }
+
+    private async initializeServices() {
+        if (this.currentConfig.useBackend && this.currentConfig.backendUrl) {
+            await this.initializeBackendMode();
+        } else {
+            await this.initializeLocalMode();
         }
     }
 
-    private async toggleBackendMode() {
-        this.useBackend = !this.useBackend;
+    private async initializeLocalMode() {
+        this.uiManager.updateMode('local', 'Local mode active');
         
-        // Update configuration
-        const config = vscode.workspace.getConfiguration('ai4u');
-        await config.update('useBackend', this.useBackend, vscode.ConfigurationTarget.Global);
-        
-        this._view?.webview.postMessage({
-            type: 'modeChanged',
-            mode: this.useBackend ? 'backend' : 'local',
-            backendUrl: this.backendUrl
-        });
-
-        // Re-initialize
-        await this.initializeMode();
+        // Try to initialize OpenAI with saved API key
+        const apiKey = this.configManager.getOpenAIApiKey();
+        if (apiKey) {
+            const success = this.openaiService.initialize(apiKey);
+            const status = this.openaiService.getStatus();
+            this.uiManager.updateApiKeyStatus(
+                success ? 'connected' : 'error',
+                status.message
+            );
+        } else {
+            this.uiManager.updateApiKeyStatus('disconnected', 'API Key not set');
+        }
     }
 
-    // ORIGINAL LOCAL FUNCTIONALITY (PRESERVED)
-    private initializeOpenAI(apiKey: string) {
+    private async initializeBackendMode() {
+        if (!this.currentConfig.backendUrl) {
+            await this.fallbackToLocalMode('Backend URL not configured');
+            return;
+        }
+
+        this.uiManager.updateMode('backend', 'Testing backend connection...');
+        
+        const connectionResult = await this.backendService.testConnection();
+        this.uiManager.updateConnectionStatus(
+            connectionResult.connected ? 'connected' : 'error',
+            connectionResult.message
+        );
+        
+        if (!connectionResult.connected) {
+            // Fallback to local mode if backend fails
+            await this.fallbackToLocalMode('Backend connection failed');
+        }
+    }
+
+    private async fallbackToLocalMode(reason: string) {
+        console.log('AI4U Falling back to local mode:', reason);
+        
+        // Update configuration
+        await this.configManager.updateUseBackend(false);
+        
+        // Initialize local mode
+        await this.initializeLocalMode();
+        
+        this.uiManager.updateMode('local', `Switched to local mode: ${reason}`);
+    }
+
+    private async handleWebviewMessage(data: WebviewMessage) {
         try {
-            this.openai = new OpenAI({
-                apiKey: apiKey
-            });
-            this._view?.webview.postMessage({
-                type: 'apiKeyStatus',
-                status: 'connected'
-            });
-            console.log('AI4U OpenAI initialized');
+            switch (data.type) {
+                case 'sendMessage':
+                    await this.handleUserMessage(data.message);
+                    break;
+                case 'setApiKey':
+                    await this.handleSetApiKey(data.apiKey);
+                    break;
+                case 'toggleBackend':
+                    await this.handleToggleBackend();
+                    break;
+                case 'testConnection':
+                    await this.handleTestConnection();
+                    break;
+                case 'loadHistory':
+                    await this.handleLoadHistory();
+                    break;
+                case 'clearSession':
+                    await this.handleClearSession();
+                    break;
+                default:
+                    console.warn('AI4U Unknown message type:', data.type);
+            }
         } catch (error) {
-            this._view?.webview.postMessage({
-                type: 'apiKeyStatus',
-                status: 'error',
-                message: 'Failed to initialize OpenAI'
-            });
-            console.error('AI4U Failed to initialize OpenAI:', error);
+            console.error('AI4U Error handling webview message:', error);
+            this.uiManager.showBotResponse(
+                `Error handling message: ${error}`,
+                false
+            );
+        }
+    }
+
+    private async handleUserMessage(message: string) {
+        if (!message?.trim()) {
+            return;
+        }
+
+        // Show loading state
+        this.uiManager.showBotResponse('Thinking...', true);
+
+        try {
+            if (this.currentConfig.useBackend && this.backendService.isReady()) {
+                await this.handleUserMessageBackend(message);
+            } else {
+                await this.handleUserMessageLocal(message);
+            }
+        } catch (error) {
+            console.error('AI4U Error in handleUserMessage:', error);
+            this.uiManager.showBotResponse(
+                `Unexpected error: ${error}`,
+                false
+            );
         }
     }
 
     private async handleUserMessageLocal(message: string) {
-        if (!this.openai) {
-            this._view?.webview.postMessage({
-                type: 'botResponse',
-                message: 'Please set your OpenAI API key first.',
-                isLoading: false
-            });
-            return;
-        }
-
-        try {
-            // Show loading state
-            this._view?.webview.postMessage({
-                type: 'botResponse',
-                message: 'Thinking...',
-                isLoading: true
-            });
-
-            const completion = await this.openai.chat.completions.create({
-                model: 'gpt-3.5-turbo',
-                messages: [{ role: 'user', content: message }],
-                max_tokens: 500
-            });
-
-            const response = completion.choices[0]?.message?.content || 'No response received.';
-
-            this._view?.webview.postMessage({
-                type: 'botResponse',
-                message: response,
-                isLoading: false,
-                source: 'local'
-            });
-
-        } catch (error: any) {
-            this._view?.webview.postMessage({
-                type: 'botResponse',
-                message: `Error: ${error.message}`,
-                isLoading: false
-            });
-        }
-    }
-
-    // NEW BACKEND FUNCTIONALITY
-    private async testBackendConnection() {
-        if (!this.backendUrl) {
-            this._view?.webview.postMessage({
-                type: 'connectionStatus',
-                status: 'error',
-                message: 'Backend URL not configured'
-            });
-            return;
-        }
-
-        try {
-            const fetch = await import('node-fetch');
-            const response = await fetch.default(`${this.backendUrl}/api/health`, {
-                method: 'GET',
-                timeout: 5000
-            });
-
-            if (response.ok) {
-                this._view?.webview.postMessage({
-                    type: 'connectionStatus',
-                    status: 'connected',
-                    message: 'Backend connected successfully'
-                });
-                console.log('AI4U Backend connected');
-            } else {
-                throw new Error(`HTTP ${response.status}`);
-            }
-        } catch (error) {
-            this._view?.webview.postMessage({
-                type: 'connectionStatus',
-                status: 'error',
-                message: `Backend connection failed: ${error}`
-            });
-            console.error('AI4U Backend connection failed:', error);
-            
-            // Fallback to local mode
-            this.useBackend = false;
-            this._view?.webview.postMessage({
-                type: 'modeChanged',
-                mode: 'local',
-                message: 'Switched to local mode due to backend connection failure'
-            });
-        }
+        const response = await this.openaiService.sendMessage(message);
+        
+        this.uiManager.showBotResponse(
+            response.message,
+            false,
+            response.source
+        );
     }
 
     private async handleUserMessageBackend(message: string) {
-        if (!this.backendUrl) {
-            // Fallback to local mode
+        const response = await this.backendService.sendMessage(message);
+        
+        if (response.error) {
+            // If backend fails, try fallback to local
+            console.log('AI4U Backend failed, attempting fallback to local');
             await this.handleUserMessageLocal(message);
-            return;
-        }
-
-        try {
-            const fetch = await import('node-fetch');
-            
-            // Show loading state
-            this._view?.webview.postMessage({
-                type: 'botResponse',
-                message: 'Thinking...',
-                isLoading: true
-            });
-
-            const requestBody = {
-                message: message,
-                session_id: this.sessionId,
-                user_id: 'vscode-user'
-            };
-
-            const response = await fetch.default(`${this.backendUrl}/api/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody),
-                timeout: 30000
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Backend request failed');
-            }
-
-            const data = await response.json();
-            
-            // Store session ID for future requests
-            this.sessionId = data.session_id;
-
-            this._view?.webview.postMessage({
-                type: 'botResponse',
-                message: data.response,
-                isLoading: false,
-                source: 'backend',
-                sessionId: data.session_id,
-                messageId: data.message_id
-            });
-
-        } catch (error: any) {
-            console.error('AI4U Backend error, falling back to local:', error);
-            
-            // Fallback to local mode for this message
-            this._view?.webview.postMessage({
-                type: 'botResponse',
-                message: 'Backend unavailable, switching to local mode...',
-                isLoading: true
-            });
-            
-            await this.handleUserMessageLocal(message);
+        } else {
+            this.uiManager.showBotResponse(
+                response.message,
+                false,
+                response.source,
+                response.sessionId,
+                response.messageId
+            );
         }
     }
 
-    private async loadChatHistory() {
-        if (!this.useBackend || !this.backendUrl || !this.sessionId) {
+    private async handleSetApiKey(apiKey: string) {
+        if (!apiKey?.trim()) {
+            this.uiManager.updateApiKeyStatus('error', 'API key cannot be empty');
             return;
         }
 
-        try {
-            const fetch = await import('node-fetch');
-            const response = await fetch.default(`${this.backendUrl}/api/chat/history/${this.sessionId}`, {
-                method: 'GET',
-                timeout: 10000
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                this._view?.webview.postMessage({
-                    type: 'chatHistory',
-                    messages: data.messages
-                });
-            }
-        } catch (error) {
-            console.error('AI4U Failed to load chat history:', error);
-        }
+        const success = this.openaiService.initialize(apiKey);
+        const status = this.openaiService.getStatus();
+        
+        this.uiManager.updateApiKeyStatus(
+            success ? 'connected' : 'error',
+            status.message
+        );
     }
 
-    private async clearSession() {
-        if (!this.useBackend || !this.backendUrl || !this.sessionId) {
-            // Local clear - just clear the UI
-            this._view?.webview.postMessage({
-                type: 'sessionCleared'
-            });
+    private async handleToggleBackend() {
+        const newBackendMode = !this.currentConfig.useBackend;
+        
+        // Validate configuration before switching
+        const newConfig = { ...this.currentConfig, useBackend: newBackendMode };
+        const validation = this.configManager.validateConfig(newConfig);
+        
+        if (!validation.valid) {
+            const errorMessage = validation.errors.join(', ');
+            this.uiManager.updateConnectionStatus('error', `Configuration error: ${errorMessage}`);
             return;
         }
 
-        try {
-            const fetch = await import('node-fetch');
-            const response = await fetch.default(`${this.backendUrl}/api/chat/session/${this.sessionId}`, {
-                method: 'DELETE',
-                timeout: 10000
-            });
+        // Update configuration
+        await this.configManager.updateUseBackend(newBackendMode);
+        
+        // Configuration watcher will handle the re-initialization
+    }
 
-            if (response.ok) {
-                this.sessionId = undefined;
-                this._view?.webview.postMessage({
-                    type: 'sessionCleared'
-                });
-            }
-        } catch (error) {
-            console.error('AI4U Failed to clear session:', error);
+    private async handleTestConnection() {
+        if (!this.currentConfig.backendUrl) {
+            this.uiManager.updateConnectionStatus('error', 'Backend URL not configured');
+            return;
+        }
+
+        this.uiManager.updateConnectionStatus('disconnected', 'Testing connection...');
+        
+        const result = await this.backendService.testConnection();
+        this.uiManager.updateConnectionStatus(
+            result.connected ? 'connected' : 'error',
+            result.message
+        );
+    }
+
+    private async handleLoadHistory() {
+        if (!this.currentConfig.useBackend) {
+            return;
+        }
+
+        const history = await this.backendService.loadChatHistory();
+        if (history) {
+            this.uiManager.showChatHistory(history);
         }
     }
 
-    private _getHtmlForWebview(webview: vscode.Webview) {
-        return `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>AI4U Chat</title>
-            <style>
-                body {
-                    font-family: var(--vscode-font-family);
-                    color: var(--vscode-foreground);
-                    background-color: var(--vscode-editor-background);
-                    margin: 0;
-                    padding: 10px;
-                    height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .mode-section {
-                    margin-bottom: 10px;
-                    padding: 8px;
-                    border: 1px solid var(--vscode-input-border);
-                    border-radius: 4px;
-                    background-color: var(--vscode-input-background);
-                }
-                
-                .mode-toggle {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    margin-bottom: 8px;
-                }
-                
-                .mode-indicator {
-                    font-size: 12px;
-                    font-weight: bold;
-                    padding: 2px 6px;
-                    border-radius: 3px;
-                }
-                
-                .mode-local {
-                    background-color: #2196F3;
-                    color: white;
-                }
-                
-                .mode-backend {
-                    background-color: #4CAF50;
-                    color: white;
-                }
-                
-                .api-key-section {
-                    margin-bottom: 10px;
-                    padding: 10px;
-                    border: 1px solid var(--vscode-input-border);
-                    border-radius: 4px;
-                }
-                
-                .api-key-input {
-                    width: calc(100% - 80px);
-                    padding: 5px;
-                    margin-right: 5px;
-                    background-color: var(--vscode-input-background);
-                    color: var(--vscode-input-foreground);
-                    border: 1px solid var(--vscode-input-border);
-                }
-                
-                .btn {
-                    padding: 5px 10px;
-                    background-color: var(--vscode-button-background);
-                    color: var(--vscode-button-foreground);
-                    border: none;
-                    cursor: pointer;
-                    border-radius: 3px;
-                    font-size: 11px;
-                }
-                
-                .btn:hover {
-                    background-color: var(--vscode-button-hoverBackground);
-                }
-                
-                .btn-secondary {
-                    background-color: var(--vscode-button-secondaryBackground);
-                    color: var(--vscode-button-secondaryForeground);
-                }
-                
-                .btn-secondary:hover {
-                    background-color: var(--vscode-button-secondaryHoverBackground);
-                }
-                
-                .control-buttons {
-                    display: flex;
-                    gap: 5px;
-                    flex-wrap: wrap;
-                }
-                
-                .chat-container {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                }
-                
-                .messages {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 10px;
-                    border: 1px solid var(--vscode-input-border);
-                    margin-bottom: 10px;
-                }
-                
-                .message {
-                    margin-bottom: 10px;
-                    padding: 8px;
-                    border-radius: 4px;
-                    position: relative;
-                }
-                
-                .user-message {
-                    background-color: var(--vscode-button-background);
-                    color: var(--vscode-button-foreground);
-                    text-align: right;
-                }
-                
-                .bot-message {
-                    background-color: var(--vscode-input-background);
-                    color: var(--vscode-input-foreground);
-                }
-                
-                .message-source {
-                    position: absolute;
-                    top: 2px;
-                    right: 4px;
-                    font-size: 9px;
-                    color: var(--vscode-descriptionForeground);
-                    opacity: 0.7;
-                }
-                
-                .input-container {
-                    display: flex;
-                    gap: 5px;
-                }
-                
-                .message-input {
-                    flex: 1;
-                    padding: 8px;
-                    background-color: var(--vscode-input-background);
-                    color: var(--vscode-input-foreground);
-                    border: 1px solid var(--vscode-input-border);
-                }
-                
-                .send-btn {
-                    padding: 8px 16px;
-                    background-color: var(--vscode-button-background);
-                    color: var(--vscode-button-foreground);
-                    border: none;
-                    cursor: pointer;
-                }
-                
-                .send-btn:hover {
-                    background-color: var(--vscode-button-hoverBackground);
-                }
-                
-                .send-btn:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-                
-                .status {
-                    font-size: 12px;
-                    margin-bottom: 5px;
-                }
-                
-                .status.connected {
-                    color: #4CAF50;
-                }
-                
-                .status.error {
-                    color: #f44336;
-                }
-                
-                .hidden {
-                    display: none;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="mode-section">
-                <div class="mode-toggle">
-                    <span class="mode-indicator" id="modeIndicator">LOCAL</span>
-                    <button class="btn btn-secondary" onclick="toggleBackend()">Toggle Mode</button>
-                    <button class="btn btn-secondary" onclick="testConnection()" id="testBtn">Test Backend</button>
-                </div>
-                <div class="status" id="connectionStatus">Local mode active</div>
-                <div class="control-buttons">
-                    <button class="btn btn-secondary" onclick="loadHistory()" id="historyBtn" class="hidden">Load History</button>
-                    <button class="btn btn-secondary" onclick="clearSession()">Clear Session</button>
-                </div>
-            </div>
-            
-            <div class="api-key-section" id="apiKeySection">
-                <div class="status" id="apiStatus">API Key not set</div>
-                <input type="password" class="api-key-input" id="apiKeyInput" placeholder="Enter OpenAI API Key">
-                <button class="btn" onclick="setApiKey()">Set Key</button>
-            </div>
-            
-            <div class="chat-container">
-                <div class="messages" id="messages"></div>
-                <div class="input-container">
-                    <input type="text" class="message-input" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
-                </div>
-            </div>
+    private async handleClearSession() {
+        if (this.currentConfig.useBackend) {
+            await this.backendService.clearSession();
+        }
+        
+        this.uiManager.clearSession();
+    }
 
-            <script>
-                const vscode = acquireVsCodeApi();
-                let currentMode = 'local';
-                let currentSessionId = null;
-                
-                function toggleBackend() {
-                    vscode.postMessage({ type: 'toggleBackend' });
-                }
-                
-                function testConnection() {
-                    vscode.postMessage({ type: 'testConnection' });
-                }
-                
-                function loadHistory() {
-                    vscode.postMessage({ type: 'loadHistory' });
-                }
-                
-                function clearSession() {
-                    vscode.postMessage({ type: 'clearSession' });
-                }
-                
-                function setApiKey() {
-                    const apiKey = document.getElementById('apiKeyInput').value;
-                    if (apiKey) {
-                        vscode.postMessage({
-                            type: 'setApiKey',
-                            apiKey: apiKey
-                        });
-                    }
-                }
-                
-                function sendMessage() {
-                    const input = document.getElementById('messageInput');
-                    const message = input.value.trim();
-                    
-                    if (message) {
-                        addMessage(message, 'user');
-                        input.value = '';
-                        
-                        vscode.postMessage({
-                            type: 'sendMessage',
-                            message: message
-                        });
-                        
-                        document.getElementById('sendBtn').disabled = true;
-                    }
-                }
-                
-                function handleKeyPress(event) {
-                    if (event.key === 'Enter') {
-                        sendMessage();
-                    }
-                }
-                
-                function addMessage(text, sender, source = null) {
-                    const messages = document.getElementById('messages');
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message ' + (sender === 'user' ? 'user-message' : 'bot-message');
-                    messageDiv.textContent = text;
-                    
-                    if (source && sender === 'bot') {
-                        const sourceDiv = document.createElement('div');
-                        sourceDiv.className = 'message-source';
-                        sourceDiv.textContent = source.toUpperCase();
-                        messageDiv.appendChild(sourceDiv);
-                    }
-                    
-                    messages.appendChild(messageDiv);
-                    messages.scrollTop = messages.scrollHeight;
-                }
-                
-                function updateUI(mode) {
-                    const modeIndicator = document.getElementById('modeIndicator');
-                    const apiKeySection = document.getElementById('apiKeySection');
-                    const historyBtn = document.getElementById('historyBtn');
-                    const testBtn = document.getElementById('testBtn');
-                    
-                    if (mode === 'backend') {
-                        modeIndicator.textContent = 'BACKEND';
-                        modeIndicator.className = 'mode-indicator mode-backend';
-                        apiKeySection.style.display = 'none';
-                        historyBtn.style.display = 'inline-block';
-                        testBtn.style.display = 'inline-block';
-                    } else {
-                        modeIndicator.textContent = 'LOCAL';
-                        modeIndicator.className = 'mode-indicator mode-local';
-                        apiKeySection.style.display = 'block';
-                        historyBtn.style.display = 'none';
-                        testBtn.style.display = 'none';
-                    }
-                    currentMode = mode;
-                }
-                
-                // Handle messages from the extension
-                window.addEventListener('message', event => {
-                    const message = event.data;
-                    
-                    switch (message.type) {
-                        case 'botResponse':
-                            if (message.isLoading) {
-                                addMessage(message.message, 'bot');
-                            } else {
-                                // Remove loading message and add actual response
-                                const messages = document.getElementById('messages');
-                                const lastMessage = messages.lastElementChild;
-                                if (lastMessage && lastMessage.textContent === 'Thinking...') {
-                                    messages.removeChild(lastMessage);
-                                }
-                                
-                                addMessage(message.message, 'bot', message.source);
-                                document.getElementById('sendBtn').disabled = false;
-                                
-                                if (message.sessionId) {
-                                    currentSessionId = message.sessionId;
-                                }
-                            }
-                            break;
-                            
-                        case 'apiKeyStatus':
-                            const apiStatus = document.getElementById('apiStatus');
-                            if (message.status === 'connected') {
-                                apiStatus.textContent = 'API Key connected';
-                                apiStatus.style.color = 'green';
-                            } else {
-                                apiStatus.textContent = message.message || 'API Key error';
-                                apiStatus.style.color = 'red';
-                            }
-                            break;
-                            
-                        case 'connectionStatus':
-                            const status = document.getElementById('connectionStatus');
-                            status.textContent = message.message;
-                            status.className = 'status ' + message.status;
-                            break;
-                            
-                        case 'modeChanged':
-                            updateUI(message.mode);
-                            document.getElementById('connectionStatus').textContent = 
-                                message.message || \`\${message.mode.toUpperCase()} mode active\`;
-                            break;
-                            
-                        case 'chatHistory':
-                            const messagesContainer = document.getElementById('messages');
-                            messagesContainer.innerHTML = '';
-                            
-                            message.messages.forEach(msg => {
-                                addMessage(msg.content, msg.role === 'user' ? 'user' : 'bot', 'backend');
-                            });
-                            break;
-                            
-                        case 'sessionCleared':
-                            document.getElementById('messages').innerHTML = '';
-                            currentSessionId = null;
-                            break;
-                    }
-                });
-                
-                // Initialize UI
-                updateUI('local');
-            </script>
-        </body>
-        </html>`;
+    // Public methods for external access
+    public getCurrentConfig(): AI4UConfig {
+        return { ...this.currentConfig };
+    }
+
+    public getServiceStatus(): {
+        openai: { connected: boolean; message: string };
+        backend: { connected: boolean; message: string };
+        mode: 'local' | 'backend';
+    } {
+        return {
+            openai: this.openaiService.getStatus(),
+            backend: this.backendService.getStatus(),
+            mode: this.currentConfig.useBackend ? 'backend' : 'local'
+        };
+    }
+
+    public async forceBackendConnection(): Promise<boolean> {
+        const result = await this.backendService.testConnection();
+        return result.connected;
+    }
+
+    // Cleanup
+    public dispose() {
+        if (this.configDisposable) {
+            this.configDisposable.dispose();
+        }
+        console.log('AI4U ChatViewProvider disposed');
     }
 }
