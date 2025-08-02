@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Run Extension with Project Node",
+      "runtimeExecutable": "/Users/anilkumargupta/.nvm/versions/node/v22.17.1/bin/node",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+    }
+  ],
+  "env": {
+    "OPENAI_API_KEY": ""
+  }
+}
