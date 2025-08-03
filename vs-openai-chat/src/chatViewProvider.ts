@@ -4,6 +4,9 @@ import { BackendService } from './services/BackendService';
 import { ConfigManager, AI4UConfig } from './services/ConfigManager';
 import { UIManager, WebviewMessage } from './services/UIManager';
 import { LearningGateService, LearningGateConfig } from './services/learning/LearningGateService';
+import { LOGGER } from './logger';
+import { json } from 'stream/consumers';
+
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ai4uChatView';
@@ -21,7 +24,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private configDisposable?: vscode.Disposable;
 
     constructor(private readonly _extensionUri: vscode.Uri) {
-        console.log('AI4U ChatViewProvider constructor called');
+        LOGGER('AI4U ChatViewProvider constructor called');
         
         // Initialize services
         this.uiManager = new UIManager(_extensionUri);
@@ -42,8 +45,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         
         // Listen for configuration changes
         this.setupConfigurationWatcher();
-        
-        console.log('AI4U Services initialized - Mode:', this.currentConfig.useBackend ? 'backend' : 'local');
+        LOGGER(`AI4U Services initialized - Mode: ${this.currentConfig.useBackend ? 'backend' : 'local'}`);
     }
 
     public resolveWebviewView(
@@ -52,6 +54,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         _token: vscode.CancellationToken,
     ) {
         this._view = webviewView;
+        LOGGER(`AI4U resolveWebviewView called for view ${!!this._view}`);
         this.uiManager.setWebviewView(webviewView);
 
         webviewView.webview.options = {
@@ -59,11 +62,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             localResourceRoots: [this._extensionUri]
         };
 
-        console.log('AI4U Chat view provider created');
+        LOGGER('AI4U Chat view provider created');
         webviewView.webview.html = this.uiManager.getHtmlContent();
+        LOGGER('📄 HTML content set')
 
         // Handle messages from the webview
         webviewView.webview.onDidReceiveMessage(async (data: WebviewMessage) => {
+            LOGGER(`AI4U Webview message received: ${JSON.stringify(data)}`);
             await this.handleWebviewMessage(data);
         });
 
@@ -73,7 +78,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
     private setupConfigurationWatcher() {
         this.configDisposable = this.configManager.onConfigurationChanged((config) => {
-            console.log('AI4U Configuration changed:', config);
+            LOGGER(`AI4U Configuration changed:${config}`);
             this.currentConfig = config;
             
             // Update backend service with new URL (only if provided)
@@ -132,7 +137,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     private async fallbackToLocalMode(reason: string) {
-        console.log('AI4U Falling back to local mode:', reason);
+        LOGGER(`AI4U Falling back to local mode: ${reason}`);
         
         // Update configuration
         await this.configManager.updateUseBackend(false);
@@ -165,17 +170,21 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     await this.handleClearSession();
                     break;
                 case 'submitQuizAnswer':
+                    LOGGER(`AI4U Submit quiz answer: ${data.questionId} - ${data.selectedAnswer}`);
                     await this.handleQuizAnswer(data.questionId, data.selectedAnswer);
                     break;
-                    
                 case 'skipQuiz':
                     await this.handleSkipQuiz();
                     break;
+                case 'toggleLearningGates':
+                    LOGGER(`AI4U Toggle learning gates: ${data.enabled}`);
+                    await this.toggleLearningGates(data.enabled);
+                    break;
                 default:
-                    console.warn('AI4U Unknown message type:', data.type);
+                    LOGGER(`AI4U Unknown message type: ${data.type}`, 'WARN');
             }
         } catch (error) {
-            console.error('AI4U Error handling webview message:', error);
+            LOGGER(`AI4U Error handling webview message: ${error}`, 'ERROR');
             this.uiManager.showBotResponse(
                 `Error handling message: ${error}`,
                 false
@@ -185,23 +194,27 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
     private async handleQuizAnswer(questionId: string, selectedAnswer: number) {
         try {
-            const result = this.learningGateService.submitAnswer(questionId, selectedAnswer);
-            
+            const result = this.learningGateService.submitAnswer(questionId, selectedAnswer);    
+            LOGGER(`AI4U Quiz answer submitted: ${JSON.stringify(result)}`);
+
+            // Check if webview exists
+            LOGGER(`🖥️ Webview exists: ${!!this._view?.webview}`);
             // Send result to UI
             this._view?.webview.postMessage({
                 type: 'showQuizResult',
                 result: result
             });
-
+            LOGGER('📤 showQuizResult message sent')
             // Update UI with new stats
             const stats = this.learningGateService.getStats();
             this._view?.webview.postMessage({
                 type: 'updateStats',
                 stats: stats
             });
+            LOGGER('📤 updateStats message sent')
 
         } catch (error) {
-            console.error('AI4U Error submitting quiz answer:', error);
+            LOGGER(`AI4U Error submitting quiz answer: ${error}`, 'ERROR');
             this.uiManager.showErrorMessage('Failed to submit quiz answer');
         }
     }
@@ -214,7 +227,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             explanation: 'Quiz skipped - you get 1 limited response.',
             levelUp: false
         };
-
+        LOGGER(`AI4U Quiz skipped: ${JSON.stringify(result)}`);
         this._view?.webview.postMessage({
             type: 'showQuizResult',
             result: result
@@ -241,7 +254,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         // Save to configuration
         const config = vscode.workspace.getConfiguration('ai4u');
         await config.update('learningGates.enabled', enabled, vscode.ConfigurationTarget.Global);
-        
+        LOGGER(`AI4U Learning gates toggled: {enabled: ${enabled}}`);
         this.uiManager.showNotification(
             'info', 
             `Learning Gates ${enabled ? 'enabled' : 'disabled'}`
@@ -274,7 +287,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 await this.handleUserMessageLocal(message);
             }
         } catch (error) {
-            console.error('AI4U Error in handleUserMessage:', error);
+            LOGGER(`AI4U Error in handleUserMessage: ${error}`);
             this.uiManager.showBotResponse(`Unexpected error: ${error}`, false);
         }
     }
@@ -310,7 +323,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         
         if (response.error) {
             // If backend fails, try fallback to local
-            console.log('AI4U Backend failed, attempting fallback to local');
+            LOGGER('AI4U Backend failed, attempting fallback to local');
             await this.handleUserMessageLocal(message);
         } else {
             this.uiManager.showBotResponse(
@@ -418,6 +431,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         if (this.configDisposable) {
             this.configDisposable.dispose();
         }
-        console.log('AI4U ChatViewProvider disposed');
+        LOGGER('AI4U ChatViewProvider disposed');
     }
 }

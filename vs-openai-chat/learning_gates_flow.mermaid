@@ -1,0 +1,49 @@
+graph TD
+    A[User Types Message] --> B[sendMessage JS]
+    B --> C[vscode.postMessage sendMessage]
+    C --> D[ChatViewProvider handleWebviewMessage]
+    D --> E[handleUserMessage]
+    E --> F{shouldShowGate?}
+    
+    F -->|No| G[Normal AI Processing]
+    G --> H[OpenAI/Backend Response]
+    H --> I[showBotResponse]
+    
+    F -->|Yes| J[showLearningGate]
+    J --> K[getQuizQuestion]
+    K --> L[getStats]
+    L --> M[postMessage showQuiz]
+    
+    M --> N[JS window.addEventListener showQuiz]
+    N --> O[generateQuizHTML]
+    O --> P[Display Quiz Overlay]
+    
+    P --> Q[User Clicks Option]
+    Q --> R[selectAnswer]
+    R --> S[Enable Submit Button]
+    
+    S --> T[User Clicks Submit]
+    T --> U[submitQuizAnswer]
+    U --> V[postMessage submitQuizAnswer]
+    
+    V --> W[handleQuizAnswer]
+    W --> X[learningGateService submitAnswer]
+    X --> Y[Calculate Result]
+    Y --> Z[postMessage showQuizResult]
+    
+    Z --> AA[JS showQuizResult]
+    AA --> BB[Remove Quiz Overlay]
+    BB --> CC[Show Result Alert]
+    CC --> DD[Update Response Counter]
+    
+    DD --> EE[User Sends Next Message]
+    EE --> FF{Has Unlocked Responses?}
+    FF -->|Yes| G
+    FF -->|No| J
+    
+    P --> GG[User Clicks Skip]
+    GG --> HH[skipQuiz]
+    HH --> II[postMessage skipQuiz]
+    II --> JJ[handleSkipQuiz]
+    JJ --> KK[Give 1 Response]
+    KK --> Z

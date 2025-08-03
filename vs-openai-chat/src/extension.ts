@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import { ChatViewProvider } from './chatViewProvider';
+import { LOGGER } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('AI4U extension activating...');
+    LOGGER('AI4U extension activating...');
     
     try {
         // Create chat view provider
         const chatProvider = new ChatViewProvider(context.extensionUri);
-        console.log('AI4U ChatViewProvider created successfully');
+        LOGGER('AI4U ChatViewProvider created successfully');
         
         // Register the webview view provider
         const webviewProviderDisposable = vscode.window.registerWebviewViewProvider(
@@ -67,7 +68,7 @@ Backend URL: ${config.backendUrl || 'Not configured'}`;
             chatProvider // Ensure proper cleanup
         );
 
-        console.log('AI4U extension activated successfully');
+        LOGGER('AI4U extension activated successfully');
         
         // Show welcome message on first activation
         const isFirstActivation = context.globalState.get('ai4u.firstActivation', true);
@@ -91,5 +92,5 @@ Backend URL: ${config.backendUrl || 'Not configured'}`;
 }
 
 export function deactivate() {
-    console.log('AI4U extension deactivated');
+    LOGGER('AI4U extension deactivated');
 }

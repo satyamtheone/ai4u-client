@@ -733,11 +733,12 @@ export class HTMLTemplateManager {
     }
 
     private static getJavaScript(): string {
+        console.log('Im heeeeeeeeeeeeeeee............1')
         return `
                 const vscode = acquireVsCodeApi();
                 let currentMode = 'local';
                 let currentSessionId = null;
-                
+                console.log('Im heeeeeeeeeeeeeeee.............2')
                 function toggleBackend() { vscode.postMessage({ type: 'toggleBackend' }); }
                 function testConnection() { vscode.postMessage({ type: 'testConnection' }); }
                 function loadHistory() { vscode.postMessage({ type: 'loadHistory' }); }
@@ -808,7 +809,7 @@ export class HTMLTemplateManager {
                 // Handle messages from the extension
                 window.addEventListener('message', event => {
                     const message = event.data;
-                    
+                    console.log('📨 Received message:');
                     switch (message.type) {
                         case 'botResponse':
                             if (message.isLoading) {
@@ -827,6 +828,7 @@ export class HTMLTemplateManager {
                             
                         case 'apiKeyStatus':
                             const apiStatus = document.getElementById('apiStatus');
+                            console.log('111111111111................1')
                             if (message.status === 'connected') {
                                 apiStatus.textContent = 'API Key connected';
                                 apiStatus.style.color = 'green';
@@ -837,6 +839,7 @@ export class HTMLTemplateManager {
                             break;
                             
                         case 'connectionStatus':
+                            console.log('111111111111................2')
                             const status = document.getElementById('connectionStatus');
                             status.textContent = message.message;
                             status.className = 'status ' + message.status;
@@ -866,6 +869,7 @@ export class HTMLTemplateManager {
                             break;
                             
                         case 'showQuizResult':
+                            console.log('🎯 Handling showQuizResult');
                             showQuizResult(message.result);
                             break;
                     }

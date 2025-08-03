@@ -1,3 +1,5 @@
+import { LOGGER } from "../../logger";
+
 export class QuizUIComponent {
     
     public static generateQuizHTML(question: any, stats: any): string {
@@ -43,6 +45,7 @@ export class QuizUIComponent {
     }
 
     public static generateQuizResultHTML(result: any): string {
+        LOGGER(`generateQuizResultHTML: ${JSON.stringify(result)}`);
         const isCorrect = result.correct;
         const icon = isCorrect ? '✅' : '❌';
         const title = isCorrect ? 'Correct!' : 'Incorrect';

@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-
+import { LOGGER } from '../logger';
 export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
@@ -16,7 +16,7 @@ export class OpenAIService {
     private isInitialized: boolean = false;
 
     constructor() {
-        console.log('OpenAI Service initialized');
+        LOGGER('OpenAI Service initialized');
     }
 
     public initialize(apiKey: string): boolean {
@@ -25,7 +25,7 @@ export class OpenAIService {
                 apiKey: apiKey
             });
             this.isInitialized = true;
-            console.log('OpenAI Service: API key set successfully');
+            LOGGER('OpenAI Service: API key set successfully');
             return true;
         } catch (error) {
             console.error('OpenAI Service: Failed to initialize:', error);

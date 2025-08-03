@@ -1,3 +1,4 @@
+import { LOGGER } from '../logger';
 export interface BackendChatMessage {
     role: string;
     content: string;
@@ -32,13 +33,13 @@ export class BackendService {
 
     constructor(backendUrl?: string) {
         this.backendUrl = backendUrl;
-        console.log('Backend Service initialized with URL:', backendUrl);
+        LOGGER(`Backend Service initialized with URL: ${backendUrl}`);
     }
 
     public setBackendUrl(url: string | undefined) {
         this.backendUrl = url;
         this.isConnected = false; // Reset connection status
-        console.log('Backend Service: URL updated to:', url || 'undefined');
+        LOGGER(`Backend Service: URL updated to: ${url || 'undefined'}`);
     }
 
     public getBackendUrl(): string | undefined {
@@ -60,7 +61,7 @@ export class BackendService {
             if (response.ok) {
                 this.isConnected = true;
                 const data = await response.json();
-                console.log('Backend Service: Connection successful');
+                LOGGER('Backend Service: Connection successful');
                 return { 
                     connected: true, 
                     message: `Backend connected successfully (v${data.version || 'unknown'})` 

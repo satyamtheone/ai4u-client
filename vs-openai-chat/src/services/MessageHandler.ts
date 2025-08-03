@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { LOGGER } from '../logger';
 
 export interface WebviewMessage {
     type: string;
@@ -22,7 +23,7 @@ export class MessageHandler {
     private _view?: vscode.WebviewView;
 
     constructor() {
-        console.log('MessageHandler initialized');
+        LOGGER('MessageHandler initialized');
     }
 
     public setWebviewView(view: vscode.WebviewView): void {
@@ -32,7 +33,7 @@ export class MessageHandler {
     public postMessage(message: MessageResponse): void {
         if (this._view) {
             this._view.webview.postMessage(message);
-            console.log('MessageHandler: Posted message type:', message.type);
+            LOGGER(`MessageHandler: Posted message type:${message.type}`);
         } else {
             console.warn('MessageHandler: No webview available for message:', message.type);
         }

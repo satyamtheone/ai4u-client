@@ -4,6 +4,7 @@ import { MessageHandler, WebviewMessage, MessageResponse } from './MessageHandle
 import { UIStateManager, UIState, StateChangeListener } from './UIStateManager';
 import { ThemeManager } from './ThemeManager';
 import { QuizUIComponent } from './learning/QuizUIComponent';
+import { LOGGER } from '../logger';
 
 export class UIManager {
     private messageHandler: MessageHandler;
@@ -18,10 +19,11 @@ export class UIManager {
         // Set up state change listener to automatically update UI
         this.stateManager.addStateChangeListener(this.handleStateChange.bind(this));
         
-        console.log('Modular UIManager initialized');
+        LOGGER('Modular UIManager initialized');
     }
 
     public showQuiz(question: any, stats: any): void {
+        LOGGER('UIManager: showQuiz called');
         const quizHTML = QuizUIComponent.generateQuizHTML(question, stats); // ← USE HERE
         this.messageHandler.postMessage({
             type: 'showQuiz',
@@ -30,6 +32,7 @@ export class UIManager {
     }
 
     public showQuizResult(result: any): void {
+        LOGGER('UIManager: showQuizResult called');
         const resultHTML = QuizUIComponent.generateQuizResultHTML(result); // ← USE HERE
         this.messageHandler.postMessage({
             type: 'showQuizResult', 
@@ -88,7 +91,7 @@ export class UIManager {
                 this.updateSessionId(sessionId);
             }
         }
-        
+        LOGGER('UIManager: showBotResponse called');
         this.messageHandler.sendBotResponse(message, isLoading, source, sessionId, messageId);
     }
 
@@ -158,27 +161,27 @@ export class UIManager {
     }
 
     private handleStateChange(currentState: UIState, previousState: UIState): void {
-        console.log('UIManager: State changed', {
+        LOGGER(`UIManager: State changed ${{
             current: currentState,
             previous: previousState
-        });
+        }}`);
 
         // Automatically handle certain state changes
         if (currentState.mode !== previousState.mode) {
-            console.log(`UIManager: Mode changed from ${previousState.mode} to ${currentState.mode}`);
+            LOGGER(`UIManager: Mode changed from ${previousState.mode} to ${currentState.mode}`);
         }
 
         if (currentState.connectionStatus !== previousState.connectionStatus) {
-            console.log(`UIManager: Connection status changed from ${previousState.connectionStatus} to ${currentState.connectionStatus}`);
+            LOGGER(`UIManager: Connection status changed from ${previousState.connectionStatus} to ${currentState.connectionStatus}`);
         }
 
         if (currentState.apiKeyStatus !== previousState.apiKeyStatus) {
-            console.log(`UIManager: API key status changed from ${previousState.apiKeyStatus} to ${currentState.apiKeyStatus}`);
+            LOGGER(`UIManager: API key status changed from ${previousState.apiKeyStatus} to ${currentState.apiKeyStatus}`);
         }
 
         // Auto-clear errors after successful operations
         if (previousState.lastError && !currentState.lastError) {
-            console.log('UIManager: Error cleared');
+            LOGGER('UIManager: Error cleared');
         }
     }
 
@@ -202,7 +205,7 @@ export class UIManager {
     public reset(): void {
         this.stateManager.reset();
         this.clearSession();
-        console.log('UIManager: Reset completed');
+        LOGGER('UIManager: Reset completed');
     }
 
     // === Debugging and Development ===
@@ -220,7 +223,7 @@ export class UIManager {
     public dispose(): void {
         // Clean up listeners and resources
         this.stateManager.reset();
-        console.log('UIManager: Disposed');
+        LOGGER('UIManager: Disposed');
     }
 }
 

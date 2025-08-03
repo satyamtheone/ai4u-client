@@ -1,3 +1,4 @@
+import {LOGGER} from '../../logger'
 export interface QuizQuestion {
     id: string;
     question: string;
@@ -93,7 +94,7 @@ export class LearningGateService {
         }
 
         const correct = selectedAnswer === question.correctAnswer;
-        
+        LOGGER(`AI4U User submitted answer:${correct ? ' correct' : ' incorrect'}`);
         // Update progress
         this.userProgress.totalQuestions++;
         this.userProgress.lastQuizTime = new Date();
@@ -105,6 +106,7 @@ export class LearningGateService {
             // Calculate unlocked responses based on streak
             const bonusResponses = Math.floor(this.userProgress.streak / 3);
             this.userProgress.unlockedResponses = this.config.questionsPerGate + bonusResponses;
+            LOGGER(`AI4U User unlocked responses:${this.userProgress.unlockedResponses}`);
         } else {
             this.userProgress.streak = 0;
             this.userProgress.unlockedResponses = 1; // Give at least one response
@@ -114,7 +116,7 @@ export class LearningGateService {
         const oldLevel = this.userProgress.level;
         this.userProgress.level = Math.floor(this.userProgress.correctAnswers / 10) + 1;
         const levelUp = this.userProgress.level > oldLevel;
-
+        LOGGER(`AI4U User level up:${levelUp}`);
         return {
             correct,
             explanation: question.explanation,

@@ -1,3 +1,4 @@
+import { LOGGER } from '../logger';
 export interface UIState {
     mode: 'local' | 'backend';
     connectionStatus: 'connected' | 'disconnected' | 'error' | 'warning';
@@ -23,7 +24,7 @@ export class UIStateManager {
             apiKeyStatus: 'disconnected',
             isLoading: false
         };
-        console.log('UIStateManager initialized with default state');
+        LOGGER('UIStateManager initialized with default state');
     }
 
     public getState(): UIState {
@@ -34,11 +35,11 @@ export class UIStateManager {
         const previousState = { ...this.currentState };
         this.currentState = { ...this.currentState, ...partialState };
         
-        console.log('UIStateManager: State updated', {
+        LOGGER(`UIStateManager: State updated ${{
             previous: previousState,
             current: this.currentState,
             changes: partialState
-        });
+        }}`);
 
         // Notify listeners
         this.listeners.forEach(listener => {
