@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LOGGER } from '../logger';
+import { LOGGER } from '../../logger';
 
 export interface WebviewMessage {
     type: string;

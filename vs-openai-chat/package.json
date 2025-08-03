@@ -63,6 +63,11 @@
     "configuration": {
       "title": "AI4U",
       "properties": {
+        "ai4u.learningGates.useBackend": {
+        "type": "boolean",
+        "default": false,
+        "description": "Use backend server for learning gates instead of local processing"
+      },
         "ai4u.backendUrl": {
           "type": "string",
           "default": "http://localhost:8000",

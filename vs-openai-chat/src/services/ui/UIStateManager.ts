@@ -1,4 +1,4 @@
-import { LOGGER } from '../logger';
+import { LOGGER } from '../../logger';
 export interface UIState {
     mode: 'local' | 'backend';
     connectionStatus: 'connected' | 'disconnected' | 'error' | 'warning';

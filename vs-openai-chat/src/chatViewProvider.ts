@@ -2,10 +2,9 @@ import * as vscode from 'vscode';
 import { OpenAIService } from './services/OpenAIService';
 import { BackendService } from './services/BackendService';
 import { ConfigManager, AI4UConfig } from './services/ConfigManager';
-import { UIManager, WebviewMessage } from './services/UIManager';
+import { UIManager, WebviewMessage } from './services/ui/UIManager';
 import { LearningGateService, LearningGateConfig } from './services/learning/LearningGateService';
 import { LOGGER } from './logger';
-import { json } from 'stream/consumers';
 
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
@@ -24,28 +23,32 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private configDisposable?: vscode.Disposable;
 
     constructor(private readonly _extensionUri: vscode.Uri) {
-        LOGGER('AI4U ChatViewProvider constructor called');
-        
-        // Initialize services
-        this.uiManager = new UIManager(_extensionUri);
-        this.openaiService = new OpenAIService();
-        
-        const gateConfig: LearningGateConfig = {
-            enabled: true,
-            questionsPerGate: 3,
-            gateFrequency: 1, // 🔥 CHANGE TO 1 for testing (every message)
-            difficulty: 'mixed',
-            topics: ['JavaScript', 'TypeScript', 'Python']
-        };    
-        this.learningGateService = new LearningGateService(gateConfig);
+    LOGGER('AI4U ChatViewProvider constructor called');
+    
+    // Initialize services
+    this.uiManager = new UIManager(_extensionUri);
+    this.openaiService = new OpenAIService();
+    
+    const gateConfig: LearningGateConfig = {
+        enabled: true,
+        questionsPerGate: 3,
+        gateFrequency: 1,
+        difficulty: 'mixed',
+        topics: ['JavaScript', 'TypeScript', 'Python']
+    };    
+    this.learningGateService = new LearningGateService(gateConfig);
 
-        // Load configuration
-        this.currentConfig = this.configManager.getConfig();
-        this.backendService = new BackendService(this.currentConfig.backendUrl || undefined);
-        
-        // Listen for configuration changes
-        this.setupConfigurationWatcher();
-        LOGGER(`AI4U Services initialized - Mode: ${this.currentConfig.useBackend ? 'backend' : 'local'}`);
+    // Load configuration
+    this.currentConfig = this.configManager.getConfig();
+    this.backendService = new BackendService(this.currentConfig.backendUrl || undefined);
+    
+    // NEW: Set backend learning gates based on config
+    const backendLearningGates = vscode.workspace.getConfiguration('ai4u').get('learningGates.useBackend', false);
+    this.backendService.setLearningGatesEnabled(backendLearningGates);
+    
+    // Listen for configuration changes
+    this.setupConfigurationWatcher();
+    LOGGER(`AI4U Services initialized - Mode: ${this.currentConfig.useBackend ? 'backend' : 'local'}`);
     }
 
     public resolveWebviewView(
@@ -77,19 +80,21 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     private setupConfigurationWatcher() {
-        this.configDisposable = this.configManager.onConfigurationChanged((config) => {
-            LOGGER(`AI4U Configuration changed:${config}`);
-            this.currentConfig = config;
-            
-            // Update backend service with new URL (only if provided)
-            if (config.backendUrl) {
-                this.backendService.setBackendUrl(config.backendUrl);
+        try {
+            this.configDisposable = this.configManager.onConfigurationChanged((config) => {
+                LOGGER(`AI4U Configuration changed: ${JSON.stringify(config)}`);
+                this.currentConfig = config;
+                
+                if (config.backendUrl) {
+                    this.backendService.setBackendUrl(config.backendUrl);
+                }
+                
+                this.initializeServices();
+            });
+        } catch (error) {
+                LOGGER(`Failed to setup configuration watcher: ${error}`, 'ERROR');
             }
-            
-            // Re-initialize services
-            this.initializeServices();
-        });
-    }
+        }
 
     private async initializeServices() {
         if (this.currentConfig.useBackend && this.currentConfig.backendUrl) {
@@ -130,7 +135,21 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             connectionResult.message
         );
         
-        if (!connectionResult.connected) {
+        if (connectionResult.connected) {
+            // NEW: Check backend capabilities
+            const capabilities = await this.backendService.getCapabilities();
+            if (capabilities) {
+                const supportsLearningGates = capabilities.features.includes('learning_gates');
+                LOGGER(`AI4U Backend capabilities: ${capabilities.features.join(', ')}`);
+                
+                // Enable backend learning gates if supported and configured
+                const useBackendLearningGates = vscode.workspace.getConfiguration('ai4u').get('learningGates.useBackend', false);
+                if (supportsLearningGates && useBackendLearningGates) {
+                    this.backendService.setLearningGatesEnabled(true);
+                    LOGGER('AI4U Backend learning gates enabled');
+                }
+            }
+        } else {
             // Fallback to local mode if backend fails
             await this.fallbackToLocalMode('Backend connection failed');
         }
@@ -180,6 +199,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     LOGGER(`AI4U Toggle learning gates: ${data.enabled}`);
                     await this.toggleLearningGates(data.enabled);
                     break;
+                case 'toggleBackendLearningGates':
+                    await this.handleToggleBackendLearningGates(data.enabled);
+                    break;
+
                 default:
                     LOGGER(`AI4U Unknown message type: ${data.type}`, 'WARN');
             }
@@ -192,46 +215,181 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
+    private async handleToggleBackendLearningGates(enabled: boolean) {
+        try {
+            // Update backend service
+            this.backendService.setLearningGatesEnabled(enabled);
+            
+            // Save to configuration
+            const config = vscode.workspace.getConfiguration('ai4u');
+            await config.update('learningGates.useBackend', enabled, vscode.ConfigurationTarget.Global);
+            
+            LOGGER(`AI4U Backend learning gates toggled: ${enabled}`);
+            this.uiManager.showNotification(
+                'info', 
+                `Backend Learning Gates ${enabled ? 'enabled' : 'disabled'}`
+            );
+        } catch (error) {
+            LOGGER(`AI4U Error toggling backend learning gates: ${error}`, 'ERROR');
+            this.uiManager.showErrorMessage('Failed to toggle backend learning gates');
+        }
+    }
     private async handleQuizAnswer(questionId: string, selectedAnswer: number) {
         try {
-            const result = this.learningGateService.submitAnswer(questionId, selectedAnswer);    
+            let result;
+            let statsUpdateMessage;
+            
+            // Determine where to process quiz (backend vs local)
+            const useBackendLearningGates = this.currentConfig.useBackend && 
+                                        this.backendService.isReady() && 
+                                        this.backendService.isLearningGatesEnabled();
+            
+            if (useBackendLearningGates) {
+                // Use backend for quiz processing
+                LOGGER('AI4U Processing quiz answer on backend');
+                const backendResult = await this.backendService.submitQuizAnswer(questionId, selectedAnswer);
+                
+                if (backendResult) {
+                    result = backendResult.result;
+                    statsUpdateMessage = {
+                        type: 'updateStats',
+                        stats: backendResult.updated_stats
+                    };
+                } else {
+                    throw new Error('Backend quiz submission failed, falling back to local');
+                }
+            } else {
+                // Use local learning gate service
+                LOGGER('AI4U Processing quiz answer locally');
+                result = this.learningGateService.submitAnswer(questionId, selectedAnswer);
+                
+                const stats = this.learningGateService.getStats();
+                statsUpdateMessage = {
+                    type: 'updateStats',
+                    stats: stats
+                };
+            }
+            
             LOGGER(`AI4U Quiz answer submitted: ${JSON.stringify(result)}`);
-
-            // Check if webview exists
-            LOGGER(`🖥️ Webview exists: ${!!this._view?.webview}`);
+            
             // Send result to UI
             this._view?.webview.postMessage({
                 type: 'showQuizResult',
                 result: result
             });
-            LOGGER('📤 showQuizResult message sent')
-            // Update UI with new stats
-            const stats = this.learningGateService.getStats();
-            this._view?.webview.postMessage({
-                type: 'updateStats',
-                stats: stats
-            });
-            LOGGER('📤 updateStats message sent')
-
+            
+            // Update UI with stats
+            if (statsUpdateMessage) {
+                this._view?.webview.postMessage(statsUpdateMessage);
+            }
+            
         } catch (error) {
             LOGGER(`AI4U Error submitting quiz answer: ${error}`, 'ERROR');
-            this.uiManager.showErrorMessage('Failed to submit quiz answer');
+            if (error instanceof Error) {
+                LOGGER(`AI4U Error submitting quiz answer: ${error.message}`, 'ERROR');
+                // Fallback to local processing if backend fails
+                if (error.message.includes('falling back to local')) {
+                    try {
+                        LOGGER('AI4U Falling back to local quiz processing');
+                        const result = this.learningGateService.submitAnswer(questionId, selectedAnswer);
+                        
+                        this._view?.webview.postMessage({
+                            type: 'showQuizResult',
+                            result: result
+                        });
+                        
+                        const stats = this.learningGateService.getStats();
+                        this._view?.webview.postMessage({
+                            type: 'updateStats',
+                            stats: stats
+                        });
+                    } catch (localError) {
+                        LOGGER(`AI4U Local fallback also failed: ${localError}`, 'ERROR');
+                        this.uiManager.showErrorMessage('Failed to submit quiz answer');
+                    }
+                } else {
+                    this.uiManager.showErrorMessage('Failed to submit quiz answer');
+                }
+            } else {
+                // Generic fallback for non-Error types
+                LOGGER(`AI4U Error submitting quiz answer: ${JSON.stringify(error)}`, 'ERROR');
+                this.uiManager.showErrorMessage('Failed to skip quiz');
+            }
         }
     }
 
     private async handleSkipQuiz() {
-        // Give user 1 limited response
-        const result = {
-            correct: false,
-            unlockedResponses: 1,
-            explanation: 'Quiz skipped - you get 1 limited response.',
-            levelUp: false
-        };
-        LOGGER(`AI4U Quiz skipped: ${JSON.stringify(result)}`);
-        this._view?.webview.postMessage({
-            type: 'showQuizResult',
-            result: result
-        });
+        try {
+            let result;
+            let statsUpdateMessage;
+            
+            const useBackendLearningGates = this.currentConfig.useBackend && 
+                                        this.backendService.isReady() && 
+                                        this.backendService.isLearningGatesEnabled();
+            
+            if (useBackendLearningGates) {
+                // Use backend for skip processing
+                LOGGER('AI4U Processing quiz skip on backend');
+                const backendResult = await this.backendService.skipQuiz();
+                
+                if (backendResult) {
+                    result = backendResult.result;
+                    statsUpdateMessage = {
+                        type: 'updateStats',
+                        stats: backendResult.updated_stats
+                    };
+                } else {
+                    throw new Error('Backend quiz skip failed, falling back to local');
+                }
+            } else {
+                // Local skip logic
+                LOGGER('AI4U Processing quiz skip locally');
+                result = {
+                    correct: false,
+                    unlockedResponses: 1,
+                    explanation: 'Quiz skipped - you get 1 limited response.',
+                    levelUp: false
+                };
+            }
+            
+            LOGGER(`AI4U Quiz skipped: ${JSON.stringify(result)}`);
+            
+            this._view?.webview.postMessage({
+                type: 'showQuizResult',
+                result: result
+            });
+            
+            // Update UI with stats if available
+            if (statsUpdateMessage) {
+                this._view?.webview.postMessage(statsUpdateMessage);
+            }
+            
+        } catch (error) {
+            LOGGER(`AI4U Error skipping quiz: ${error}`, 'ERROR');
+            if (error instanceof Error) {
+                LOGGER(`AI4U Error skipping quiz: ${error.message}`, 'ERROR');
+                // Fallback to local processing
+                if (error.message.includes('falling back to local')) {
+                    const result = {
+                        correct: false,
+                        unlockedResponses: 1,
+                        explanation: 'Quiz skipped - you get 1 limited response.',
+                        levelUp: false
+                    };
+                    
+                    this._view?.webview.postMessage({
+                        type: 'showQuizResult',
+                        result: result
+                    });
+                } else {
+                    this.uiManager.showErrorMessage('Failed to skip quiz');
+                }
+            } else {
+                // Generic fallback for non-Error types
+                LOGGER(`AI4U Error skipping quiz: ${JSON.stringify(error)}`, 'ERROR');
+                this.uiManager.showErrorMessage('Failed to skip quiz');
+            }
+        }
     }
 
     // Method to check learning gate status
@@ -239,14 +397,23 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         enabled: boolean;
         stats: any;
         config: any;
+        backend: boolean;
+        backendLearningGates: boolean;
     } {
         return {
             enabled: this.learningGateService.getConfig().enabled,
             stats: this.learningGateService.getStats(),
-            config: this.learningGateService.getConfig()
+            config: this.learningGateService.getConfig(),
+            backend: this.currentConfig.useBackend && this.backendService.isReady(),
+            backendLearningGates: this.backendService.isLearningGatesEnabled()
         };
     }
-
+    public async getBackendStats(): Promise<any | null> {
+        if (this.currentConfig.useBackend && this.backendService.isReady()) {
+            return await this.backendService.getUserStats();
+        }
+        return null;
+    }
     // Method to toggle learning gates
     public async toggleLearningGates(enabled: boolean) {
         this.learningGateService.updateConfig({ enabled });
@@ -266,28 +433,28 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this.learningGateService.resetProgress();
         this.uiManager.showNotification('info', 'Learning progress reset');
     }
+
     private async handleUserMessage(message: string) {
         if (!message?.trim()) {
             return;
         }
 
-        // Check if learning gate should be shown
-        if (this.learningGateService.shouldShowGate()) {
-            await this.showLearningGate();
-            return;
-        }
-
-        // Normal message processing
+        // Show loading state
         this.uiManager.showBotResponse('Thinking...', true);
 
         try {
             if (this.currentConfig.useBackend && this.backendService.isReady()) {
                 await this.handleUserMessageBackend(message);
             } else {
+                // Local mode: Check learning gate first, then process
+                if (this.learningGateService.shouldShowGate()) {
+                    await this.showLearningGate();
+                    return;
+                }
                 await this.handleUserMessageLocal(message);
             }
         } catch (error) {
-            LOGGER(`AI4U Error in handleUserMessage: ${error}`);
+            LOGGER(`AI4U Error in handleUserMessage: ${error}`, 'ERROR');
             this.uiManager.showBotResponse(`Unexpected error: ${error}`, false);
         }
     }
@@ -322,19 +489,43 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         const response = await this.backendService.sendMessage(message);
         
         if (response.error) {
-            // If backend fails, try fallback to local
+            // Fallback to local mode with learning gates
             LOGGER('AI4U Backend failed, attempting fallback to local');
+            
+            // Check local learning gate first
+            if (this.learningGateService.shouldShowGate()) {
+                await this.showLearningGate();
+                return;
+            }
+            
             await this.handleUserMessageLocal(message);
-        } else {
+            return;
+        }
+
+        // Handle learning gate from backend
+        if (response.type === 'learning_gate') {
+            LOGGER('AI4U Backend triggered learning gate');
+            
+            // Send quiz to UI
+            this._view?.webview.postMessage({
+                type: 'showQuiz',
+                question: response.question,
+                stats: response.stats
+            });
+            return;
+        }
+
+        // Handle normal chat response
+        if (response.type === 'chat_response') {
             this.uiManager.showBotResponse(
-                response.message,
+                response.response || 'No response received',
                 false,
-                response.source,
-                response.sessionId,
-                response.messageId
+                'backend',
+                response.session_id
             );
         }
     }
+
 
     private async handleSetApiKey(apiKey: string) {
         if (!apiKey?.trim()) {

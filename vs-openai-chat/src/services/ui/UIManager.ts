@@ -3,8 +3,8 @@ import { HTMLTemplateManager } from './HTMLTemplateManager';
 import { MessageHandler, WebviewMessage, MessageResponse } from './MessageHandler';
 import { UIStateManager, UIState, StateChangeListener } from './UIStateManager';
 import { ThemeManager } from './ThemeManager';
-import { QuizUIComponent } from './learning/QuizUIComponent';
-import { LOGGER } from '../logger';
+import { QuizUIComponent } from '../learning/QuizUIComponent';
+import { LOGGER } from '../../logger';
 
 export class UIManager {
     private messageHandler: MessageHandler;
