@@ -67,10 +67,6 @@ export class MessageHandler {
                     LOGGER(`AI4U Toggle learning gates: ${data.enabled}`);
                     await this.learningGatesHandler.toggleLearningGates(data.enabled);
                     break;
-                    
-                case 'toggleBackendLearningGates':
-                    await this.configCoordinator.handleToggleBackendLearningGates(data.enabled);
-                    break;
 
                 default:
                     LOGGER(`AI4U Unknown message type: ${data.type}`, 'WARN');

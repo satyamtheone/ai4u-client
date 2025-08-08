@@ -39,133 +39,93 @@ export class LearningGatesHandler {
     }
 
     /**
-     * Handle quiz answer submission - preserving original logic exactly
+     * Handle quiz answer
      */
-    /**
- * Handle quiz answer submission - Complete fixed version
- */
-public async handleQuizAnswer(questionId: string, selectedAnswer: number, config: AI4UConfig) {
-    try {
-        let result : QuizResult;
-        let statsUpdateMessage: StatsUpdateMessage;
-        
-        // Determine where to process quiz (backend vs local)
-        const useBackendLearningGates = this.modeCoordinator.shouldUseBackendLearningGates(config);
-        
-        if (useBackendLearningGates) {
-            // Use backend for quiz processing
-            LOGGER('AI4U Processing quiz answer on backend');
-            const backendResult = await this.services.backendService.submitQuizAnswer(questionId, selectedAnswer);
+    public async handleQuizAnswer(questionId: string, selectedAnswer: number, config: AI4UConfig) {
+        try {
+            let result: QuizResult;
+            let statsUpdateMessage: StatsUpdateMessage;
             
-            if (backendResult) {
-                result = backendResult.result;
-                statsUpdateMessage = {
-                    type: 'updateStats',
-                    stats: backendResult.updated_stats
-                };
-            } else {
-                throw new Error('Backend quiz submission failed, falling back to local');
-            }
-        } else {
-            // Use local learning gate service
-            LOGGER('AI4U Processing quiz answer locally');
-            result = this.services.learningGateService.submitAnswer(questionId, selectedAnswer);
+            // Process quiz answer (backend or local)
+            const useBackendLearningGates = this.modeCoordinator.shouldUseBackendLearningGates(config);
             
-            const stats = this.services.learningGateService.getStats();
-            statsUpdateMessage = {
-                type: 'updateStats',
-                stats: stats
-            };
-        }
-        
-        LOGGER(`AI4U Quiz answer submitted: ${JSON.stringify(result)}`);
-        
-       LOGGER(`AI4U About to extract properties from result`);
-
-        // ← Simple property access (no complex logic)
-        const unlockedResponses = result.unlockedResponses;
-        LOGGER(`AI4U result.correct = ${result.correct}`);
-        LOGGER(`AI4U unlockedResponses = ${unlockedResponses}`);
-        LOGGER(`AI4U pendingUserMessage = ${this.pendingUserMessage}`);
-
-        // ← Add debug before condition
-        LOGGER(`AI4U About to check if should process pending message`);
-        
-        // STEP 1: Process pending message FIRST (before UI updates that might block)
-        let messageProcessed = false;
-        if (result.correct || unlockedResponses > 0) {
-            const pendingMessage = this.pendingUserMessage;
-            this.pendingUserMessage = null; // Clear immediately to avoid reprocessing
-            
-            if (pendingMessage) {
-                LOGGER(`AI4U Processing pending message: ${pendingMessage}`);
-                try {
-                    const response = await this.services.openaiService.sendMessage(pendingMessage);
-                    LOGGER(`AI4U Got response, showing to user: ${response.message.substring(0, 50)}...`);
-                    
-                    this.services.uiManager.showBotResponse(
-                        response.message,
-                        false,
-                        response.source
-                    );
-                    messageProcessed = true;
-                    LOGGER(`AI4U Successfully processed and sent pending message`);
-                } catch (error) {
-                    LOGGER(`AI4U Error processing pending message: ${error}`, 'ERROR');
-                    this.services.uiManager.showBotResponse(
-                        `Error processing your message: ${error}`,
-                        false
-                    );
+            if (useBackendLearningGates) {
+                LOGGER('AI4U Processing quiz answer on backend');
+                const backendResult = await this.services.backendService.submitQuizAnswer(questionId, selectedAnswer);
+                
+                if (backendResult) {
+                    result = backendResult.result;
+                    statsUpdateMessage = {
+                        type: 'updateStats',
+                        stats: backendResult.updated_stats
+                    };
+                } else {
+                    throw new Error('Backend quiz submission failed, falling back to local');
                 }
             } else {
-                LOGGER('AI4U No pending message to process', 'WARN');
-            }
-        } else {
-            LOGGER(`AI4U Not processing pending message - correct: ${result.correct}, unlocked: ${unlockedResponses}`);
-        }
-        
-        // STEP 2: Update UI (using non-blocking approach)
-        LOGGER(`AI4U About to send UI updates`);
-        
-        // Use setImmediate/setTimeout to prevent blocking the main thread
-        setImmediate(() => {
-            try {
-                LOGGER(`AI4U Sending showQuizResult message`);
+                LOGGER('AI4U Processing quiz answer locally');
+                result = this.services.learningGateService.submitAnswer(questionId, selectedAnswer);
                 
-                // Send quiz result to UI
-                if (this.view?.webview) {
-                    this.view.webview.postMessage({
+                const stats = this.services.learningGateService.getStats();
+                statsUpdateMessage = {
+                    type: 'updateStats',
+                    stats: stats
+                };
+            }
+            
+            LOGGER(`AI4U Quiz answer submitted: ${JSON.stringify(result)}`);
+            
+            // Process pending message immediately (before UI updates)
+            const unlockedResponses = result.unlockedResponses;
+            if (result.correct || unlockedResponses > 0) {
+                const pendingMessage = this.pendingUserMessage;
+                this.pendingUserMessage = null;
+                
+                if (pendingMessage) {
+                    LOGGER(`AI4U Processing pending message: ${pendingMessage}`);
+                    try {
+                        const response = await this.services.openaiService.sendMessage(pendingMessage);
+                        this.services.uiManager.showBotResponse(
+                            response.message,
+                            false,
+                            response.source
+                        );
+                        LOGGER(`AI4U Successfully processed pending message`);
+                    } catch (error) {
+                        LOGGER(`AI4U Error processing pending message: ${error}`, 'ERROR');
+                        this.services.uiManager.showBotResponse(
+                            `Error processing your message: ${error}`,
+                            false
+                        );
+                    }
+                } else {
+                    LOGGER('AI4U No pending message to process', 'WARN');
+                }
+            }
+            
+            // Update UI (non-blocking)
+            setImmediate(() => {
+                try {
+                    this.view?.webview.postMessage({
                         type: 'showQuizResult',
                         result: result
                     });
-                    LOGGER(`AI4U Quiz result message sent successfully`);
-                } else {
-                    LOGGER(`AI4U Cannot send quiz result - webview not available`, 'ERROR');
-                }
-                
-                // Send stats update to UI
-                if (statsUpdateMessage) {
-                    if (this.view?.webview) {
-                        this.view.webview.postMessage(statsUpdateMessage);
-                        LOGGER(`AI4U Stats update message sent successfully`);
-                        console.log(`statsUpdateMessage = ${JSON.stringify(statsUpdateMessage)}`);
-                    } else {
-                        LOGGER(`AI4U Cannot send stats update - webview not available`, 'ERROR');
+                    
+                    if (statsUpdateMessage) {
+                        this.view?.webview.postMessage(statsUpdateMessage);
                     }
+                    
+                    LOGGER(`AI4U UI updates sent successfully`);
+                } catch (uiError) {
+                    LOGGER(`AI4U Error sending UI updates: ${uiError}`, 'ERROR');
                 }
-                
-            } catch (uiError) {
-                LOGGER(`AI4U Error sending UI updates: ${uiError}`, 'ERROR');
-            }
-        });
-        
-        LOGGER(`AI4U handleQuizAnswer completed - message processed: ${messageProcessed}`);
-        
-    } catch (error) {
-        LOGGER(`AI4U Error in handleQuizAnswer: ${error}`, 'ERROR');
-        this.handleQuizError(error, questionId, selectedAnswer, 'submit');
+            });
+            
+        } catch (error) {
+            LOGGER(`AI4U Error in handleQuizAnswer: ${error}`, 'ERROR');
+            this.handleQuizError(error, questionId, selectedAnswer, 'submit');
+        }
     }
-}
 
     /**
      * Handle quiz skip - preserving original logic exactly

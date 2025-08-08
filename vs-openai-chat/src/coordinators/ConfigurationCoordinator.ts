@@ -126,29 +126,6 @@ export class ConfigurationCoordinator {
     }
 
     /**
-     * Handle backend learning gates toggle
-     */
-    public async handleToggleBackendLearningGates(enabled: boolean) {
-        try {
-            // Update backend service
-            this.services.backendService.setLearningGatesEnabled(enabled);
-            
-            // Save to configuration
-            const config = vscode.workspace.getConfiguration('ai4u');
-            await config.update('learningGates.useBackend', enabled, vscode.ConfigurationTarget.Global);
-            
-            LOGGER(`AI4U Backend learning gates toggled: ${enabled}`);
-            this.services.uiManager.showNotification(
-                'info', 
-                `Backend Learning Gates ${enabled ? 'enabled' : 'disabled'}`
-            );
-        } catch (error) {
-            LOGGER(`AI4U Error toggling backend learning gates: ${error}`, 'ERROR');
-            this.services.uiManager.showErrorMessage('Failed to toggle backend learning gates');
-        }
-    }
-
-    /**
      * Cleanup resources
      */
     public dispose() {

@@ -28,41 +28,35 @@ export class UserMessageHandler {
     }
 
     /**
-     * Handle user message - preserving original logic exactly
+     * Handle user message
      */
     public async handleUserMessage(message: string) {
-        if (!message?.trim()) {
-            return;
-        }
+        if (!message?.trim()) return;
 
-        // Show loading state
         this.services.uiManager.showBotResponse('Thinking...', true);
         LOGGER(`AI4U User message received: ${message}`);
-        
+
         try {
             const config = this.configCoordinator.getCurrentConfig();
-            
-            // ← DEBUG: Add detailed logging
-            LOGGER(`AI4U Config: useBackend=${config.useBackend}, backend ready=${this.services.backendService?.isReady()}`);
-            
-            if (config.useBackend && this.services.backendService.isReady()) {
-                LOGGER('AI4U Using backend mode');
+            const useBackend = config.useBackend && this.services.backendService?.isReady();
+
+            LOGGER(`AI4U Mode: ${useBackend ? 'Backend' : 'Local'}`);
+
+            const shouldShowGate = this.learningGatesHandler.shouldShowGate();
+            LOGGER(`AI4U Should show learning gate: ${shouldShowGate}`);
+
+            if (shouldShowGate) {
+                LOGGER('AI4U Showing learning gate');
+                await this.learningGatesHandler.showLearningGate(message);
+                return;
+            }
+
+            if (useBackend) {
                 await this.handleUserMessageBackend(message, config);
             } else {
-                LOGGER('AI4U Using local mode');
-                // Local mode: Check learning gate first, then process
-                const shouldShowGate = this.learningGatesHandler.shouldShowGate();
-                LOGGER(`AI4U Should show gate: ${shouldShowGate}`);
-                
-                if (shouldShowGate) {
-                    LOGGER('AI4U Showing learning gate');
-                    await this.learningGatesHandler.showLearningGate(message);
-                    return;
-                }
-                
-                LOGGER('AI4U Processing message directly (no gate)');
                 await this.handleUserMessageLocal(message);
             }
+
         } catch (error) {
             LOGGER(`AI4U Error in handleUserMessage: ${error}`, 'ERROR');
             this.services.uiManager.showBotResponse(`Unexpected error: ${error}`, false);
