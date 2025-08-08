@@ -48,7 +48,7 @@ export interface QuizResult {
     result: {
         correct: boolean;
         explanation?: string;
-        unlocked_responses: number;
+        unlockedResponses: number;
         level_up: boolean;
         new_level?: number;
     };

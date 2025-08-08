@@ -1,4 +1,4 @@
-// src/handlers/UserMessageHandler.ts
+// src/handlers/UserMessageHandler.ts - Debug version
 import * as vscode from 'vscode';
 import { ServiceCoordinator } from '../coordinators/ServiceCoordinator';
 import { ConfigurationCoordinator } from '../coordinators/ConfigurationCoordinator';
@@ -37,18 +37,30 @@ export class UserMessageHandler {
 
         // Show loading state
         this.services.uiManager.showBotResponse('Thinking...', true);
-
+        LOGGER(`AI4U User message received: ${message}`);
+        
         try {
             const config = this.configCoordinator.getCurrentConfig();
             
+            // ← DEBUG: Add detailed logging
+            LOGGER(`AI4U Config: useBackend=${config.useBackend}, backend ready=${this.services.backendService?.isReady()}`);
+            
             if (config.useBackend && this.services.backendService.isReady()) {
+                LOGGER('AI4U Using backend mode');
                 await this.handleUserMessageBackend(message, config);
             } else {
+                LOGGER('AI4U Using local mode');
                 // Local mode: Check learning gate first, then process
-                if (this.learningGatesHandler.shouldShowGate()) {
-                    await this.learningGatesHandler.showLearningGate();
+                const shouldShowGate = this.learningGatesHandler.shouldShowGate();
+                LOGGER(`AI4U Should show gate: ${shouldShowGate}`);
+                
+                if (shouldShowGate) {
+                    LOGGER('AI4U Showing learning gate');
+                    await this.learningGatesHandler.showLearningGate(message);
                     return;
                 }
+                
+                LOGGER('AI4U Processing message directly (no gate)');
                 await this.handleUserMessageLocal(message);
             }
         } catch (error) {
@@ -61,13 +73,24 @@ export class UserMessageHandler {
      * Handle user message in local mode - preserving original logic
      */
     private async handleUserMessageLocal(message: string) {
-        const response = await this.services.openaiService.sendMessage(message);
+        LOGGER(`AI4U Processing local message: ${message}`);
         
-        this.services.uiManager.showBotResponse(
-            response.message,
-            false,
-            response.source
-        );
+        try {
+            const response = await this.services.openaiService.sendMessage(message);
+            LOGGER(`AI4U Got OpenAI response, showing to user`);
+            
+            this.services.uiManager.showBotResponse(
+                response.message,
+                false,
+                response.source
+            );
+        } catch (error) {
+            LOGGER(`AI4U Error in local processing: ${error}`, 'ERROR');
+            this.services.uiManager.showBotResponse(
+                `Error processing message: ${error}`,
+                false
+            );
+        }
     }
 
     /**
@@ -82,7 +105,7 @@ export class UserMessageHandler {
             
             // Check local learning gate first
             if (this.learningGatesHandler.shouldShowGate()) {
-                await this.learningGatesHandler.showLearningGate();
+                await this.learningGatesHandler.showLearningGate(message);
                 return;
             }
             

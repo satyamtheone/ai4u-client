@@ -4,6 +4,7 @@ import { OpenAIService } from '../services/OpenAIService';
 import { BackendService } from '../services/BackendService';
 import { ConfigManager, AI4UConfig } from '../services/ConfigManager';
 import { UIManager } from '../services/ui/UIManager';
+import { UserMessageHandler } from '../handlers/UserMessageHandler';
 import { LearningGateService, LearningGateConfig } from '../services/learning/LearningGateService';
 import { LOGGER } from '../logger';
 
@@ -17,6 +18,7 @@ export class ServiceCoordinator {
     public uiManager!: UIManager;
     public configManager = ConfigManager; // Keep as-is to maintain compatibility
     public learningGateService!: LearningGateService;
+    public userMessageHandler = UserMessageHandler;
 
     constructor(extensionUri: vscode.Uri) {
         this.initializeServices(extensionUri);

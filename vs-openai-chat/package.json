@@ -1,12 +1,13 @@
 {
   "name": "ai4u",
   "displayName": "AI4U",
+  "publisher": "Anil Kumar Gupta",
   "description": "AI4U - Your personal AI assistant with Learning Gates in VS Code",
   "version": "0.0.3",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other", "Education"],
+  "categories": ["AI", "Chat", "Education"],
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {

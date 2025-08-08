@@ -5,12 +5,26 @@ import { ServiceCoordinator } from '../coordinators/ServiceCoordinator';
 import { ModeCoordinator } from '../coordinators/ModeCoordinator';
 import { LOGGER } from '../logger';
 
+interface QuizResult {
+    correct: boolean;
+    explanation?: string;
+    unlockedResponses: number;
+    levelUp?: boolean;
+    level_up?: boolean;
+}
+
+interface StatsUpdateMessage {
+    type: 'updateStats';
+    stats: any;
+}
+
 /**
  * LearningGatesHandler manages all learning gates functionality
  * Preserves all original learning gates logic
  */
 export class LearningGatesHandler {
     private view?: vscode.WebviewView;
+    private pendingUserMessage: string | null = null; // ← FIX: Properly initialize
 
     constructor(
         private services: ServiceCoordinator,
@@ -27,57 +41,131 @@ export class LearningGatesHandler {
     /**
      * Handle quiz answer submission - preserving original logic exactly
      */
-    public async handleQuizAnswer(questionId: string, selectedAnswer: number, config: AI4UConfig) {
-        try {
-            let result;
-            let statsUpdateMessage;
+    /**
+ * Handle quiz answer submission - Complete fixed version
+ */
+public async handleQuizAnswer(questionId: string, selectedAnswer: number, config: AI4UConfig) {
+    try {
+        let result : QuizResult;
+        let statsUpdateMessage: StatsUpdateMessage;
+        
+        // Determine where to process quiz (backend vs local)
+        const useBackendLearningGates = this.modeCoordinator.shouldUseBackendLearningGates(config);
+        
+        if (useBackendLearningGates) {
+            // Use backend for quiz processing
+            LOGGER('AI4U Processing quiz answer on backend');
+            const backendResult = await this.services.backendService.submitQuizAnswer(questionId, selectedAnswer);
             
-            // Determine where to process quiz (backend vs local) - original logic
-            const useBackendLearningGates = this.modeCoordinator.shouldUseBackendLearningGates(config);
-            
-            if (useBackendLearningGates) {
-                // Use backend for quiz processing
-                LOGGER('AI4U Processing quiz answer on backend');
-                const backendResult = await this.services.backendService.submitQuizAnswer(questionId, selectedAnswer);
-                
-                if (backendResult) {
-                    result = backendResult.result;
-                    statsUpdateMessage = {
-                        type: 'updateStats',
-                        stats: backendResult.updated_stats
-                    };
-                } else {
-                    throw new Error('Backend quiz submission failed, falling back to local');
-                }
-            } else {
-                // Use local learning gate service
-                LOGGER('AI4U Processing quiz answer locally');
-                result = this.services.learningGateService.submitAnswer(questionId, selectedAnswer);
-                
-                const stats = this.services.learningGateService.getStats();
+            if (backendResult) {
+                result = backendResult.result;
                 statsUpdateMessage = {
                     type: 'updateStats',
-                    stats: stats
+                    stats: backendResult.updated_stats
                 };
+            } else {
+                throw new Error('Backend quiz submission failed, falling back to local');
             }
+        } else {
+            // Use local learning gate service
+            LOGGER('AI4U Processing quiz answer locally');
+            result = this.services.learningGateService.submitAnswer(questionId, selectedAnswer);
             
-            LOGGER(`AI4U Quiz answer submitted: ${JSON.stringify(result)}`);
-            
-            // Send result to UI
-            this.view?.webview.postMessage({
-                type: 'showQuizResult',
-                result: result
-            });
-            
-            // Update UI with stats
-            if (statsUpdateMessage) {
-                this.view?.webview.postMessage(statsUpdateMessage);
-            }
-            
-        } catch (error) {
-            this.handleQuizError(error, questionId, selectedAnswer, 'submit');
+            const stats = this.services.learningGateService.getStats();
+            statsUpdateMessage = {
+                type: 'updateStats',
+                stats: stats
+            };
         }
+        
+        LOGGER(`AI4U Quiz answer submitted: ${JSON.stringify(result)}`);
+        
+       LOGGER(`AI4U About to extract properties from result`);
+
+        // ← Simple property access (no complex logic)
+        const unlockedResponses = result.unlockedResponses;
+        LOGGER(`AI4U result.correct = ${result.correct}`);
+        LOGGER(`AI4U unlockedResponses = ${unlockedResponses}`);
+        LOGGER(`AI4U pendingUserMessage = ${this.pendingUserMessage}`);
+
+        // ← Add debug before condition
+        LOGGER(`AI4U About to check if should process pending message`);
+        
+        // STEP 1: Process pending message FIRST (before UI updates that might block)
+        let messageProcessed = false;
+        if (result.correct || unlockedResponses > 0) {
+            const pendingMessage = this.pendingUserMessage;
+            this.pendingUserMessage = null; // Clear immediately to avoid reprocessing
+            
+            if (pendingMessage) {
+                LOGGER(`AI4U Processing pending message: ${pendingMessage}`);
+                try {
+                    const response = await this.services.openaiService.sendMessage(pendingMessage);
+                    LOGGER(`AI4U Got response, showing to user: ${response.message.substring(0, 50)}...`);
+                    
+                    this.services.uiManager.showBotResponse(
+                        response.message,
+                        false,
+                        response.source
+                    );
+                    messageProcessed = true;
+                    LOGGER(`AI4U Successfully processed and sent pending message`);
+                } catch (error) {
+                    LOGGER(`AI4U Error processing pending message: ${error}`, 'ERROR');
+                    this.services.uiManager.showBotResponse(
+                        `Error processing your message: ${error}`,
+                        false
+                    );
+                }
+            } else {
+                LOGGER('AI4U No pending message to process', 'WARN');
+            }
+        } else {
+            LOGGER(`AI4U Not processing pending message - correct: ${result.correct}, unlocked: ${unlockedResponses}`);
+        }
+        
+        // STEP 2: Update UI (using non-blocking approach)
+        LOGGER(`AI4U About to send UI updates`);
+        
+        // Use setImmediate/setTimeout to prevent blocking the main thread
+        setImmediate(() => {
+            try {
+                LOGGER(`AI4U Sending showQuizResult message`);
+                
+                // Send quiz result to UI
+                if (this.view?.webview) {
+                    this.view.webview.postMessage({
+                        type: 'showQuizResult',
+                        result: result
+                    });
+                    LOGGER(`AI4U Quiz result message sent successfully`);
+                } else {
+                    LOGGER(`AI4U Cannot send quiz result - webview not available`, 'ERROR');
+                }
+                
+                // Send stats update to UI
+                if (statsUpdateMessage) {
+                    if (this.view?.webview) {
+                        this.view.webview.postMessage(statsUpdateMessage);
+                        LOGGER(`AI4U Stats update message sent successfully`);
+                        console.log(`statsUpdateMessage = ${JSON.stringify(statsUpdateMessage)}`);
+                    } else {
+                        LOGGER(`AI4U Cannot send stats update - webview not available`, 'ERROR');
+                    }
+                }
+                
+            } catch (uiError) {
+                LOGGER(`AI4U Error sending UI updates: ${uiError}`, 'ERROR');
+            }
+        });
+        
+        LOGGER(`AI4U handleQuizAnswer completed - message processed: ${messageProcessed}`);
+        
+    } catch (error) {
+        LOGGER(`AI4U Error in handleQuizAnswer: ${error}`, 'ERROR');
+        this.handleQuizError(error, questionId, selectedAnswer, 'submit');
     }
+}
 
     /**
      * Handle quiz skip - preserving original logic exactly
@@ -125,6 +213,28 @@ export class LearningGatesHandler {
             if (statsUpdateMessage) {
                 this.view?.webview.postMessage(statsUpdateMessage);
             }
+
+            // ← FIX: Process pending message after skip as well
+            const pendingMessage = this.pendingUserMessage;
+            this.pendingUserMessage = null;
+            
+            if (pendingMessage) {
+                LOGGER(`AI4U Processing pending message after skip: ${pendingMessage}`);
+                try {
+                    const response = await this.services.openaiService.sendMessage(pendingMessage);
+                    this.services.uiManager.showBotResponse(
+                        response.message,
+                        false,
+                        response.source
+                    );
+                } catch (error) {
+                    LOGGER(`AI4U Error processing pending message after skip: ${error}`, 'ERROR');
+                    this.services.uiManager.showBotResponse(
+                        `Error processing your message: ${error}`,
+                        false
+                    );
+                }
+            }
             
         } catch (error) {
             this.handleQuizError(error, '', 0, 'skip');
@@ -166,6 +276,23 @@ export class LearningGatesHandler {
                         type: 'showQuizResult',
                         result: result
                     });
+
+                    // ← FIX: Process pending message in error fallback too
+                    const pendingMessage = this.pendingUserMessage;
+                    this.pendingUserMessage = null;
+                    
+                    if (pendingMessage) {
+                        LOGGER(`AI4U Processing pending message in fallback: ${pendingMessage}`);
+                        this.services.openaiService.sendMessage(pendingMessage).then(response => {
+                            this.services.uiManager.showBotResponse(
+                                response.message,
+                                false,
+                                response.source
+                            );
+                        }).catch(err => {
+                            LOGGER(`AI4U Error in fallback message processing: ${err}`, 'ERROR');
+                        });
+                    }
                 } catch (localError) {
                     LOGGER(`AI4U Local fallback also failed: ${localError}`, 'ERROR');
                     this.services.uiManager.showErrorMessage(`Failed to ${action} quiz answer`);
@@ -204,17 +331,22 @@ export class LearningGatesHandler {
 
     /**
      * Show learning gate - preserving original logic
+     * ← FIX: Make sure to properly store the pending message
      */
-    public async showLearningGate(): Promise<boolean> {
+    public async showLearningGate(userMessage?: string): Promise<boolean> {
         const question = this.services.learningGateService.getQuizQuestion();
         if (!question) {
-            // No questions available, allow normal response
             return false;
+        }
+
+        // Store the user message to process after gate completion
+        if (userMessage) {
+            this.pendingUserMessage = userMessage;
+            LOGGER(`AI4U Storing pending message: ${userMessage}`);
         }
 
         const stats = this.services.learningGateService.getStats();
         
-        // Send quiz to UI
         this.view?.webview.postMessage({
             type: 'showQuiz',
             question: question,
@@ -256,5 +388,6 @@ export class LearningGatesHandler {
      */
     public resetLearningProgress() {
         this.services.resetLearningProgress();
+        this.pendingUserMessage = null; // ← FIX: Clear pending message on reset
     }
 }

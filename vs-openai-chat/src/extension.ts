@@ -34,10 +34,10 @@ export function activate(context: vscode.ExtensionContext) {
             const config = chatProvider.getCurrentConfig();
             
             const statusMessage = `AI4U Status:
-Mode: ${status.mode.toUpperCase()}
-OpenAI: ${status.openai.connected ? '✅' : '❌'} ${status.openai.message}
-Backend: ${status.backend.connected ? '✅' : '❌'} ${status.backend.message}
-Backend URL: ${config.backendUrl || 'Not configured'}`;
+            Mode: ${status.mode.toUpperCase()}
+            OpenAI: ${status.openai.connected ? '✅' : '❌'} ${status.openai.message}
+            Backend: ${status.backend.connected ? '✅' : '❌'} ${status.backend.message}
+            Backend URL: ${config.backendUrl || 'Not configured'}`;
 
             vscode.window.showInformationMessage(statusMessage, { modal: false });
         });

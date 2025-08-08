@@ -53,9 +53,9 @@ export class OpenAIService {
                 messages: [{ role: 'user', content: message }],
                 max_tokens: 500
             });
-
+            LOGGER(`OpenAI Service: Chat completion response: ${JSON.stringify(completion)}`);
             const response = completion.choices[0]?.message?.content || 'No response received.';
-
+            LOGGER(`OpenAI Service: Chat completion response: ${response}`);
             return {
                 message: response,
                 source: 'local'

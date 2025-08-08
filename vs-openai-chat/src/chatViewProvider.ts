@@ -1,4 +1,3 @@
-// src/chatViewProvider.ts - Main Orchestrator (Simplified)
 import * as vscode from 'vscode';
 import { ServiceCoordinator } from './coordinators/ServiceCoordinator';
 import { ConfigurationCoordinator } from './coordinators/ConfigurationCoordinator';
@@ -10,11 +9,7 @@ import { WebviewMessage } from './services/ui/UIManager';
 import { AI4UConfig, ServiceStatus, LearningGateStatus } from './types/ChatViewTypes';
 import { LOGGER } from './logger';
 
-/**
- * ChatViewProvider - Main Orchestrator
- * Simplified to focus on coordination between modules
- * All original functionality preserved through modular components
- */
+
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ai4uChatView';
     private _view?: vscode.WebviewView;
@@ -70,9 +65,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this.modeCoordinator.initializeServices(currentConfig);
     }
 
-    /**
-     * Resolve webview view - preserving original logic
-     */
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
         context: vscode.WebviewViewResolveContext,
@@ -102,20 +94,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         });
     }
 
-    // =============================================================================
-    // PUBLIC API METHODS - Preserving original method signatures for compatibility
-    // =============================================================================
 
-    /**
-     * Get current configuration - preserving original method signature
-     */
     public getCurrentConfig(): AI4UConfig {
         return this.configurationCoordinator.getCurrentConfig();
     }
 
-    /**
-     * Get service status - preserving original method signature
-     */
+    
     public getServiceStatus(): ServiceStatus {
         const config = this.configurationCoordinator.getCurrentConfig();
         return {
@@ -126,44 +110,31 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         };
     }
 
-    /**
-     * Get learning gate status - preserving original method signature
-     */
+ 
     public getLearningGateStatus(): LearningGateStatus {
         return this.learningGatesHandler.getLearningGateStatus();
     }
 
-    /**
-     * Get backend stats - preserving original method signature
-     */
     public async getBackendStats(): Promise<any | null> {
         return await this.learningGatesHandler.getBackendStats();
     }
 
-    /**
-     * Toggle learning gates - preserving original method signature
-     */
+    
     public async toggleLearningGates(enabled: boolean) {
         await this.learningGatesHandler.toggleLearningGates(enabled);
     }
 
-    /**
-     * Reset learning progress - preserving original method signature
-     */
+   
     public resetLearningProgress() {
         this.learningGatesHandler.resetLearningProgress();
     }
 
-    /**
-     * Force backend connection - preserving original method signature
-     */
+   
     public async forceBackendConnection(): Promise<boolean> {
         return await this.serviceCoordinator.forceBackendConnection();
     }
 
-    /**
-     * Cleanup - preserving original cleanup logic
-     */
+    
     public dispose() {
         this.configurationCoordinator.dispose();
         LOGGER('AI4U ChatViewProvider disposed');
