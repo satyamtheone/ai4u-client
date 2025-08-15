@@ -103,9 +103,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     public getServiceStatus(): ServiceStatus {
         const config = this.configurationCoordinator.getCurrentConfig();
         return {
-            openai: this.serviceCoordinator.openaiService.getStatus(),
+            openai: { connected: false, message: 'Not used in backend mode' },
             backend: this.serviceCoordinator.backendService?.getStatus() || { connected: false, message: 'Not initialized' },
-            mode: this.modeCoordinator.getCurrentMode(config),
+            mode: 'backend',
             learningGates: this.serviceCoordinator.getServiceStatus().learningGates
         };
     }

@@ -15,31 +15,7 @@ export class ModeCoordinator {
      * Initialize services based on configuration - preserving original logic
      */
     public async initializeServices(config: AI4UConfig) {
-        if (config.useBackend && config.backendUrl) {
-            await this.initializeBackendMode(config);
-        } else {
-            await this.initializeLocalMode();
-        }
-    }
-
-    /**
-     * Initialize local mode - exactly as in original
-     */
-    private async initializeLocalMode() {
-        this.services.uiManager.updateMode('local', 'Local mode active');
-        
-        // Try to initialize OpenAI with saved API key (preserving original logic)
-        const apiKey = this.services.configManager.getOpenAIApiKey();
-        if (apiKey) {
-            const success = this.services.openaiService.initialize(apiKey);
-            const status = this.services.openaiService.getStatus();
-            this.services.uiManager.updateApiKeyStatus(
-                success ? 'connected' : 'error',
-                status.message
-            );
-        } else {
-            this.services.uiManager.updateApiKeyStatus('disconnected', 'API Key not set');
-        }
+        await this.initializeBackendMode(config);
     }
 
     /**
@@ -47,8 +23,7 @@ export class ModeCoordinator {
      */
     private async initializeBackendMode(config: AI4UConfig) {
         if (!config.backendUrl) {
-            await this.fallbackToLocalMode('Backend URL not configured');
-            return;
+            throw new Error('Backend URL is required');
         }
 
         this.services.uiManager.updateMode('backend', 'Testing backend connection...');
@@ -74,39 +49,7 @@ export class ModeCoordinator {
                 }
             }
         } else {
-            // Fallback to local mode if backend fails
-            await this.fallbackToLocalMode('Backend connection failed');
+            throw new Error('Backend connection failed');
         }
-    }
-
-    /**
-     * Fallback to local mode - preserving original logic
-     */
-    private async fallbackToLocalMode(reason: string) {
-        LOGGER(`AI4U Falling back to local mode: ${reason}`);
-        
-        // Update configuration
-        await this.services.configManager.updateUseBackend(false);
-        
-        // Initialize local mode
-        await this.initializeLocalMode();
-        
-        this.services.uiManager.updateMode('local', `Switched to local mode: ${reason}`);
-    }
-
-    /**
-     * Check if should use backend for learning gates
-     */
-    public shouldUseBackendLearningGates(config: AI4UConfig): boolean {
-        return config.useBackend && 
-               this.services.backendService?.isReady() && 
-               this.services.backendService?.isLearningGatesEnabled();
-    }
-
-    /**
-     * Get current mode
-     */
-    public getCurrentMode(config: AI4UConfig): 'local' | 'backend' {
-        return config.useBackend ? 'backend' : 'local';
     }
 }

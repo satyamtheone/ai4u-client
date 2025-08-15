@@ -59,10 +59,6 @@ export class UIStateManager {
         this.updateState({ connectionStatus: status });
     }
 
-    public setApiKeyStatus(status: 'connected' | 'disconnected' | 'error'): void {
-        this.updateState({ apiKeyStatus: status });
-    }
-
     public setSessionId(sessionId: string | undefined): void {
         this.updateState({ sessionId });
     }

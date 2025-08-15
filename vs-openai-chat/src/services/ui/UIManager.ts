@@ -64,11 +64,6 @@ export class UIManager {
         this.messageHandler.sendConnectionStatus(status, message);
     }
 
-    public updateApiKeyStatus(status: 'connected' | 'disconnected' | 'error', message?: string): void {
-        this.stateManager.setApiKeyStatus(status);
-        this.messageHandler.sendApiKeyStatus(status, message);
-    }
-
     public updateSessionId(sessionId: string | undefined): void {
         this.stateManager.setSessionId(sessionId);
     }

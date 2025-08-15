@@ -27,12 +27,15 @@ export class ConfigurationCoordinator {
     private loadConfiguration() {
         try {
             this.currentConfig = this.services.configManager.getConfig();
+            if (!this.currentConfig.backendUrl) {
+                this.currentConfig.backendUrl = 'http://localhost:8000';
+            }
             this.services.initializeBackendService(this.currentConfig);
-            LOGGER(`AI4U ConfigurationCoordinator: Config loaded - Mode: ${this.currentConfig.useBackend ? 'backend' : 'local'}`);
+            LOGGER(`AI4U ConfigurationCoordinator: Config loaded - Backend URL: ${this.currentConfig.backendUrl}`);
         } catch (error) {
             LOGGER(`AI4U ConfigurationCoordinator: Error loading config: ${error}`, 'ERROR');
-            // Fallback configuration (preserving original fallback logic)
-            this.currentConfig = { useBackend: false, backendUrl: 'http://localhost:8000', timeout: 300 };
+            // Fallback configuration
+            this.currentConfig = { backendUrl: 'http://localhost:8000', timeout: 300 };
             this.services.initializeBackendService(this.currentConfig);
         }
     }
@@ -65,13 +68,6 @@ export class ConfigurationCoordinator {
     }
 
     /**
-     * Update backend mode setting
-     */
-    public async updateUseBackend(useBackend: boolean) {
-        await this.services.configManager.updateUseBackend(useBackend);
-    }
-
-    /**
      * Validate configuration
      */
     public validateConfig(config: AI4UConfig) {
@@ -83,28 +79,6 @@ export class ConfigurationCoordinator {
      */
     public getOpenAIApiKey(): string | undefined {
         return this.services.configManager.getOpenAIApiKey();
-    }
-
-    /**
-     * Handle backend toggle - preserving original logic
-     */
-    public async handleToggleBackend() {
-        const newBackendMode = !this.currentConfig.useBackend;
-        
-        // Validate configuration before switching (preserving original validation)
-        const newConfig = { ...this.currentConfig, useBackend: newBackendMode };
-        const validation = this.validateConfig(newConfig);
-        
-        if (!validation.valid) {
-            const errorMessage = validation.errors.join(', ');
-            this.services.uiManager.updateConnectionStatus('error', `Configuration error: ${errorMessage}`);
-            return;
-        }
-
-        // Update configuration
-        await this.updateUseBackend(newBackendMode);
-        
-        // Configuration watcher will handle the re-initialization
     }
 
     /**

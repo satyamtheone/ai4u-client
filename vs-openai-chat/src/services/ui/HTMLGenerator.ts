@@ -4,21 +4,14 @@ export class HTMLGenerator {
         return `
             <div class="mode-section">
                 <div class="mode-toggle">
-                    <span class="mode-indicator" id="modeIndicator">LOCAL</span>
-                    <button class="btn btn-secondary" onclick="toggleBackend()">Toggle Mode</button>
-                    <button class="btn btn-secondary" onclick="testConnection()" id="testBtn">Test Backend</button>
+                    <span class="mode-indicator mode-backend">BACKEND</span>
+                    <button class="btn btn-secondary" onclick="testConnection()" id="testBtn">Test Connection</button>
                 </div>
-                <div class="status" id="connectionStatus">Local mode active</div>
+                <div class="status" id="connectionStatus">Backend mode active</div>
                 <div class="control-buttons">
-                    <button class="btn btn-secondary" onclick="loadHistory()" id="historyBtn" class="hidden">Load History</button>
+                    <button class="btn btn-secondary" onclick="loadHistory()" id="historyBtn">Load History</button>
                     <button class="btn btn-secondary" onclick="clearSession()">Clear Session</button>
                 </div>
-            </div>
-            
-            <div class="api-key-section" id="apiKeySection">
-                <div class="status" id="apiStatus">API Key not set</div>
-                <input type="password" class="api-key-input" id="apiKeyInput" placeholder="Enter OpenAI API Key">
-                <button class="btn" onclick="setApiKey()">Set Key</button>
             </div>
             
             <div class="chat-container">
@@ -30,7 +23,6 @@ export class HTMLGenerator {
             </div>
         `;
     }
-
     public static getLearningGatesHTML(): string {
         return `
             <div class="learning-gates-section" id="learningGatesSection">

@@ -38,9 +38,12 @@ export class UserMessageHandler {
 
         try {
             const config = this.configCoordinator.getCurrentConfig();
-            const useBackend = config.useBackend && this.services.backendService?.isReady();
+            if (!this.services.backendService?.isReady()) {
+                this.services.uiManager.showBotResponse('Backend service not ready. Please check connection.', false);
+                return;
+            }
 
-            LOGGER(`AI4U Mode: ${useBackend ? 'Backend' : 'Local'}`);
+            LOGGER('AI4U Using backend mode');
 
             const shouldShowGate = this.learningGatesHandler.shouldShowGate();
             LOGGER(`AI4U Should show learning gate: ${shouldShowGate}`);
@@ -50,67 +53,20 @@ export class UserMessageHandler {
                 await this.learningGatesHandler.showLearningGate(message);
                 return;
             }
-
-            if (useBackend) {
-                await this.handleUserMessageBackend(message, config);
-            } else {
-                await this.handleUserMessageLocal(message);
-            }
-
+            await this.handleUserMessageBackend(message, config);
         } catch (error) {
             LOGGER(`AI4U Error in handleUserMessage: ${error}`, 'ERROR');
             this.services.uiManager.showBotResponse(`Unexpected error: ${error}`, false);
         }
     }
-
-    /**
-     * Handle user message in local mode - preserving original logic
-     */
-    private async handleUserMessageLocal(message: string) {
-        LOGGER(`AI4U Processing local message: ${message}`);
-        
-        try {
-            const response = await this.services.openaiService.sendMessage(message);
-            LOGGER(`AI4U Got OpenAI response, showing to user`);
-            
-            this.services.uiManager.showBotResponse(
-                response.message,
-                false,
-                response.source
-            );
-        } catch (error) {
-            LOGGER(`AI4U Error in local processing: ${error}`, 'ERROR');
-            this.services.uiManager.showBotResponse(
-                `Error processing message: ${error}`,
-                false
-            );
-        }
-    }
-
     /**
      * Handle user message in backend mode - preserving original logic exactly
      */
     private async handleUserMessageBackend(message: string, config: any) {
         const response = await this.services.backendService.sendMessage(message);
-        
-        if (response.error) {
-            // Fallback to local mode with learning gates
-            LOGGER('AI4U Backend failed, attempting fallback to local');
-            
-            // Check local learning gate first
-            if (this.learningGatesHandler.shouldShowGate()) {
-                await this.learningGatesHandler.showLearningGate(message);
-                return;
-            }
-            
-            await this.handleUserMessageLocal(message);
-            return;
-        }
-
         // Handle learning gate from backend
         if (response.type === 'learning_gate') {
             LOGGER('AI4U Backend triggered learning gate');
-            
             // Send quiz to UI
             this.view?.webview.postMessage({
                 type: 'showQuiz',
@@ -119,7 +75,6 @@ export class UserMessageHandler {
             });
             return;
         }
-
         // Handle normal chat response
         if (response.type === 'chat_response') {
             this.services.uiManager.showBotResponse(

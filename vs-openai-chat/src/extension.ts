@@ -34,37 +34,17 @@ export function activate(context: vscode.ExtensionContext) {
             const config = chatProvider.getCurrentConfig();
             
             const statusMessage = `AI4U Status:
-            Mode: ${status.mode.toUpperCase()}
-            OpenAI: ${status.openai.connected ? '✅' : '❌'} ${status.openai.message}
-            Backend: ${status.backend.connected ? '✅' : '❌'} ${status.backend.message}
-            Backend URL: ${config.backendUrl || 'Not configured'}`;
+                Backend: ${status.backend.connected ? '✅' : '❌'} ${status.backend.message}
+                Backend URL: ${config.backendUrl || 'Not configured'}
+                Learning Gates: ${status.learningGates.enabled ? 'Enabled' : 'Disabled'}`;
 
             vscode.window.showInformationMessage(statusMessage, { modal: false });
         });
-
-        // Register command to toggle backend mode
-        const toggleBackendCommand = vscode.commands.registerCommand('ai4u.toggleBackend', async () => {
-            const config = chatProvider.getCurrentConfig();
-            const newMode = !config.useBackend;
-            
-            try {
-                const configManager = await import('./services/ConfigManager');
-                await configManager.ConfigManager.updateUseBackend(newMode);
-                
-                vscode.window.showInformationMessage(
-                    `AI4U switched to ${newMode ? 'BACKEND' : 'LOCAL'} mode`
-                );
-            } catch (error) {
-                vscode.window.showErrorMessage(`Failed to toggle mode: ${error}`);
-            }
-        });
-
         // Add all disposables to context
         context.subscriptions.push(
             webviewProviderDisposable,
             openChatCommand,
             statusCommand,
-            toggleBackendCommand,
             chatProvider // Ensure proper cleanup
         );
 

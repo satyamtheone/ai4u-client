@@ -68,9 +68,9 @@ export class ServiceCoordinator {
      */
     public getServiceStatus() {
         return {
-            openai: this.openaiService.getStatus(),
+            openai: { connected: false, message: 'Not used in backend mode' },
             backend: this.backendService?.getStatus() || { connected: false, message: 'Not initialized' },
-            mode: this.backendService?.isReady() ? 'backend' : 'local',
+            mode: 'backend',
             learningGates: {
                 enabled: this.learningGateService.getConfig().enabled,
                 stats: this.learningGateService.getStats(),
@@ -136,6 +136,22 @@ export class ServiceCoordinator {
         return result.connected;
     }
 
+    public async disconnectBackend() {
+        if (this.backendService) {
+            await this.backendService.testConnection();
+        }
+    }
+
+    public initializeBackendServices(config: AI4UConfig): void {
+        LOGGER('ServiceCoordinator: Initializing backend services only');
+        
+        if (config.backendUrl) {
+            this.backendService = new BackendService(config.backendUrl);
+            LOGGER(`Backend service initialized with URL: ${config.backendUrl}`);
+        } else {
+            LOGGER('Backend URL not configured');
+        }
+    }
     /**
      * Reset learning progress
      */

@@ -542,6 +542,28 @@ async def admin_stats():
         "active_sessions": len(sessions_db)
     }
 
+@app.get("/api/quiz/question")
+async def get_quiz_question(user_id: str = "default"):
+    """Get a random quiz question for the user"""
+    # Your logic to select appropriate question based on:
+    # - User's level/progress
+    # - Difficulty preferences
+    # - Topics they need to work on
+    # - Questions they haven't seen recently
+    question = random.choice(QUESTION_BANK)
+    return {"question": question}
+
+@app.get("/api/quiz/info")
+async def get_question_bank_info():
+    """Get metadata about the question bank"""
+    return {
+        "total_questions": 500,
+        "topics": ["JavaScript", "Python", "Data Structures", "Algorithms"],
+        "difficulties": ["easy", "medium", "hard"],
+        "last_updated": "2024-08-15"
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

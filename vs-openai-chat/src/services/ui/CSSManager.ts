@@ -35,24 +35,7 @@ export class CSSManager {
                     border-radius: 3px;
                 }
                 
-                .mode-local { background-color: #2196F3; color: white; }
                 .mode-backend { background-color: #4CAF50; color: white; }
-                
-                .api-key-section {
-                    margin-bottom: 10px;
-                    padding: 10px;
-                    border: 1px solid var(--vscode-input-border);
-                    border-radius: 4px;
-                }
-                
-                .api-key-input {
-                    width: calc(100% - 80px);
-                    padding: 5px;
-                    margin-right: 5px;
-                    background-color: var(--vscode-input-background);
-                    color: var(--vscode-input-foreground);
-                    border: 1px solid var(--vscode-input-border);
-                }
                 
                 .btn {
                     padding: 5px 10px;

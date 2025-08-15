@@ -444,4 +444,56 @@ export class BackendService {
             return null;
         }
     }
+
+    public async getQuizQuestion(userId?: string): Promise<any | null> {
+        if (!this.backendUrl) {
+            return null;
+        }
+
+        try {
+            const fetch = await import('node-fetch');
+            
+            const url = `${this.backendUrl}/api/quiz/question?user_id=${userId || this.userId}`;
+            
+            const response = await fetch.default(url, {
+                method: 'GET',
+                timeout: 10000
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.question; // Backend should return { question: {...} }
+            } else {
+                console.error('Backend Service: Get quiz question failed', response.status);
+                return null;
+            }
+        } catch (error) {
+            console.error('Backend Service: Get quiz question error:', error);
+            return null;
+        }
+    }
+
+    // Optional: Get question bank metadata
+    public async getQuestionBankInfo(): Promise<any | null> {
+        if (!this.backendUrl) {
+            return null;
+        }
+
+        try {
+            const fetch = await import('node-fetch');
+            
+            const response = await fetch.default(`${this.backendUrl}/api/quiz/info`, {
+                method: 'GET',
+                timeout: 5000
+            });
+
+            if (response.ok) {
+                return await response.json(); // { total_questions, topics, difficulties, etc. }
+            }
+            return null;
+        } catch (error) {
+            console.error('Backend Service: Get question bank info error:', error);
+            return null;
+        }
+    }
 }

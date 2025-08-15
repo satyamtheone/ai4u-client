@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 
 export interface AI4UConfig {
     backendUrl?: string;
-    useBackend: boolean;
     timeout: number;
 }
 
@@ -14,7 +13,6 @@ export class ConfigManager {
         
         return {
             backendUrl: config.get<string>('backendUrl'),
-            useBackend: config.get<boolean>('useBackend', false),
             timeout: config.get<number>('timeout', 30000)
         };
     }
@@ -52,7 +50,7 @@ export class ConfigManager {
     public static validateConfig(config: AI4UConfig): { valid: boolean; errors: string[] } {
         const errors: string[] = [];
 
-        if (config.useBackend && !config.backendUrl) {
+        if (!config.backendUrl) {
             errors.push('Backend URL is required when backend mode is enabled');
         }
 

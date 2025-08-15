@@ -3,25 +3,16 @@ export class BaseJavaScriptManager {
     public static getCoreVariables(): string {
         return `
                 const vscode = acquireVsCodeApi();
-                let currentMode = 'local';
+                let currentMode = 'backend';
                 let currentSessionId = null;
         `;
     }
 
     public static getBaseFunctions(): string {
         return `
-                function toggleBackend() { vscode.postMessage({ type: 'toggleBackend' }); }
                 function testConnection() { vscode.postMessage({ type: 'testConnection' }); }
                 function loadHistory() { vscode.postMessage({ type: 'loadHistory' }); }
                 function clearSession() { vscode.postMessage({ type: 'clearSession' }); }
-                
-                function setApiKey() {
-                    const apiKey = document.getElementById('apiKeyInput').value;
-                    if (apiKey) {
-                        vscode.postMessage({ type: 'setApiKey', apiKey: apiKey });
-                    }
-                }
-                
                 function sendMessage() {
                     const input = document.getElementById('messageInput');
                     const message = input.value.trim();
@@ -54,28 +45,6 @@ export class BaseJavaScriptManager {
                     messages.appendChild(messageDiv);
                     messages.scrollTop = messages.scrollHeight;
                 }
-                
-                function updateUI(mode) {
-                    const modeIndicator = document.getElementById('modeIndicator');
-                    const apiKeySection = document.getElementById('apiKeySection');
-                    const historyBtn = document.getElementById('historyBtn');
-                    const testBtn = document.getElementById('testBtn');
-                    
-                    if (mode === 'backend') {
-                        modeIndicator.textContent = 'BACKEND';
-                        modeIndicator.className = 'mode-indicator mode-backend';
-                        apiKeySection.style.display = 'none';
-                        historyBtn.style.display = 'inline-block';
-                        testBtn.style.display = 'inline-block';
-                    } else {
-                        modeIndicator.textContent = 'LOCAL';
-                        modeIndicator.className = 'mode-indicator mode-local';
-                        apiKeySection.style.display = 'block';
-                        historyBtn.style.display = 'none';
-                        testBtn.style.display = 'none';
-                    }
-                    currentMode = mode;
-                }
         `;
     }
 
@@ -96,27 +65,10 @@ export class BaseJavaScriptManager {
                             }
                             break;
                             
-                        case 'apiKeyStatus':
-                            const apiStatus = document.getElementById('apiStatus');
-                            if (message.status === 'connected') {
-                                apiStatus.textContent = 'API Key connected';
-                                apiStatus.style.color = 'green';
-                            } else {
-                                apiStatus.textContent = message.message || 'API Key error';
-                                apiStatus.style.color = 'red';
-                            }
-                            break;
-                            
                         case 'connectionStatus':
                             const status = document.getElementById('connectionStatus');
                             status.textContent = message.message;
                             status.className = 'status ' + message.status;
-                            break;
-                            
-                        case 'modeChanged':
-                            updateUI(message.mode);
-                            document.getElementById('connectionStatus').textContent = 
-                                message.message || (message.mode.toUpperCase() + ' mode active');
                             break;
                             
                         case 'chatHistory':
@@ -137,7 +89,7 @@ export class BaseJavaScriptManager {
     public static getInitialization(): string {
         return `
                 // Initialize UI
-                updateUI('local');
+                updateUI('backend');
         `;
     }
 }

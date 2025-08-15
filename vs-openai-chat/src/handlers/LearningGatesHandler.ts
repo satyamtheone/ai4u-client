@@ -45,36 +45,19 @@ export class LearningGatesHandler {
         try {
             let result: QuizResult;
             let statsUpdateMessage: StatsUpdateMessage;
+            LOGGER('AI4U Processing quiz answer on backend');
+            const backendResult = await this.services.backendService.submitQuizAnswer(questionId, selectedAnswer);
             
-            // Process quiz answer (backend or local)
-            const useBackendLearningGates = this.modeCoordinator.shouldUseBackendLearningGates(config);
-            
-            if (useBackendLearningGates) {
-                LOGGER('AI4U Processing quiz answer on backend');
-                const backendResult = await this.services.backendService.submitQuizAnswer(questionId, selectedAnswer);
-                
-                if (backendResult) {
-                    result = backendResult.result;
-                    statsUpdateMessage = {
-                        type: 'updateStats',
-                        stats: backendResult.updated_stats
-                    };
-                } else {
-                    throw new Error('Backend quiz submission failed, falling back to local');
-                }
-            } else {
-                LOGGER('AI4U Processing quiz answer locally');
-                result = this.services.learningGateService.submitAnswer(questionId, selectedAnswer);
-                
-                const stats = this.services.learningGateService.getStats();
+            if (backendResult) {
+                result = backendResult.result;
                 statsUpdateMessage = {
                     type: 'updateStats',
-                    stats: stats
+                    stats: backendResult.updated_stats
                 };
+            } else {
+                throw new Error('Backend quiz submission failed, falling back to local');
             }
-            
             LOGGER(`AI4U Quiz answer submitted: ${JSON.stringify(result)}`);
-            
             // Process pending message immediately (before UI updates)
             const unlockedResponses = result.unlockedResponses;
             if (result.correct || unlockedResponses > 0) {
@@ -84,9 +67,9 @@ export class LearningGatesHandler {
                 if (pendingMessage) {
                     LOGGER(`AI4U Processing pending message: ${pendingMessage}`);
                     try {
-                        const response = await this.services.openaiService.sendMessage(pendingMessage);
+                        const response = await this.services.backendService.sendMessage(pendingMessage);
                         this.services.uiManager.showBotResponse(
-                            response.message,
+                            response.response || 'No response received',
                             false,
                             response.source
                         );
@@ -134,32 +117,18 @@ export class LearningGatesHandler {
         try {
             let result;
             let statsUpdateMessage;
+            // Use backend for skip processing
+            LOGGER('AI4U Processing quiz skip on backend');
+            const backendResult = await this.services.backendService.skipQuiz();
             
-            const useBackendLearningGates = this.modeCoordinator.shouldUseBackendLearningGates(config);
-            
-            if (useBackendLearningGates) {
-                // Use backend for skip processing
-                LOGGER('AI4U Processing quiz skip on backend');
-                const backendResult = await this.services.backendService.skipQuiz();
-                
-                if (backendResult) {
-                    result = backendResult.result;
-                    statsUpdateMessage = {
-                        type: 'updateStats',
-                        stats: backendResult.updated_stats
-                    };
-                } else {
-                    throw new Error('Backend quiz skip failed, falling back to local');
-                }
-            } else {
-                // Local skip logic (preserving original)
-                LOGGER('AI4U Processing quiz skip locally');
-                result = {
-                    correct: false,
-                    unlockedResponses: 1,
-                    explanation: 'Quiz skipped - you get 1 limited response.',
-                    levelUp: false
+            if (backendResult) {
+                result = backendResult.result;
+                statsUpdateMessage = {
+                    type: 'updateStats',
+                    stats: backendResult.updated_stats
                 };
+            } else {
+                throw new Error('Backend quiz skip failed, falling back to local');
             }
             
             LOGGER(`AI4U Quiz skipped: ${JSON.stringify(result)}`);
@@ -181,9 +150,9 @@ export class LearningGatesHandler {
             if (pendingMessage) {
                 LOGGER(`AI4U Processing pending message after skip: ${pendingMessage}`);
                 try {
-                    const response = await this.services.openaiService.sendMessage(pendingMessage);
+                    const response = await this.services.backendService.sendMessage(pendingMessage);
                     this.services.uiManager.showBotResponse(
-                        response.message,
+                        response.response || 'No response received',
                         false,
                         response.source
                     );
@@ -243,9 +212,9 @@ export class LearningGatesHandler {
                     
                     if (pendingMessage) {
                         LOGGER(`AI4U Processing pending message in fallback: ${pendingMessage}`);
-                        this.services.openaiService.sendMessage(pendingMessage).then(response => {
+                        this.services.backendService.sendMessage(pendingMessage).then(response => {
                             this.services.uiManager.showBotResponse(
-                                response.message,
+                                response.response || 'No response received',
                                 false,
                                 response.source
                             );
@@ -291,10 +260,9 @@ export class LearningGatesHandler {
 
     /**
      * Show learning gate - preserving original logic
-     * ← FIX: Make sure to properly store the pending message
      */
     public async showLearningGate(userMessage?: string): Promise<boolean> {
-        const question = this.services.learningGateService.getQuizQuestion();
+       const question = await this.services.backendService.getQuizQuestion();
         if (!question) {
             return false;
         }
