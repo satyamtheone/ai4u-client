@@ -496,4 +496,69 @@ export class BackendService {
             return null;
         }
     }
+
+    // UPDATED: Get multiple quiz questions from backend
+    public async getQuizQuestions(count: number = 3, userId?: string): Promise<any[] | null> {
+        if (!this.backendUrl) {
+            return null;
+        }
+
+        try {
+            const fetch = await import('node-fetch');
+            
+            const url = `${this.backendUrl}/api/quiz/questions?count=${count}&user_id=${userId || this.userId}`;
+            
+            const response = await fetch.default(url, {
+                method: 'GET',
+                timeout: 10000
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.questions; // Backend should return { questions: [...] }
+            } else {
+                console.error('Backend Service: Get quiz questions failed', response.status);
+                return null;
+            }
+        } catch (error) {
+            console.error('Backend Service: Get quiz questions error:', error);
+            return null;
+        }
+    }
+
+    // UPDATED: Submit answers for multiple questions
+    public async submitQuizAnswers(answers: {question_id: string, selected_answer: number}[], user_id?: string): Promise<any | null> {
+        if (!this.backendUrl) {
+            return null;
+        }
+
+        try {
+            const fetch = await import('node-fetch');
+            
+            const submission = {
+                answers: answers,
+                user_id: user_id || this.userId
+            };
+
+            const response = await fetch.default(`${this.backendUrl}/api/quiz/submit-batch`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(submission),
+                timeout: 15000
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data; // { results: [...], updated_stats: {...} }
+            } else {
+                console.error('Backend Service: Batch quiz submission failed', response.status);
+                return null;
+            }
+        } catch (error) {
+            console.error('Backend Service: Batch quiz submission error:', error);
+            return null;
+        }
+    }
 }

@@ -117,6 +117,22 @@ export class CSSManager {
                     border: none;
                     cursor: pointer;
                 }
+                .quiz-navigation {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 20px 0;
+                    gap: 10px;
+                }
+
+                .nav-btn {
+                    padding: 8px 16px;
+                    background: var(--vscode-button-secondaryBackground);
+                    color: var(--vscode-button-secondaryForeground);
+                    border: 1px solid var(--vscode-input-border);
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 12px;
+                }
                 
                 .send-btn:hover { background-color: var(--vscode-button-hoverBackground); }
                 .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }

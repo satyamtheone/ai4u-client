@@ -59,6 +59,20 @@ export class MessageHandler {
                     LOGGER(`AI4U Toggle learning gates: ${data.enabled}`);
                     await this.learningGatesHandler.toggleLearningGates(data.enabled);
                     break;
+                
+                case 'submitBatchQuizAnswers':
+                    LOGGER(`AI4U Submit batch quiz answers: ${JSON.stringify(data.answers)}`);
+                    await this.learningGatesHandler.handleBatchQuizSubmission(
+                        data.answers, 
+                        this.configCoordinator.getCurrentConfig()
+                    );
+                    break;
+
+                case 'skipQuizBatch':
+                    await this.learningGatesHandler.handleSkipQuiz(
+                        this.configCoordinator.getCurrentConfig()
+                    );
+                    break;
 
                 default:
                     LOGGER(`AI4U Unknown message type: ${data.type}`, 'WARN');

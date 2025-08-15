@@ -261,28 +261,28 @@ export class LearningGatesHandler {
     /**
      * Show learning gate - preserving original logic
      */
-    public async showLearningGate(userMessage?: string): Promise<boolean> {
-       const question = await this.services.backendService.getQuizQuestion();
-        if (!question) {
-            return false;
-        }
+    // public async showLearningGate(userMessage?: string): Promise<boolean> {
+    //    const question = await this.services.backendService.getQuizQuestion();
+    //     if (!question) {
+    //         return false;
+    //     }
 
-        // Store the user message to process after gate completion
-        if (userMessage) {
-            this.pendingUserMessage = userMessage;
-            LOGGER(`AI4U Storing pending message: ${userMessage}`);
-        }
+    //     // Store the user message to process after gate completion
+    //     if (userMessage) {
+    //         this.pendingUserMessage = userMessage;
+    //         LOGGER(`AI4U Storing pending message: ${userMessage}`);
+    //     }
 
-        const stats = this.services.learningGateService.getStats();
+    //     const stats = this.services.learningGateService.getStats();
         
-        this.view?.webview.postMessage({
-            type: 'showQuiz',
-            question: question,
-            stats: stats
-        });
+    //     this.view?.webview.postMessage({
+    //         type: 'showQuiz',
+    //         question: question,
+    //         stats: stats
+    //     });
 
-        return true;
-    }
+    //     return true;
+    // }
 
     /**
      * Check if should show gate
@@ -317,5 +317,104 @@ export class LearningGatesHandler {
     public resetLearningProgress() {
         this.services.resetLearningProgress();
         this.pendingUserMessage = null; // ← FIX: Clear pending message on reset
+    }
+
+    /**
+     * Show learning gate with multiple questions
+     */
+    public async showLearningGate(userMessage?: string): Promise<any | null> {
+        // Store the user message to process after gate completion
+        if (userMessage) {
+            this.pendingUserMessage = userMessage;
+            LOGGER(`AI4U Storing pending message: ${userMessage}`);
+        }
+
+        try {
+            // Get multiple questions from backend
+            const questions = await this.services.backendService.getQuizQuestions(3); // 3 questions
+            
+            if (questions && questions.length > 0) {
+                LOGGER(`AI4U Got ${questions.length} questions from backend`);
+                
+                // Get stats from backend if available
+                let stats;
+                try {
+                    stats = await this.services.getBackendStats();
+                    if (!stats) {
+                        stats = this.services.learningGateService.getStats();
+                    }
+                } catch (error) {
+                    LOGGER(`AI4U Error getting backend stats, using local: ${error}`);
+                    stats = this.services.learningGateService.getStats();
+                }
+                
+                this.view?.webview.postMessage({
+                    type: 'showQuizBatch',
+                    questions: questions,
+                    stats: stats
+                });
+                
+                return true;
+            }
+        } catch (error) {
+            LOGGER(`AI4U Error getting backend questions: ${error}`);
+        }
+    }
+
+    /**
+     * Handle batch quiz submission
+     */
+    public async handleBatchQuizSubmission(answers: {question_id: string, selected_answer: number}[], config: any) {
+        try {
+            LOGGER('AI4U Processing batch quiz submission on backend');
+            const backendResult = await this.services.backendService.submitQuizAnswers(answers);
+            
+            if (backendResult) {
+                LOGGER(`AI4U Batch quiz submitted successfully`);
+                
+                // Process pending message immediately
+                const pendingMessage = this.pendingUserMessage;
+                this.pendingUserMessage = null;
+                
+                // Show results
+                this.view?.webview.postMessage({
+                    type: 'showBatchQuizResult',
+                    results: backendResult.results,
+                    stats: backendResult.updated_stats
+                });
+                
+                // Process pending user message
+                if (pendingMessage) {
+                    LOGGER(`AI4U Processing pending message: ${pendingMessage}`);
+                    try {
+                        // Use backend for the actual response
+                        const response = await this.services.backendService.sendMessage(pendingMessage);
+                        if (!response.error) {
+                            this.services.uiManager.showBotResponse(
+                                response.response || 'Response received',
+                                false,
+                                'backend'
+                            );
+                        } else {
+                            throw new Error('Backend response failed');
+                        }
+                    } catch (error) {
+                        LOGGER(`AI4U Error processing pending message: ${error}`, 'ERROR');
+                        this.services.uiManager.showBotResponse(
+                            `Error processing your message: ${error}`,
+                            false
+                        );
+                    }
+                }
+                
+            } else {
+                throw new Error('Backend batch submission failed');
+            }
+            
+        } catch (error) {
+            LOGGER(`AI4U Error in handleBatchQuizSubmission: ${error}`, 'ERROR');
+            // Could implement fallback to individual local questions here
+            this.services.uiManager.showErrorMessage('Failed to submit quiz answers');
+        }
     }
 }
