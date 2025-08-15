@@ -1,11 +1,13 @@
+import { QuizRenderer } from './QuizRenderer';
+
 export class QuizJavaScriptManager {
     
     public static getQuizVariables(): string {
         return `
-                // Quiz variables for multiple questions
+                // Enhanced quiz variables for multiple question types
                 let currentQuestionIndex = 0;
                 let quizQuestions = [];
-                let selectedAnswers = {}; // {questionId: selectedIndex}
+                let selectedAnswers = {}; // {questionId: answer_data}
                 let learningGatesEnabled = true;
                 let userStats = {
                     level: 1,
@@ -22,22 +24,116 @@ export class QuizJavaScriptManager {
 
     public static getQuizFunctions(): string {
         return `
-                // FIXED: Multi-question functions with proper event handling
-                function selectAnswerBatch(questionId, answerIndex) {
-                    console.log('🎯 Answer selected for question:', questionId, 'answer:', answerIndex);
-                    selectedAnswers[questionId] = answerIndex;
+                ${QuizRenderer.getQuestionTypeDetection()}
+                
+                ${QuizRenderer.getRenderingFunctions()}
+                
+                // Answer selection functions
+                function selectSingleAnswer(questionId, answerIndex) {
+                    console.log('Single choice selected for question:', questionId, 'answer:', answerIndex);
+                    selectedAnswers[questionId] = {
+                        type: 'single_choice',
+                        answer: answerIndex
+                    };
                     
-                    // Update UI for current question
                     const currentQuestion = quizQuestions[currentQuestionIndex];
                     if (currentQuestion && currentQuestion.id === questionId) {
                         document.querySelectorAll('.quiz-option').forEach(function(option, i) {
-                            option.classList.toggle('selected', i === answerIndex);
+                            const radio = option.querySelector('input[type="radio"]');
+                            const optionLetter = option.querySelector('.option-letter');
+                            
+                            if (radio) {
+                                radio.checked = (i === answerIndex);
+                                option.classList.toggle('selected', i === answerIndex);
+                                
+                                if (i === answerIndex) {
+                                    option.style.borderColor = '#4CAF50';
+                                    option.style.background = 'rgba(76, 175, 80, 0.1)';
+                                    if (optionLetter) {
+                                        optionLetter.style.background = '#4CAF50';
+                                        optionLetter.style.color = 'white';
+                                    }
+                                } else {
+                                    option.style.borderColor = 'var(--vscode-input-border)';
+                                    option.style.background = 'var(--vscode-input-background)';
+                                    if (optionLetter) {
+                                        optionLetter.style.background = 'var(--vscode-button-background)';
+                                        optionLetter.style.color = 'var(--vscode-button-foreground)';
+                                    }
+                                }
+                            }
                         });
                     }
                     
                     updateNavigationButtons();
                 }
                 
+                function toggleMultipleAnswer(questionId, answerIndex) {
+                    console.log('Multiple choice toggled for question:', questionId, 'answer:', answerIndex);
+                    
+                    if (!selectedAnswers[questionId]) {
+                        selectedAnswers[questionId] = {
+                            type: 'multiple_choice',
+                            answers: []
+                        };
+                    }
+                    
+                    const answers = selectedAnswers[questionId].answers;
+                    const existingIndex = answers.indexOf(answerIndex);
+                    
+                    if (existingIndex > -1) {
+                        answers.splice(existingIndex, 1);
+                    } else {
+                        answers.push(answerIndex);
+                    }
+                    
+                    console.log('Updated answers for', questionId, ':', answers);
+                    
+                    // Force UI update immediately
+                    const currentQuestion = quizQuestions[currentQuestionIndex];
+                    if (currentQuestion && currentQuestion.id === questionId) {
+                        document.querySelectorAll('.quiz-option').forEach(function(option, i) {
+                            const checkbox = option.querySelector('input[type="checkbox"]');
+                            const optionLetter = option.querySelector('.option-letter');
+                            
+                            if (checkbox && i === answerIndex) {
+                                // Update the clicked checkbox
+                                checkbox.checked = answers.includes(i);
+                                option.classList.toggle('selected', answers.includes(i));
+                                
+                                if (answers.includes(i)) {
+                                    option.style.borderColor = '#4CAF50';
+                                    option.style.background = 'rgba(76, 175, 80, 0.1)';
+                                    if (optionLetter) {
+                                        optionLetter.style.background = '#4CAF50';
+                                        optionLetter.style.color = 'white';
+                                    }
+                                } else {
+                                    option.style.borderColor = 'var(--vscode-input-border)';
+                                    option.style.background = 'var(--vscode-input-background)';
+                                    if (optionLetter) {
+                                        optionLetter.style.background = 'var(--vscode-button-background)';
+                                        optionLetter.style.color = 'var(--vscode-button-foreground)';
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    
+                    updateNavigationButtons();
+                }
+                
+                function updateShortAnswer(questionId, value) {
+                    console.log('Short answer updated for question:', questionId, 'value:', value);
+                    selectedAnswers[questionId] = {
+                        type: 'short_answer',
+                        answer: value.trim()
+                    };
+                    
+                    updateNavigationButtons();
+                }
+                
+                // Navigation functions
                 function nextQuestion() {
                     if (currentQuestionIndex < quizQuestions.length - 1) {
                         currentQuestionIndex++;
@@ -55,94 +151,15 @@ export class QuizJavaScriptManager {
                 }
                 
                 function skipCurrentQuestion() {
-                    // Remove answer for current question if exists
                     const currentQuestion = quizQuestions[currentQuestionIndex];
                     if (currentQuestion) {
                         delete selectedAnswers[currentQuestion.id];
                     }
                     
-                    // Move to next question or stay on last
                     if (currentQuestionIndex < quizQuestions.length - 1) {
                         nextQuestion();
                     } else {
-                        updateNavigationButtons(); // Just update UI
-                    }
-                }
-                
-                function submitAllAnswers() {
-                    console.log('📤 Submitting all answers:', selectedAnswers);
-                    
-                    const answers = Object.keys(selectedAnswers).map(questionId => ({
-                        question_id: questionId,
-                        selected_answer: selectedAnswers[questionId]
-                    }));
-                    
-                    if (answers.length === 0) {
-                        alert('Please answer at least one question!');
-                        return;
-                    }
-                    
-                    // Update button state
-                    const submitBtn = document.getElementById('submitAllBtn');
-                    if (submitBtn) {
-                        submitBtn.textContent = 'SUBMITTING...';
-                        submitBtn.disabled = true;
-                    }
-                    
-                    // Send to extension
-                    vscode.postMessage({
-                        type: 'submitBatchQuizAnswers',
-                        answers: answers
-                    });
-                }
-                
-                function skipQuizBatch() {
-                    console.log('⭐ Skip entire quiz batch clicked');
-                    vscode.postMessage({ type: 'skipQuizBatch' });
-                }
-                
-                function displayCurrentQuestion() {
-                    const question = quizQuestions[currentQuestionIndex];
-                    if (!question) return;
-                    
-                    // Update question display
-                    const questionText = document.querySelector('.question-text');
-                    const questionTopic = document.querySelector('.question-topic');
-                    const questionDifficulty = document.querySelector('.question-difficulty');
-                    const questionCounter = document.querySelector('.question-counter');
-                    
-                    if (questionText) questionText.textContent = question.question;
-                    if (questionTopic) questionTopic.textContent = question.topic;
-                    if (questionDifficulty) questionDifficulty.textContent = question.difficulty.toUpperCase();
-                    if (questionCounter) {
-                        questionCounter.textContent = 'Question ' + (currentQuestionIndex + 1) + ' of ' + quizQuestions.length;
-                    }
-                    
-                    // Update options - FIXED: Proper HTML generation and event binding
-                    const optionsContainer = document.querySelector('.quiz-options');
-                    if (optionsContainer) {
-                        optionsContainer.innerHTML = '';
-                        
-                        question.options.forEach(function(option, index) {
-                            const isSelected = selectedAnswers[question.id] === index;
-                            
-                            // Create button element
-                            const optionButton = document.createElement('button');
-                            optionButton.className = 'quiz-option' + (isSelected ? ' selected' : '');
-                            optionButton.setAttribute('data-index', index);
-                            
-                            // Add click event
-                            optionButton.addEventListener('click', function() {
-                                selectAnswerBatch(question.id, index);
-                            });
-                            
-                            // Set inner HTML
-                            optionButton.innerHTML = 
-                                '<span class="option-letter">' + String.fromCharCode(65 + index) + '</span>' +
-                                '<span class="option-text">' + option + '</span>';
-                            
-                            optionsContainer.appendChild(optionButton);
-                        });
+                        updateNavigationButtons();
                     }
                 }
                 
@@ -153,7 +170,6 @@ export class QuizJavaScriptManager {
                     if (prevBtn) prevBtn.disabled = currentQuestionIndex === 0;
                     if (nextBtn) nextBtn.disabled = currentQuestionIndex === quizQuestions.length - 1;
                     
-                    // Update submit button text
                     const answeredCount = Object.keys(selectedAnswers).length;
                     const submitBtn = document.getElementById('submitAllBtn');
                     if (submitBtn) {
@@ -162,20 +178,56 @@ export class QuizJavaScriptManager {
                     }
                 }
                 
+                // Submit functions
+                function submitAllAnswers() {
+                    console.log('Submitting all answers:', selectedAnswers);
+                    
+                    const answers = Object.keys(selectedAnswers).map(questionId => {
+                        const answerData = selectedAnswers[questionId];
+                        const question = quizQuestions.find(q => q.id === questionId);
+                        const detectedType = detectQuestionType(question);
+                        
+                        return {
+                            question_id: questionId,
+                            answer_type: detectedType,
+                            selected_answer: answerData.answer || answerData.answers || null
+                        };
+                    });
+                    
+                    if (answers.length === 0) {
+                        alert('Please answer at least one question!');
+                        return;
+                    }
+                    
+                    const submitBtn = document.getElementById('submitAllBtn');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'SUBMITTING...';
+                        submitBtn.disabled = true;
+                    }
+                    
+                    vscode.postMessage({
+                        type: 'submitBatchQuizAnswers',
+                        answers: answers
+                    });
+                }
+                
+                function skipQuizBatch() {
+                    console.log('Skip entire quiz batch clicked');
+                    vscode.postMessage({ type: 'skipQuizBatch' });
+                }
+                
+                // Main quiz functions
                 function showQuizBatch(questions, stats) {
-                    console.log('🎯 Showing quiz batch:', questions);
+                    console.log('Showing enhanced quiz batch:', questions);
                     quizQuestions = questions;
                     currentQuestionIndex = 0;
                     selectedAnswers = {};
                     userStats = stats;
                     
-                    // Generate quiz HTML with proper UX
-                    const quizHTML = generateBatchQuizHTML();
+                    const quizHTML = generateEnhancedQuizHTML();
                     document.body.insertAdjacentHTML('beforeend', quizHTML);
                     
-                    // Bind navigation events
                     bindNavigationEvents();
-                    
                     displayCurrentQuestion();
                     updateNavigationButtons();
                 }
@@ -204,52 +256,15 @@ export class QuizJavaScriptManager {
                     }
                 }
                 
-                function generateBatchQuizHTML() {
-                    return '<div class="quiz-gate-overlay" id="quizGate">' +
-                        '<div class="quiz-container">' +
-                        '<div class="quiz-header">' +
-                        '<div class="lock-icon">🔒</div>' +
-                        '<h3 class="quiz-title">Answer Quiz to Unlock Code</h3>' +
-                        '<p class="quiz-subtitle">Learn while you code with AI4U</p>' +
-                        '<div class="question-counter">Question 1 of ' + quizQuestions.length + '</div>' +
-                        '<div class="quiz-stats">' +
-                        '<span class="stat">Level ' + userStats.level + '</span>' +
-                        '<span class="stat">Streak: ' + (userStats.currentStreak || userStats.streak || 0) + '</span>' +
-                        '<span class="stat">Accuracy: ' + userStats.accuracy + '%</span>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div class="quiz-content">' +
-                        '<div class="question-text"></div>' +
-                        '<div class="question-meta">' +
-                        '<div class="question-topic"></div>' +
-                        '<div class="question-difficulty"></div>' +
-                        '</div>' +
-                        '<div class="quiz-options"></div>' +
-                        '<div class="quiz-navigation">' +
-                        '<button class="nav-btn" id="prevBtn">Previous</button>' +
-                        '<button class="nav-btn" id="nextBtn">Next</button>' +
-                        '<button class="nav-btn skip-btn" id="skipBtn">Skip This</button>' +
-                        '</div>' +
-                        '<div class="quiz-actions">' +
-                        '<button class="quiz-submit-btn" id="submitAllBtn" disabled>SUBMIT (0/' + quizQuestions.length + ')</button>' +
-                        '<button class="quiz-skip-btn" id="skipAllBtn">Skip All</button>' +
-                        '</div>' +
-                        '</div>' +
-                        '</div>' +
-                        '</div>';
-                }
-                
                 function showBatchQuizResult(results, stats) {
-                    console.log('🎉 Showing batch quiz result:', results);
+                    console.log('Showing enhanced quiz result:', results);
                     
-                    // Remove quiz overlay
                     const quizGate = document.getElementById('quizGate');
                     if (quizGate) {
                         quizGate.remove();
-                        console.log('✅ Quiz gate removed');
+                        console.log('Quiz gate removed');
                     }
                     
-                    // Process results
                     let correctCount = 0;
                     let totalPoints = 0;
                     let resultDetails = '';
@@ -260,11 +275,14 @@ export class QuizJavaScriptManager {
                                 correctCount++;
                                 totalPoints += result.points_earned || 1;
                             }
-                            resultDetails += 'Q' + (index + 1) + ': ' + (result.correct ? '✅ Correct' : '❌ Incorrect') + '\\n';
+                            const answerType = result.answer_type || 'single_choice';
+                            const typeIcon = answerType === 'multiple_choice' ? '☑️' : 
+                                           answerType === 'short_answer' ? '✏️' : '🔘';
+                            resultDetails += 'Q' + (index + 1) + ' ' + typeIcon + ': ' + 
+                                           (result.correct ? '✅ Correct' : '❌ Incorrect') + '\\n';
                         });
                     }
                     
-                    // Show comprehensive result with original UX feel
                     const resultText = '🎉 Quiz Complete!\\n\\n' +
                         '📊 Results:\\n' +
                         'Score: ' + correctCount + '/' + results.length + '\\n' +
@@ -275,22 +293,19 @@ export class QuizJavaScriptManager {
                     
                     alert(resultText);
                     
-                    // Update stats in UI
                     userStats = stats;
                     updateLearningGatesUI();
                 }
                 
-                // LEGACY: Single question support (preserved UX)
+                // Legacy functions for backward compatibility
                 function selectAnswer(index) {
-                    console.log('🎯 Answer selected:', index);
+                    console.log('Legacy answer selected:', index);
                     selectedAnswerIndex = index;
                     
-                    // Update UI
                     document.querySelectorAll('.quiz-option').forEach(function(option, i) {
                         option.classList.toggle('selected', i === index);
                     });
                     
-                    // Enable submit button
                     const submitBtn = document.getElementById('submitBtn');
                     if (submitBtn) {
                         submitBtn.disabled = false;
@@ -299,21 +314,19 @@ export class QuizJavaScriptManager {
                 }
                 
                 function submitQuizAnswer() {
-                    console.log('📤 Submit clicked, selectedAnswer:', selectedAnswerIndex);
+                    console.log('Legacy submit clicked, selectedAnswer:', selectedAnswerIndex);
                     
                     if (selectedAnswerIndex === -1) {
                         alert('Please select an answer first!');
                         return;
                     }
                     
-                    // Update button state
                     const submitBtn = document.getElementById('submitBtn');
                     if (submitBtn) {
                         submitBtn.textContent = 'SUBMITTING...';
                         submitBtn.disabled = true;
                     }
                     
-                    // Send to extension
                     vscode.postMessage({
                         type: 'submitQuizAnswer',
                         questionId: currentQuestionId,
@@ -322,17 +335,16 @@ export class QuizJavaScriptManager {
                 }
                 
                 function skipQuiz() {
-                    console.log('⭐ Skip quiz clicked');
+                    console.log('Legacy skip quiz clicked');
                     vscode.postMessage({ type: 'skipQuiz' });
                 }
                 
                 function showQuiz(question, stats) {
-                    console.log('🎯 Showing single quiz:', question);
+                    console.log('Legacy showing single quiz:', question);
                     currentQuestionId = question.id;
                     selectedAnswerIndex = -1;
                     userStats = stats;
                     
-                    // Generate original single question HTML
                     var quizHTML = '<div class="quiz-gate-overlay" id="quizGate">' +
                         '<div class="quiz-container">' +
                         '<div class="quiz-header">' +
@@ -353,7 +365,6 @@ export class QuizJavaScriptManager {
                         '</div>' +
                         '<div class="quiz-options">';
                     
-                    // Add options with proper event binding
                     for (var i = 0; i < question.options.length; i++) {
                         quizHTML += '<button class="quiz-option" data-index="' + i + '">' +
                             '<span class="option-letter">' + String.fromCharCode(65 + i) + '</span>' +
@@ -371,20 +382,16 @@ export class QuizJavaScriptManager {
                         '</div>';
                     
                     document.body.insertAdjacentHTML('beforeend', quizHTML);
-                    
-                    // Bind events for single question
                     bindSingleQuestionEvents();
                 }
                 
                 function bindSingleQuestionEvents() {
-                    // Bind option clicks
                     document.querySelectorAll('.quiz-option').forEach(function(option, index) {
                         option.addEventListener('click', function() {
                             selectAnswer(index);
                         });
                     });
                     
-                    // Bind submit and skip
                     const submitBtn = document.getElementById('submitBtn');
                     const skipBtn = document.getElementById('skipSingleBtn');
                     
@@ -397,16 +404,14 @@ export class QuizJavaScriptManager {
                 }
                 
                 function showQuizResult(result) {
-                    console.log('🎉 Showing quiz result:', result);
+                    console.log('Legacy showing quiz result:', result);
                     
-                    // Remove quiz overlay
                     const quizGate = document.getElementById('quizGate');
                     if (quizGate) {
                         quizGate.remove();
-                        console.log('✅ Quiz gate removed');
+                        console.log('Quiz gate removed');
                     }
                     
-                    // Show result with original UX style
                     const resultText = result.correct ? 
                         '🎉 Correct!\\n\\nYou unlocked ' + result.unlockedResponses + ' AI responses!\\n\\n' +
                         (result.explanation ? 'Explanation: ' + result.explanation : '') :
@@ -414,8 +419,6 @@ export class QuizJavaScriptManager {
                         '\\n\\nYou still get ' + result.unlockedResponses + ' response(s).';
                     
                     alert(resultText);
-                    
-                    // Update stats in UI
                     updateLearningGatesUI();
                 }
                 
@@ -429,7 +432,7 @@ export class QuizJavaScriptManager {
                 function toggleLearningGates() {
                     learningGatesEnabled = !learningGatesEnabled;
                     updateLearningGatesUI();
-                    console.log('🔄 Toggling learning gates to:', learningGatesEnabled);
+                    console.log('Toggling learning gates to:', learningGatesEnabled);
                     vscode.postMessage({
                         type: 'toggleLearningGates',
                         enabled: learningGatesEnabled
@@ -474,33 +477,33 @@ export class QuizJavaScriptManager {
     public static getQuizMessageHandlers(): string {
         return `
                 case 'showQuiz':
-                    console.log('🎯 Handling showQuiz message (single question)');
+                    console.log('Handling showQuiz message (single question)');
                     showQuiz(message.question, message.stats);
                     break;
                     
                 case 'showQuizBatch':
-                    console.log('🎯 Handling showQuizBatch message (multiple questions)');
+                    console.log('Handling showQuizBatch message (multiple questions)');
                     showQuizBatch(message.questions, message.stats);
                     break;
                     
                 case 'showQuizResult':
-                    console.log('🎉 Handling showQuizResult message (single)');
+                    console.log('Handling showQuizResult message (single)');
                     showQuizResult(message.result);
                     break;
                     
                 case 'showBatchQuizResult':
-                    console.log('🎉 Handling showBatchQuizResult message (batch)');
+                    console.log('Handling showBatchQuizResult message (batch)');
                     showBatchQuizResult(message.results, message.stats);
                     break;
                     
                 case 'updateStats':
-                    console.log('📊 Updating stats:', message.stats);
+                    console.log('Updating stats:', message.stats);
                     userStats = message.stats;
                     updateLearningGatesUI();
                     break;
                     
                 case 'learningGatesToggled':
-                    console.log('🔄 Learning gates toggled:', message.enabled);
+                    console.log('Learning gates toggled:', message.enabled);
                     learningGatesEnabled = message.enabled;
                     updateLearningGatesUI();
                     break;

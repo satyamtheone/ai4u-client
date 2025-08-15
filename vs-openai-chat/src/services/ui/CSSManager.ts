@@ -133,6 +133,86 @@ export class CSSManager {
                     cursor: pointer;
                     font-size: 12px;
                 }
+                .multiple-choice-instruction,
+                .short-answer-instruction {
+                    font-size: 14px;
+                    color: var(--vscode-descriptionForeground);
+                    margin-bottom: 16px;
+                    font-style: italic;
+                }
+
+                .quiz-option input[type="radio"],
+                .quiz-option input[type="checkbox"] {
+                    margin-right: 12px;
+                    transform: scale(1.2);
+                }
+
+                .short-answer-container {
+                    width: 100%;
+                    margin: 16px 0;
+                }
+
+                .short-answer-input {
+                    width: 100%;
+                    min-height: 100px;
+                    padding: 12px;
+                    background: var(--vscode-input-background);
+                    color: var(--vscode-input-foreground);
+                    border: 2px solid var(--vscode-input-border);
+                    border-radius: 8px;
+                    font-family: var(--vscode-font-family);
+                    font-size: 14px;
+                    resize: vertical;
+                    box-sizing: border-box;
+                    }
+
+                .short-answer-input:focus {
+                    outline: none;
+                    border-color: var(--vscode-focusBorder);
+                    }
+
+                .char-counter {
+                    text-align: right;
+                    font-size: 12px;
+                    color: var(--vscode-descriptionForeground);
+                    margin-top: 4px;
+                    }
+
+                .question-type {
+                    color: var(--vscode-charts-blue);
+                    font-size: 12px;
+                    font-weight: 600;
+                    background: rgba(33, 150, 243, 0.1);
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    display: inline-block;
+                    }
+
+                .quiz-option {
+                    display: flex;
+                    align-items: flex-start;
+                    padding: 12px 16px;
+                    margin-bottom: 8px;
+                    background: var(--vscode-input-background);
+                    color: var(--vscode-input-foreground);
+                    border: 2px solid var(--vscode-input-border);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    }
+
+                .quiz-option label {
+                    display: flex;
+                    align-items: center;
+                    cursor: pointer;
+                    width: 100%;
+                    }
+
+                .quiz-option.selected {
+                    border-color: #4CAF50;
+                    background: rgba(76, 175, 80, 0.1);
+                    }
+
                 
                 .send-btn:hover { background-color: var(--vscode-button-hoverBackground); }
                 .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -45,14 +45,17 @@ class UserSession(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-# === NEW MODELS (Learning Gates) ===
 class QuizQuestion(BaseModel):
     id: str
     question: str
-    options: List[str]
-    correct_answer: int
+    question_type: str = "single_choice"  # NEW: single_choice, multiple_choice, short_answer
+    options: Optional[List[str]] = None   # For choice questions
+    correct_answer: Optional[int] = None  # For single choice
+    correct_answers: Optional[List[int]] = None  # For multiple choice
+    keywords: Optional[List[str]] = None  # For short answer scoring
+    max_length: Optional[int] = None      # For short answer
     explanation: Optional[str] = None
-    difficulty: str  # easy, medium, hard
+    difficulty: str
     topic: str
 
 class LearningGateConfig(BaseModel):
@@ -89,6 +92,18 @@ class EnhancedChatResponse(BaseModel):
     stats: Optional[Dict] = None
     message: Optional[str] = None
 
+class BatchQuizSubmission(BaseModel):
+    answers: List[Dict[str, Union[str, int]]]  # [{"question_id": "js-001", "selected_answer": 1}]
+    user_id: str = "default"
+
+class BatchQuizResult(BaseModel):
+    question_id: str
+    correct: bool
+    selected_answer: int
+    correct_answer: int
+    explanation: Optional[str] = None
+    points_earned: int = 0
+
 # === STORAGE (EXISTING + NEW) ===
 # Existing storage
 sessions_db = {}
@@ -106,6 +121,7 @@ QUESTION_BANK: List[QuizQuestion] = [
     QuizQuestion(
         id="js-001",
         question="What does the 'const' keyword do in JavaScript?",
+        question_type="single_choice",
         options=[
             "Creates a variable that can be reassigned",
             "Creates a constant that cannot be reassigned", 
@@ -117,20 +133,22 @@ QUESTION_BANK: List[QuizQuestion] = [
         difficulty="easy",
         topic="JavaScript"
     ),
-    QuizQuestion(
-        id="js-002", 
-        question="Which method adds an element to the end of an array?",
-        options=["push()", "pop()", "shift()", "unshift()"],
-        correct_answer=0,
-        explanation="The push() method adds one or more elements to the end of an array.",
-        difficulty="easy",
-        topic="JavaScript"
-    ),
+    # QuizQuestion(
+    #     id="js-002", 
+    #     question="Which method adds an element to the end of an array?",
+    #     question_type="multiple_choice",
+    #     options=["push()", "pop()", "shift()", "unshift()"],
+    #     correct_answer=0,
+    #     explanation="The push() method adds one or more elements to the end of an array.",
+    #     difficulty="easy",
+    #     topic="JavaScript"
+    # ),
     QuizQuestion(
         id="py-001",
         question="How do you create a list in Python?",
+        question_type="multiple_choice",
         options=["list = {}", "list = []", "list = ()", "list = \"\""],
-        correct_answer=1,
+        correct_answers=[0, 1, 2],
         explanation="Square brackets [] are used to create lists in Python.",
         difficulty="easy", 
         topic="Python"
@@ -138,63 +156,60 @@ QUESTION_BANK: List[QuizQuestion] = [
     QuizQuestion(
         id="ts-001",
         question="What is TypeScript?",
-        options=[
-            "A JavaScript runtime",
-            "A superset of JavaScript with static typing",
-            "A database language", 
-            "A CSS framework"
-        ],
+        question_type="short_answer",
+        max_length=200,
+        keywords=["function", "scope", "variable"],
         correct_answer=1,
         explanation="TypeScript is a superset of JavaScript that adds static typing.",
         difficulty="medium",
         topic="TypeScript"
     ),
-    QuizQuestion(
-        id="ts-002",
-        question="How do you define a function with optional parameters in TypeScript?",
-        options=[
-            "function myFunc(param: string?) {}",
-            "function myFunc(param?: string) {}",
-            "function myFunc(param: optional string) {}",
-            "function myFunc([param]: string) {}"
-        ],
-        correct_answer=1,
-        explanation="In TypeScript, optional parameters are defined using the '?' symbol after the parameter name.",
-        difficulty="medium",
-        topic="TypeScript"
-    ),
-    QuizQuestion(
-        id="react-001",
-        question="What is JSX in React?",
-        options=[
-            "A database query language",
-            "A syntax extension for JavaScript",
-            "A CSS framework",
-            "A testing library"
-        ],
-        correct_answer=1,
-        explanation="JSX is a syntax extension for JavaScript that allows you to write HTML-like code in JavaScript.",
-        difficulty="medium",
-        topic="React"
-    ),
-    QuizQuestion(
-        id="algo-001",
-        question="What is the time complexity of binary search?",
-        options=["O(n)", "O(log n)", "O(n²)", "O(1)"],
-        correct_answer=1,
-        explanation="Binary search has O(log n) time complexity because it halves the search space in each iteration.",
-        difficulty="hard",
-        topic="Algorithms"
-    ),
-    QuizQuestion(
-        id="algo-002",
-        question="Which sorting algorithm has the best average-case time complexity?",
-        options=["Bubble Sort", "Quick Sort", "Merge Sort", "Selection Sort"],
-        correct_answer=2,
-        explanation="Merge Sort has O(n log n) time complexity in all cases, making it consistently efficient.",
-        difficulty="hard",
-        topic="Algorithms"
-    )
+    # QuizQuestion(
+    #     id="ts-002",
+    #     question="How do you define a function with optional parameters in TypeScript?",
+    #     options=[
+    #         "function myFunc(param: string?) {}",
+    #         "function myFunc(param?: string) {}",
+    #         "function myFunc(param: optional string) {}",
+    #         "function myFunc([param]: string) {}"
+    #     ],
+    #     correct_answer=1,
+    #     explanation="In TypeScript, optional parameters are defined using the '?' symbol after the parameter name.",
+    #     difficulty="medium",
+    #     topic="TypeScript"
+    # ),
+    # QuizQuestion(
+    #     id="react-001",
+    #     question="What is JSX in React?",
+    #     options=[
+    #         "A database query language",
+    #         "A syntax extension for JavaScript",
+    #         "A CSS framework",
+    #         "A testing library"
+    #     ],
+    #     correct_answer=1,
+    #     explanation="JSX is a syntax extension for JavaScript that allows you to write HTML-like code in JavaScript.",
+    #     difficulty="medium",
+    #     topic="React"
+    # ),
+    # QuizQuestion(
+    #     id="algo-001",
+    #     question="What is the time complexity of binary search?",
+    #     options=["O(n)", "O(log n)", "O(n²)", "O(1)"],
+    #     correct_answer=1,
+    #     explanation="Binary search has O(log n) time complexity because it halves the search space in each iteration.",
+    #     difficulty="hard",
+    #     topic="Algorithms"
+    # ),
+    # QuizQuestion(
+    #     id="algo-002",
+    #     question="Which sorting algorithm has the best average-case time complexity?",
+    #     options=["Bubble Sort", "Quick Sort", "Merge Sort", "Selection Sort"],
+    #     correct_answer=2,
+    #     explanation="Merge Sort has O(n log n) time complexity in all cases, making it consistently efficient.",
+    #     difficulty="hard",
+    #     topic="Algorithms"
+    # )
 ]
 
 # === LEARNING GATES LOGIC ===
@@ -561,6 +576,252 @@ async def get_question_bank_info():
         "topics": ["JavaScript", "Python", "Data Structures", "Algorithms"],
         "difficulties": ["easy", "medium", "hard"],
         "last_updated": "2024-08-15"
+    }
+
+@app.get("/api/quiz/questions")
+async def get_quiz_questions(count: int = 3, user_id: str = "default"):
+    """Get multiple quiz questions for batch quiz"""
+    if count > 10:  # Limit maximum questions
+        count = 10
+    
+    # Get user progress to personalize question selection
+    progress = get_user_progress(user_id)
+    
+    # Smart question selection based on user level
+    available_questions = QUESTION_BANK.copy()
+    
+    # Filter by user level (mix of difficulties)
+    if progress.level <= 2:
+        # Beginners get more easy questions
+        easy_questions = [q for q in available_questions if q.difficulty == "easy"]
+        medium_questions = [q for q in available_questions if q.difficulty == "medium"]
+        selected = random.sample(easy_questions, min(count-1, len(easy_questions)))
+        if len(selected) < count and medium_questions:
+            selected.extend(random.sample(medium_questions, min(count-len(selected), len(medium_questions))))
+    elif progress.level <= 5:
+        # Intermediate users get mixed difficulties
+        easy_questions = [q for q in available_questions if q.difficulty == "easy"]
+        medium_questions = [q for q in available_questions if q.difficulty == "medium"]
+        hard_questions = [q for q in available_questions if q.difficulty == "hard"]
+        
+        # Mix: 1 easy, 1-2 medium, 0-1 hard
+        selected = []
+        if easy_questions:
+            selected.extend(random.sample(easy_questions, min(1, len(easy_questions))))
+        if medium_questions:
+            selected.extend(random.sample(medium_questions, min(count-1, len(medium_questions))))
+        if len(selected) < count and hard_questions:
+            selected.extend(random.sample(hard_questions, min(count-len(selected), len(hard_questions))))
+    else:
+        # Advanced users get more challenging questions
+        medium_questions = [q for q in available_questions if q.difficulty == "medium"]
+        hard_questions = [q for q in available_questions if q.difficulty == "hard"]
+        selected = random.sample(medium_questions + hard_questions, min(count, len(medium_questions + hard_questions)))
+    
+    # Ensure we have enough questions
+    if len(selected) < count:
+        remaining = random.sample(available_questions, min(count - len(selected), len(available_questions)))
+        selected.extend([q for q in remaining if q not in selected])
+    
+    # Limit to requested count
+    selected = selected[:count]
+    
+    return {"questions": selected}
+
+@app.post("/api/quiz/submit-batch")
+async def submit_batch_quiz(submission: dict):
+    """Process enhanced quiz submissions with multiple question types"""
+    try:
+        user_id = submission.get("user_id", "default")
+        answers = submission.get("answers", [])
+        
+        results = []
+        total_correct = 0
+        total_points = 0
+        
+        for answer_data in answers:
+            question_id = answer_data["question_id"]
+            answer_type = answer_data["answer_type"]
+            selected_answer = answer_data["selected_answer"]
+            
+            question = next((q for q in QUESTION_BANK if q.id == question_id), None)
+            if not question:
+                continue
+            
+            # Process based on question type
+            if answer_type == "single_choice":
+                correct = selected_answer == question.correct_answer
+            elif answer_type == "multiple_choice":
+                # Check if all selected answers are correct and no incorrect ones
+                correct_set = set(question.correct_answers or [])
+                selected_set = set(selected_answer if isinstance(selected_answer, list) else [])
+                correct = correct_set == selected_set and len(selected_set) > 0
+            elif answer_type == "short_answer":
+                # Simple keyword matching (you can enhance this)
+                answer_text = str(selected_answer).lower().strip()
+                keywords = question.keywords or []
+                correct = any(keyword.lower() in answer_text for keyword in keywords)
+            else:
+                correct = False
+            
+            points = 0
+            if correct:
+                total_correct += 1
+                # Enhanced scoring based on question type
+                if answer_type == "short_answer":
+                    points = 3  # Higher points for text answers
+                elif answer_type == "multiple_choice":
+                    points = 2  # Medium points for multiple choice
+                else:
+                    points = 1  # Standard points for single choice
+                
+                # Difficulty multiplier
+                if question.difficulty == "hard":
+                    points *= 2
+                elif question.difficulty == "medium":
+                    points = int(points * 1.5)
+                
+                total_points += points
+            
+            result = {
+                "question_id": question_id,
+                "correct": correct,
+                "selected_answer": selected_answer,
+                "correct_answer": question.correct_answer if answer_type == "single_choice" else question.correct_answers,
+                "answer_type": answer_type,
+                "explanation": question.explanation,
+                "points_earned": points
+            }
+            results.append(result)
+        
+        # Enhanced progress calculation
+        progress = get_user_progress(user_id)
+        progress.total_questions += len(answers)
+        progress.correct_answers += total_correct
+        progress.last_quiz_time = datetime.now()
+        
+        # Smart response allocation based on performance and question types
+        if total_correct == len(answers):
+            # Perfect score
+            progress.streak += len(answers)
+            base_responses = total_points  # Points = responses
+            bonus_responses = progress.streak // 3
+            progress.unlocked_responses = base_responses + bonus_responses
+        elif total_correct >= len(answers) * 0.7:  # 70% or better
+            progress.streak = max(0, progress.streak - 1)
+            progress.unlocked_responses = total_points + 2  # Points + bonus
+        elif total_correct > 0:
+            progress.streak = max(0, progress.streak - 2)
+            progress.unlocked_responses = max(1, total_points)  # At least 1
+        else:
+            progress.streak = 0
+            progress.unlocked_responses = 1
+        
+        # Level calculation
+        old_level = progress.level
+        progress.level = (progress.correct_answers // 15) + 1  # Adjusted for harder questions
+        level_up = progress.level > old_level
+        
+        # Return enhanced results
+        return {
+            "results": results,
+            "summary": {
+                "total_questions": len(answers),
+                "correct_answers": total_correct,
+                "accuracy": round((total_correct / len(answers)) * 100),
+                "points_earned": total_points,
+                "level_up": level_up,
+                "new_level": progress.level if level_up else None,
+                "unlocked_responses": progress.unlocked_responses,
+                "question_types": list(set(answer["answer_type"] for answer in answers))
+            },
+            "updated_stats": get_user_stats(user_id)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Enhanced quiz submission error: {str(e)}")
+    
+
+# Enhanced skip batch quiz endpoint
+@app.post("/api/quiz/skip-batch")
+async def skip_batch_quiz(user_id: str = "default"):
+    """Skip entire batch quiz - give minimal responses"""
+    progress = get_user_progress(user_id)
+    progress.unlocked_responses = 1  # Minimal response for skipping
+    progress.streak = max(0, progress.streak - 1)  # Small penalty for skipping
+    
+    stats = get_user_stats(user_id)
+    
+    return {
+        "result": {
+            "correct": False,
+            "explanation": "Quiz batch skipped - you get 1 limited response.",
+            "unlocked_responses": 1,
+            "level_up": False
+        },
+        "updated_stats": stats
+    }
+
+# Enhanced question selection with learning analytics
+def get_personalized_questions(user_id: str, count: int = 3) -> List[QuizQuestion]:
+    """Get personalized questions based on user's learning pattern"""
+    progress = get_user_progress(user_id)
+    
+    # TODO: In a real system, you'd track which topics user struggles with
+    # For now, we'll use level-based selection
+    
+    if progress.level <= 2:
+        # Focus on basics
+        topics = ["JavaScript", "Python"]
+        difficulties = ["easy", "medium"]
+    elif progress.level <= 5:
+        # Broader topics, mixed difficulty
+        topics = ["JavaScript", "Python", "TypeScript", "React"]
+        difficulties = ["easy", "medium", "hard"]
+    else:
+        # All topics, focus on advanced
+        topics = ["JavaScript", "Python", "TypeScript", "React", "Algorithms"]
+        difficulties = ["medium", "hard"]
+    
+    # Filter questions
+    filtered_questions = [
+        q for q in QUESTION_BANK 
+        if q.topic in topics and q.difficulty in difficulties
+    ]
+    
+    if len(filtered_questions) < count:
+        # Fallback to all questions if not enough filtered
+        filtered_questions = QUESTION_BANK
+    
+    return random.sample(filtered_questions, min(count, len(filtered_questions)))
+
+# Update the get_quiz_questions to use personalized selection
+@app.get("/api/quiz/questions-personalized")
+async def get_personalized_quiz_questions(count: int = 3, user_id: str = "default"):
+    """Get personalized quiz questions based on user's learning progress"""
+    questions = get_personalized_questions(user_id, count)
+    return {"questions": questions}
+
+# Analytics endpoint for tracking learning patterns
+@app.get("/api/analytics/user/{user_id}")
+async def get_user_analytics(user_id: str):
+    """Get detailed analytics for user learning patterns"""
+    progress = get_user_progress(user_id)
+    
+    # Calculate accuracy by difficulty (would need tracking in real system)
+    total_accuracy = (progress.correct_answers / progress.total_questions * 100) if progress.total_questions > 0 else 0
+    
+    return {
+        "user_id": user_id,
+        "level": progress.level,
+        "total_questions": progress.total_questions,
+        "correct_answers": progress.correct_answers,
+        "overall_accuracy": round(total_accuracy),
+        "current_streak": progress.streak,
+        "unlocked_responses": progress.unlocked_responses,
+        "last_quiz": progress.last_quiz_time,
+        "performance_trend": "improving" if progress.streak > 0 else "needs_work",
+        "recommended_topics": ["JavaScript", "Algorithms"] if total_accuracy < 70 else ["Advanced Concepts"]
     }
 
 
