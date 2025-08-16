@@ -176,7 +176,7 @@ const QuizOverlay: React.FC = () => {
   };
 
   const handleShortAnswer = (value: string) => {
-    handleAnswerSelect({ type: 'short_answer', answer: value.trim() });
+    handleAnswerSelect({ type: 'short_answer', answer: value});
   };
 
   if (showResults && results) {

@@ -38,8 +38,8 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({ question, selectedAnswer, o
 
   const getQuestionTypeIcon = () => {
     switch (questionType) {
-      case 'single_choice': return <Circle size={16} />; // Fixed: Use Circle instead of RadioButton
-      case 'multiple_choice': return <Square size={16} />; // Fixed: Use Square instead of CheckBox
+      case 'single_choice': return <Circle size={16} />;
+      case 'multiple_choice': return <Square size={16} />;
       case 'short_answer': return <FileText size={16} />;
       default: return <Circle size={16} />;
     }
