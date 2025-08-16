@@ -294,3 +294,155 @@ END $$;
 -- Insert Google OAuth provider
 INSERT INTO oauth_providers (name, display_name, client_id, client_secret_encrypted, authorization_url, token_url, user_info_url, logo_url, button_color) VALUES
 ('google', 'Google', 'placeholder-client-id', decode('placeholder-secret', 'base64'), 'https://accounts.google.com/o/oauth2/v2/auth', 'https://oauth2.googleapis.com/token', 'https://www.googleapis.com/oauth2/v2/userinfo', 'https://developers.google.com/identity/images/g-logo.png', '#4285f4');
+
+-- Learning-related enums
+CREATE TYPE difficulty_enum AS ENUM ('easy', 'medium', 'hard', 'mixed');
+CREATE TYPE question_type_enum AS ENUM ('single_choice', 'multiple_choice', 'short_answer');
+
+-- Quiz questions table
+CREATE TABLE quiz_questions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    question TEXT NOT NULL,
+    question_type question_type_enum DEFAULT 'single_choice',
+    options JSONB,
+    correct_answer INTEGER,
+    correct_answers JSONB,
+    keywords JSONB,
+    max_length INTEGER,
+    explanation TEXT,
+    difficulty difficulty_enum NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_by UUID REFERENCES users(id),
+    organization_id UUID REFERENCES organizations(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- User progress table
+CREATE TABLE user_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    total_questions INTEGER DEFAULT 0,
+    correct_answers INTEGER DEFAULT 0,
+    streak INTEGER DEFAULT 0,
+    unlocked_responses INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 1,
+    message_count INTEGER DEFAULT 0,
+    last_quiz_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    
+    UNIQUE(user_id, organization_id)
+);
+
+-- Quiz submissions table
+CREATE TABLE quiz_submissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    question_id UUID NOT NULL REFERENCES quiz_questions(id) ON DELETE CASCADE,
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    selected_answer JSONB,
+    is_correct BOOLEAN NOT NULL,
+    points_earned INTEGER DEFAULT 0,
+    time_taken INTEGER,
+    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Chat sessions table
+CREATE TABLE chat_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    session_token VARCHAR(255) UNIQUE NOT NULL,
+    learning_gates_enabled BOOLEAN DEFAULT false,
+    gate_frequency INTEGER DEFAULT 2,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Chat messages table
+CREATE TABLE chat_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id UUID NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL,
+    content TEXT NOT NULL,
+    message_type VARCHAR(50) DEFAULT 'text',
+    metadata JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Indexes for learning tables
+CREATE INDEX idx_quiz_questions_topic_difficulty ON quiz_questions(topic, difficulty);
+CREATE INDEX idx_quiz_questions_organization ON quiz_questions(organization_id);
+CREATE INDEX idx_quiz_questions_active ON quiz_questions(is_active) WHERE is_active = true;
+
+CREATE INDEX idx_user_progress_user_org ON user_progress(user_id, organization_id);
+CREATE INDEX idx_user_progress_level ON user_progress(level);
+
+CREATE INDEX idx_quiz_submissions_user_time ON quiz_submissions(user_id, submitted_at DESC);
+CREATE INDEX idx_quiz_submissions_question ON quiz_submissions(question_id);
+CREATE INDEX idx_quiz_submissions_correct ON quiz_submissions(is_correct);
+
+CREATE INDEX idx_chat_sessions_user ON chat_sessions(user_id);
+CREATE INDEX idx_chat_sessions_token ON chat_sessions(session_token);
+
+CREATE INDEX idx_chat_messages_session_time ON chat_messages(session_id, created_at DESC);
+CREATE INDEX idx_chat_messages_type ON chat_messages(message_type);
+
+-- Add triggers for learning tables
+CREATE TRIGGER update_quiz_questions_updated_at BEFORE UPDATE ON quiz_questions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_progress_updated_at BEFORE UPDATE ON user_progress
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_chat_sessions_updated_at BEFORE UPDATE ON chat_sessions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert sample quiz questions
+INSERT INTO quiz_questions (question, question_type, options, correct_answer, explanation, difficulty, topic) VALUES
+('What does the ''const'' keyword do in JavaScript?', 'single_choice', 
+ '["Creates a variable that can be reassigned", "Creates a constant that cannot be reassigned", "Creates a global variable", "Creates a function"]',
+ 1, 'The ''const'' keyword creates a constant that cannot be reassigned after declaration.', 'easy', 'JavaScript'),
+
+('How do you create a list in Python?', 'single_choice',
+ '["list = {}", "list = []", "list = ()", "list = \"\""]',
+ 1, 'Square brackets [] are used to create lists in Python.', 'easy', 'Python'),
+
+('What is TypeScript?', 'short_answer',
+ NULL, NULL, 'TypeScript is a superset of JavaScript that adds static typing.', 'medium', 'TypeScript');
+
+-- Update permissions for learning features
+INSERT INTO permissions (name, slug, description, category, resource_type, action) VALUES
+('Use Learning Gates', 'use_learning_gates', 'Access learning gates feature', 'content', 'learning', 'read'),
+('Create Quiz Questions', 'create_quiz_questions', 'Create new quiz questions', 'content', 'quiz_question', 'create'),
+('Manage Quiz Questions', 'manage_quiz_questions', 'Manage quiz questions', 'content', 'quiz_question', 'manage'),
+('View Learning Analytics', 'view_learning_analytics', 'View learning progress and analytics', 'analytics', 'learning', 'read');
+
+-- Add learning permissions to roles
+DO $
+DECLARE
+    org_admin_id UUID;
+    org_user_id UUID;
+    individual_user_id UUID;
+    perm_id UUID;
+BEGIN
+    SELECT id INTO org_admin_id FROM roles WHERE slug = 'org_admin';
+    SELECT id INTO org_user_id FROM roles WHERE slug = 'org_user';
+    SELECT id INTO individual_user_id FROM roles WHERE slug = 'individual_user';
+
+    -- All user types can use learning gates
+    FOR perm_id IN SELECT id FROM permissions WHERE slug = 'use_learning_gates' LOOP
+        INSERT INTO role_permissions (role_id, permission_id) VALUES
+        (org_admin_id, perm_id),
+        (org_user_id, perm_id),
+        (individual_user_id, perm_id);
+    END LOOP;
+
+    -- Only org admins can manage quiz questions
+    FOR perm_id IN SELECT id FROM permissions WHERE slug IN ('create_quiz_questions', 'manage_quiz_questions', 'view_learning_analytics') LOOP
+        INSERT INTO role_permissions (role_id, permission_id) VALUES (org_admin_id, perm_id);
+    END LOOP;
+END $;

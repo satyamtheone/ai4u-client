@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 import uuid
 import structlog
 
-from app.models.activity_log import ActivityLog
+from models.activity_log import ActivityLog
 
 logger = structlog.get_logger(__name__)
 
@@ -20,7 +20,7 @@ class ActivityService:
         organization_id: Optional[uuid.UUID] = None,
         resource_type: Optional[str] = None,
         resource_id: Optional[uuid.UUID] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        activity_metadata: Optional[Dict[str, Any]] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None
     ) -> Optional[ActivityLog]:
@@ -32,7 +32,7 @@ class ActivityService:
                 action=action,
                 resource_type=resource_type,
                 resource_id=resource_id,
-                metadata=metadata,
+                activity_metadata=activity_metadata,
                 ip_address=ip_address,
                 user_agent=user_agent
             )

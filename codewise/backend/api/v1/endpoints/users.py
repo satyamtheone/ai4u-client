@@ -3,12 +3,12 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import uuid
 
-from app.core.database import get_db
-from app.schemas.user import UserResponse, UserUpdate
-from app.schemas.common import ResponseModel, PaginatedResponse, PaginationParams
-from app.services.user_service import UserService
-from app.api.dependencies import get_current_user
-from app.models.user import User
+from core.database import get_db
+from schemas.user import UserResponse, UserUpdate
+from schemas.common import ResponseModel, PaginatedResponse, PaginationParams
+from services.user_service import UserService
+from api.dependencies import get_current_user
+from models.user import User
 import structlog
 
 logger = structlog.get_logger(__name__)

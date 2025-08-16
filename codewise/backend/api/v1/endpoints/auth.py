@@ -3,14 +3,14 @@ from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 
-from app.core.database import get_db
-from app.schemas.auth import Token, GoogleAuthRequest, PasswordResetRequest
-from app.schemas.user import UserCreate, UserLogin, UserResponse
-from app.schemas.common import ResponseModel
-from app.services.auth_service import AuthService
-from app.services.user_service import UserService
-from app.services.oauth_service import OAuthService
-from app.utils.request_utils import get_client_ip, get_user_agent
+from core.database import get_db
+from schemas.auth import Token, GoogleAuthRequest, PasswordResetRequest
+from schemas.user import UserCreate, UserLogin, UserResponse
+from schemas.common import ResponseModel
+from services.auth_service import AuthService
+from services.user_service import UserService
+from services.oauth_service import OAuthService
+from utils.request_utils import get_client_ip, get_user_agent
 import structlog
 
 logger = structlog.get_logger(__name__)

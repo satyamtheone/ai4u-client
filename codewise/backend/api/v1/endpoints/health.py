@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.schemas.common import ResponseModel
+from core.database import get_db
+from schemas.common import ResponseModel
 import structlog
 
 logger = structlog.get_logger(__name__)

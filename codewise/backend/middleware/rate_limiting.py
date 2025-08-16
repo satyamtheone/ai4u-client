@@ -3,7 +3,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 import time
 from collections import defaultdict
-from app.core.config import settings
+from core.config import settings
 import structlog
 
 logger = structlog.get_logger(__name__)

@@ -4,12 +4,12 @@ import httpx
 import structlog
 import uuid
 
-from app.models.user import User
-from app.models.oauth import OAuthProvider, UserSocialAccount
-from app.models.account_type import AccountType
-from app.core.config import settings
-from app.services.user_service import UserService
-from app.services.activity_service import ActivityService
+from models.user import User
+from models.oauth import OAuthProvider, UserSocialAccount
+from models.account_type import AccountType
+from core.config import settings
+from services.user_service import UserService
+from services.activity_service import ActivityService
 
 logger = structlog.get_logger(__name__)
 

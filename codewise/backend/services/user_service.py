@@ -4,11 +4,11 @@ from typing import Optional, List
 import uuid
 import structlog
 
-from app.models.user import User
-from app.models.account_type import AccountType, UserRole
-from app.schemas.user import UserCreate, UserUpdate
-from app.core.security import SecurityService
-from app.services.activity_service import ActivityService
+from models.user import User
+from models.account_type import AccountType, UserRole
+from schemas.user import UserCreate, UserUpdate
+from core.security import SecurityService
+from services.activity_service import ActivityService
 
 logger = structlog.get_logger(__name__)
 
@@ -106,7 +106,7 @@ class UserService:
     def _assign_default_role(self, user_id: uuid.UUID, account_type: str):
         """Assign default role to user"""
         try:
-            from app.models.role import Role
+            from models.role import Role
             
             role_slug = "individual_user" if account_type == "individual" else "org_user"
             role = self.db.query(Role).filter(Role.slug == role_slug).first()

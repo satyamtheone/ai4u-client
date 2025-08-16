@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import structlog
 
-from app.core.database import get_db
-from app.core.security import SecurityService
-from app.models.user import User
+from core.database import get_db
+from core.security import SecurityService
+from models.user import User
 
 logger = structlog.get_logger(__name__)
 security = HTTPBearer()

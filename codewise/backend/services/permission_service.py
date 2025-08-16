@@ -3,9 +3,9 @@ from typing import List, Set
 import uuid
 import structlog
 
-from app.models.user import User
-from app.models.role import Role, Permission, RolePermission
-from app.models.account_type import UserRole
+from models.user import User
+from models.role import Role, Permission, RolePermission
+from models.account_type import UserRole
 
 logger = structlog.get_logger(__name__)
 

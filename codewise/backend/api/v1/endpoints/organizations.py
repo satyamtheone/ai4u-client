@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.core.database import get_db
-from app.schemas.organization import OrganizationCreate, OrganizationResponse
-from app.schemas.common import ResponseModel
-from app.services.organization_service import OrganizationService
-from app.api.dependencies import get_current_user
-from app.models.user import User
+from core.database import get_db
+from schemas.organization import OrganizationCreate, OrganizationResponse
+from schemas.common import ResponseModel
+from services.organization_service import OrganizationService
+from api.dependencies import get_current_user
+from models.user import User
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -54,8 +54,8 @@ async def get_my_organizations(
 ):
     """Get current user's organizations"""
     try:
-        from app.models.organization import Organization
-        from app.models.account_type import AccountType
+        from models.organization import Organization
+        from models.account_type import AccountType
         
         organizations = db.query(Organization).join(AccountType).filter(
             AccountType.user_id == current_user.id,

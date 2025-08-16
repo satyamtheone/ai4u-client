@@ -8,9 +8,9 @@ import sys
 # Add the app directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from app.core.config import settings
-from app.core.database import Base
-from app.models import *  # Import all models
+from core.config import settings
+from core.database import Base
+from models import *  # Import all models
 
 # this is the Alembic Config object
 config = context.config

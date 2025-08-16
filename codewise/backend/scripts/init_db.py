@@ -9,9 +9,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
-from app.core.database import engine, SessionLocal
-from app.core.config import settings
-from app.models import *
+from core.database import engine, SessionLocal
+from core.config import settings
+from models import *
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -28,7 +28,7 @@ def init_database():
         
         try:
             # Check if we already have data
-            from app.models.role import Role
+            from models.role import Role
             existing_roles = db.query(Role).count()
             
             if existing_roles > 0:

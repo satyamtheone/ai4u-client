@@ -4,12 +4,12 @@ from datetime import datetime, timedelta
 import uuid
 import structlog
 
-from app.models.user import User
-from app.models.session import UserSession
-from app.schemas.auth import Token
-from app.core.security import SecurityService
-from app.core.redis_client import redis_client
-from app.services.activity_service import ActivityService
+from models.user import User
+from models.session import UserSession
+from schemas.auth import Token
+from core.security import SecurityService
+from core.redis_client import RedisClient
+from services.activity_service import ActivityService
 
 logger = structlog.get_logger(__name__)
 
@@ -95,7 +95,7 @@ class AuthService:
             self.db.commit()
             
             # Cache session in Redis
-            await redis_client.set(
+            await RedisClient.set(
                 f"session:{access_token}",
                 {"user_id": str(user_id), "session_id": str(session.id)},
                 expire=1800  # 30 minutes

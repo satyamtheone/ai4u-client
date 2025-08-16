@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 50
     MAX_PAGE_SIZE: int = 1000
 
+    # OpenAI Integration (NEW)
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-3.5-turbo"
+    OPENAI_MAX_TOKENS: int = 500
+    OPENAI_TEMPERATURE: float = 0.7
+
+    DEFAULT_GATE_FREQUENCY: int = 2
+    MAX_QUESTIONS_PER_BATCH: int = 10
+
     class Config:
         env_file = ".env"
         case_sensitive = True

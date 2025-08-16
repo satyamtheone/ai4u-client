@@ -1,9 +1,10 @@
-# Multi-Tenancy FastAPI Application
+# Multi-Tenancy FastAPI Application with Learning Gates
 
-A mission-critical multi-tenancy application built with FastAPI, PostgreSQL, and Redis, featuring comprehensive SSO support and enterprise-grade security.
+A mission-critical multi-tenancy application built with FastAPI, PostgreSQL, and Redis, featuring comprehensive SSO support, enterprise-grade security, and an innovative Learning Gates system for interactive AI education.
 
-## Features
+## 🚀 Features
 
+### Core Platform
 - **Multi-Tenancy**: Support for both individual users and organizations
 - **Authentication**: Email/password and Google OAuth SSO
 - **Authorization**: Role-based access control (RBAC) with fine-grained permissions
@@ -12,154 +13,169 @@ A mission-critical multi-tenancy application built with FastAPI, PostgreSQL, and
 - **Observability**: Structured logging, health checks, metrics
 - **Scalability**: Designed to handle millions of users
 
+### 🎓 Learning Gates System
+- **Interactive Learning**: AI chat with educational quiz interruptions
+- **Personalized Questions**: Adaptive difficulty based on user progress
+- **Multiple Question Types**: Single choice, multiple choice, and short answer
+- **Progress Tracking**: Levels, streaks, accuracy metrics
+- **Unlocked Responses**: Earn AI responses by completing quizzes
+- **Organization Support**: Custom question banks per organization
+
 ## Quick Start
 
-1. **Clone the repository**
+1. **Clone and setup**
    ```bash
    git clone <repository-url>
    cd multitenancy-app
-   ```
-
-2. **Set up environment**
-   ```bash
    cp .env.example .env
-   # Edit .env with your configuration
+   # Edit .env with your OpenAI API key and other settings
    ```
 
-3. **Start services**
+2. **Start development environment**
    ```bash
-   make up
+   make dev-setup
    ```
 
-4. **Initialize database**
-   ```bash
-   make init-db
-   ```
-
-5. **Access the application**
+3. **Access the application**
    - API: http://localhost:8000
    - Documentation: http://localhost:8000/docs
    - Health Check: http://localhost:8000/health
 
-## Architecture
+## 🎯 Learning Gates API Endpoints
+
+### Chat with Learning Gates
+```bash
+# Normal chat (no learning gates)
+POST /api/v1/learning/chat
+{
+  "message": "Explain JavaScript closures",
+  "enable_learning_gates": false
+}
+
+# Chat with learning gates enabled
+POST /api/v1/learning/chat?learning_gates=true
+{
+  "message": "How do I use React hooks?",
+  "enable_learning_gates": true,
+  "gate_frequency": 2
+}
+```
+
+### Quiz Management
+```bash
+# Get personalized quiz questions
+GET /api/v1/learning/questions?count=3&difficulty=mixed
+
+# Submit quiz answer
+POST /api/v1/learning/quiz/submit
+{
+  "question_id": "uuid",
+  "selected_answer": 1,
+  "answer_type": "single_choice",
+  "time_taken": 30
+}
+
+# Submit batch quiz
+POST /api/v1/learning/quiz/submit-batch
+{
+  "answers": [
+    {
+      "question_id": "uuid",
+      "selected_answer": 1,
+      "answer_type": "single_choice"
+    }
+  ]
+}
+
+# Skip quiz (get limited responses)
+POST /api/v1/learning/quiz/skip
+```
+
+### Progress Tracking
+```bash
+# Get user learning statistics
+GET /api/v1/learning/stats
+
+# Get detailed progress
+GET /api/v1/learning/progress
+
+# Reset progress
+POST /api/v1/learning/progress/reset
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# Core settings
+DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/multitenancy_app
+REDIS_URL=redis://localhost:6379
+SECRET_KEY=your-super-secret-key
+
+# OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# OpenAI (Required for Learning Gates)
+OPENAI_API_KEY=your-openai-api-key
+
+# Learning Gates settings
+DEFAULT_GATE_FREQUENCY=2
+MAX_QUESTIONS_PER_BATCH=10
+```
+
+## 🎮 How Learning Gates Work
+
+1. **User starts chat** with learning gates enabled
+2. **System tracks messages** and triggers quiz based on frequency
+3. **User gets quiz question** instead of AI response
+4. **Correct answers unlock** multiple AI responses
+5. **Progress tracking** with levels, streaks, and analytics
+
+### Example Learning Flow
+```
+User: "How do I use async/await in JavaScript?"
+System: [Shows quiz about JavaScript basics]
+User: [Answers correctly]
+System: "Great! You unlocked 3 AI responses. Here's how async/await works..."
+```
+
+## 🏗 Architecture
 
 ### Database Schema
-- **Users**: Partitioned by creation date for performance
-- **Organizations**: Multi-tenant isolation
-- **Roles & Permissions**: Flexible RBAC system
-- **OAuth Providers**: Extensible SSO configuration
-- **Activity Logs**: Comprehensive audit trail
-
-### API Structure
 ```
-app/
-├── api/v1/endpoints/    # API endpoints
-├── core/               # Core configuration and utilities
-├── models/             # SQLAlchemy models
-├── schemas/            # Pydantic schemas
-├── services/           # Business logic
-├── middleware/         # Custom middleware
-└── utils/              # Utility functions
+quiz_questions     - Question bank with multiple types
+user_progress      - Individual learning progress
+quiz_submissions   - Answer history and analytics
+chat_sessions      - AI chat sessions with settings
+chat_messages      - Conversation history
 ```
 
-## API Endpoints
+### Learning Features
+- **Adaptive Difficulty**: Questions adapt to user level
+- **Smart Frequency**: Learning gates appear based on user activity
+- **Multiple Question Types**: Single/multiple choice, short answer
+- **    
+    # Application
+    ENVIRONMENT: str = "development"
+    LOG_LEVEL: str = "INFO"
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8080"]
+    
+    # Rate limiting
+    RATE_LIMIT_REQUESTS: int = 100
+    RATE_LIMIT_WINDOW: int = 60  # seconds
+    
+    # Pagination
+    DEFAULT_PAGE_SIZE: int = 50
+    MAX_PAGE_SIZE: int = 1000
 
-### Authentication
-- `POST /api/v1/auth/register` - Register new user
-- `POST /api/v1/auth/login` - Login with email/password
-- `GET /api/v1/auth/google` - Get Google OAuth URL
-- `POST /api/v1/auth/google/callback` - Handle Google OAuth callback
+    # Learning Gates (NEW)
+    DEFAULT_GATE_FREQUENCY: int = 2
+    MAX_QUESTIONS_PER_BATCH: int = 10
+    DEFAULT_UNLOCKED_RESPONSES: int = 3
 
-### Users
-- `GET /api/v1/users/me` - Get current user profile
-- `PUT /api/v1/users/me` - Update current user profile
-- `GET /api/v1/users/` - List users (with permissions)
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
 
-### Organizations
-- `POST /api/v1/organizations/` - Create organization
-- `GET /api/v1/organizations/my` - Get user's organizations
-
-### Health
-- `GET /api/v1/health/` - Health check with database test
-- `GET /api/v1/health/ready` - Readiness probe
-- `GET /api/v1/health/live` - Liveness probe
-
-## Development
-
-### Running Tests
-```bash
-make test
-```
-
-### Code Formatting
-```bash
-make format
-make lint
-```
-
-### Database Migrations
-```bash
-# Create new migration
-make migration name="add_new_table"
-
-# Run migrations
-make migrate
-```
-
-### Monitoring Logs
-```bash
-make logs
-```
-
-## Configuration
-
-Key environment variables:
-
-- `DATABASE_URL`: PostgreSQL connection string
-- `REDIS_URL`: Redis connection string
-- `SECRET_KEY`: JWT signing key
-- `GOOGLE_CLIENT_ID`: Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
-
-## Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Password Hashing**: bcrypt with salt
-- **Rate Limiting**: Configurable request rate limits
-- **SQL Injection Protection**: SQLAlchemy ORM with parameterized queries
-- **CORS Protection**: Configurable cross-origin policies
-- **Input Validation**: Pydantic schema validation
-- **Audit Logging**: Comprehensive activity tracking
-
-## Performance Optimizations
-
-- **Database Indexing**: Comprehensive index strategy
-- **Connection Pooling**: Optimized database connections
-- **Redis Caching**: Session and data caching
-- **Table Partitioning**: Automatic data partitioning
-- **Async Operations**: Non-blocking I/O operations
-
-## Production Deployment
-
-1. **Update Environment Variables**
-   - Set production database credentials
-   - Configure OAuth providers
-   - Set secure secret keys
-
-2. **Database Setup**
-   - Run migrations: `make migrate`
-   - Set up monitoring and backups
-
-3. **Security Hardening**
-   - Enable HTTPS
-   - Configure firewall rules
-   - Set up monitoring and alerting
-
-4. **Scaling**
-   - Use load balancers
-   - Set up read replicas
-   - Configure horizontal scaling
-
-## License
-
-This project is licensed under the MIT License.
+settings = Settings()

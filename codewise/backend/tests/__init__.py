@@ -6,9 +6,9 @@ from fastapi.testclient import TestClient
 import os
 import tempfile
 
-from app.main import app
-from app.core.database import Base, get_db
-from app.core.config import settings
+from main import app
+from core.database import Base, get_db
+from core.config import settings
 
 # Create a temporary database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"

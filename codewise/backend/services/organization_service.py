@@ -3,10 +3,10 @@ from typing import Optional, List
 import uuid
 import structlog
 
-from app.models.organization import Organization
-from app.models.account_type import AccountType, UserRole
-from app.schemas.organization import OrganizationCreate
-from app.services.activity_service import ActivityService
+from models.organization import Organization
+from models.account_type import AccountType, UserRole
+from schemas.organization import OrganizationCreate
+from services.activity_service import ActivityService
 
 logger = structlog.get_logger(__name__)
 
@@ -78,7 +78,7 @@ class OrganizationService:
     ):
         """Add user to organization with specified role"""
         try:
-            from app.models.role import Role
+            from models.role import Role
             
             # Create account type
             account = AccountType(

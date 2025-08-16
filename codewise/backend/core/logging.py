@@ -2,7 +2,7 @@ import structlog
 import logging
 import sys
 from pythonjsonlogger import jsonlogger
-from app.core.config import settings
+from core.config import settings
 
 def setup_logging():
     """Configure structured logging"""

@@ -4,12 +4,12 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from contextlib import asynccontextmanager
 import structlog
 
-from app.core.config import settings
-from app.core.logging import setup_logging
-from app.core.database import engine
-from app.api.v1.router import api_router
-from app.middleware.request_logging import RequestLoggingMiddleware
-from app.middleware.rate_limiting import RateLimitingMiddleware
+from core.config import settings
+from core.logging import setup_logging
+from core.database import engine
+from api.v1.router import api_router
+from middleware.request_logging import RequestLoggingMiddleware
+from middleware.rate_limiting import RateLimitingMiddleware
 
 # Setup logging
 setup_logging()
