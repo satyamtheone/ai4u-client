@@ -53,11 +53,11 @@ clean:
 
 # Initialize database
 init-db:
-	docker compose exec api python scripts/init_db.py
+	docker compose exec api python backend/scripts/init_db.py
 
 # Seed quiz questions
 seed-questions:
-	docker compose exec api python backend/scripts/seed_questions.py
+	docker compose exec api python scripts/seed_questions.py
 
 # Create new migration
 migration:
@@ -73,8 +73,18 @@ alembic-init:
 clean-containers:
 	docker rm -f multitenancy_db multitenancy_redis multitenancy_api || true
 
+ls-api-container:
+	docker compose exec api ls -la 
+
+wait-for-db:
+	@echo "Waiting for database to be ready..."
+	@sleep 10
+
+create-initial-migration:
+	docker compose exec api alembic revision --autogenerate -m "Initial migration"
+
 # Quick setup for development
-dev-setup: clean-containers build up alembic-init migrate seed-questions
+dev-setup: clean-containers build up wait-for-db ls-api-container migrate seed-questions
 	@echo "Development environment ready!"
 	@echo "API: http://localhost:8000"
 	@echo "Docs: http://localhost:8000/docs"
