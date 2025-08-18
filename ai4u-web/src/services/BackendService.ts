@@ -33,7 +33,7 @@ export class BackendService {
         }
 
         try {
-            const response = await fetch(`${this.backendUrl}/api/health`, {
+            const response = await fetch(`${this.backendUrl}/api/v1/health`, {
                 method: 'GET',
                 signal: AbortSignal.timeout(5000)
             });
@@ -85,8 +85,8 @@ export class BackendService {
             };
 
             const url = this.learningGatesEnabled 
-                ? `${this.backendUrl}/api/chat?learning_gates=true`
-                : `${this.backendUrl}/api/chat`;
+                ? `${this.backendUrl}/api/v1/learning/chat?learning_gates=true`
+                : `${this.backendUrl}/api/v1/learning/chat`;
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -160,7 +160,7 @@ export class BackendService {
                 user_id: this.userId
             };
 
-            const response = await fetch(`${this.backendUrl}/api/quiz/submit`, {
+            const response = await fetch(`${this.backendUrl}/api/v1/learning/submit`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ export class BackendService {
         }
 
         try {
-            const response = await fetch(`${this.backendUrl}/api/quiz/skip?user_id=${this.userId}`, {
+            const response = await fetch(`${this.backendUrl}/api/v1/learning/skip?user_id=${this.userId}`, {
                 method: 'POST',
                 signal: AbortSignal.timeout(10000)
             });
@@ -212,7 +212,7 @@ export class BackendService {
         }
 
         try {
-            const url = `${this.backendUrl}/api/quiz/questions?count=${count}&user_id=${userId || this.userId}`;
+            const url = `${this.backendUrl}/api/v1/learning/questions?count=${count}&user_id=${userId || this.userId}`;
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -243,7 +243,7 @@ export class BackendService {
                 user_id: user_id || this.userId
             };
 
-            const response = await fetch(`${this.backendUrl}/api/quiz/submit-batch`, {
+            const response = await fetch(`${this.backendUrl}/api/v1/learning/submit-batch`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

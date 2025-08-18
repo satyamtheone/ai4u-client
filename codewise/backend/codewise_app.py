@@ -305,7 +305,7 @@ def get_user_stats(user_id: str) -> Dict:
 
 # === API ENDPOINTS ===
 
-@app.post("/api/chat")
+@app.post("/api/v1/learning/chat")
 async def chat_with_ai(request: ChatRequest, learning_gates: bool = Query(False, description="Enable learning gates for this request")):
     """
     ENHANCED: Handle chat requests with optional learning gates
@@ -319,7 +319,7 @@ async def chat_with_ai(request: ChatRequest, learning_gates: bool = Query(False,
     # NEW: Check learning gates if enabled
     if learning_gates or request.enable_learning_gates:
         if should_show_gate(user_id):
-            question = get_quiz_question()
+            question = await get_quiz_question()
             if question:
                 stats = get_user_stats(user_id)
                 return EnhancedChatResponse(
@@ -417,7 +417,7 @@ async def chat_with_ai(request: ChatRequest, learning_gates: bool = Query(False,
 
 # === NEW LEARNING GATES ENDPOINTS ===
 
-@app.post("/api/quiz/submit")
+@app.post("/api/v1/learning/submit")
 async def submit_quiz(submission: QuizSubmission):
     """Submit quiz answer"""
     try:
@@ -437,7 +437,7 @@ async def submit_quiz(submission: QuizSubmission):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Quiz submission error: {str(e)}")
 
-@app.post("/api/quiz/skip")
+@app.post("/api/v1/learning/skip")
 async def skip_quiz(user_id: str = "default"):
     """Skip quiz - give limited response"""
     progress = get_user_progress(user_id)
@@ -455,25 +455,25 @@ async def skip_quiz(user_id: str = "default"):
         "updated_stats": stats
     }
 
-@app.get("/api/user/stats/{user_id}")
+@app.get("/api/v1/user/stats/{user_id}")
 async def get_stats(user_id: str):
     """Get user learning statistics"""
     return get_user_stats(user_id)
 
-@app.get("/api/user/progress/{user_id}")
+@app.get("/api/v1/user/progress/{user_id}")
 async def get_progress(user_id: str):
     """Get detailed user progress"""
     progress = get_user_progress(user_id)
     return progress.dict()
 
-@app.post("/api/user/reset/{user_id}")
+@app.post("/api/v1/user/reset/{user_id}")
 async def reset_progress(user_id: str):
     """Reset user learning progress"""
     if user_id in user_progress_db:
         del user_progress_db[user_id]
     return {"message": "Progress reset successfully"}
 
-@app.get("/api/questions")
+@app.get("/api/v1/questions")
 async def get_questions(difficulty: str = "mixed", topic: str = None):
     """Get available questions (for admin/debug)"""
     questions = QUESTION_BANK.copy()
@@ -496,7 +496,7 @@ async def get_questions(difficulty: str = "mixed", topic: str = None):
 
 # === EXISTING ENDPOINTS (UNCHANGED) ===
 
-@app.get("/api/chat/history/{session_id}")
+@app.get("/api/v1/chat/history/{session_id}")
 async def get_chat_history(session_id: str):
     """Get chat history for a session"""
     if session_id not in sessions_db:
@@ -510,7 +510,7 @@ async def get_chat_history(session_id: str):
         "updated_at": session.updated_at
     }
 
-@app.delete("/api/chat/session/{session_id}")
+@app.delete("/api/v1/chat/session/{session_id}")
 async def clear_session(session_id: str):
     """Clear a chat session"""
     if session_id in sessions_db:
@@ -519,7 +519,7 @@ async def clear_session(session_id: str):
     else:
         raise HTTPException(status_code=404, detail="Session not found")
 
-@app.get("/api/health")
+@app.get("/api/v1/health")
 async def health_check():
     """Health check endpoint"""
     return {
@@ -530,7 +530,7 @@ async def health_check():
         "backward_compatible": True
     }
 
-@app.get("/api/sessions")
+@app.get("/api/v1/sessions")
 async def list_sessions():
     """List all active sessions (for debugging)"""
     return {
@@ -541,7 +541,7 @@ async def list_sessions():
 
 # === NEW ADMIN ENDPOINTS ===
 
-@app.get("/api/admin/stats")
+@app.get("/api/v1/admin/stats")
 async def admin_stats():
     """Get overall system statistics"""
     total_users = len(user_progress_db)
@@ -557,7 +557,7 @@ async def admin_stats():
         "active_sessions": len(sessions_db)
     }
 
-@app.get("/api/quiz/question")
+@app.get("/api/v1/quiz/question")
 async def get_quiz_question(user_id: str = "default"):
     """Get a random quiz question for the user"""
     # Your logic to select appropriate question based on:
@@ -568,7 +568,7 @@ async def get_quiz_question(user_id: str = "default"):
     question = random.choice(QUESTION_BANK)
     return {"question": question}
 
-@app.get("/api/quiz/info")
+@app.get("/api/v1/quiz/info")
 async def get_question_bank_info():
     """Get metadata about the question bank"""
     return {
@@ -578,7 +578,7 @@ async def get_question_bank_info():
         "last_updated": "2024-08-15"
     }
 
-@app.get("/api/quiz/questions")
+@app.get("/api/v1/learning/questions")
 async def get_quiz_questions(count: int = 3, user_id: str = "default"):
     """Get multiple quiz questions for batch quiz"""
     if count > 10:  # Limit maximum questions
@@ -628,7 +628,7 @@ async def get_quiz_questions(count: int = 3, user_id: str = "default"):
     
     return {"questions": selected}
 
-@app.post("/api/quiz/submit-batch")
+@app.post("/api/v1/learning/submit-batch")
 async def submit_batch_quiz(submission: dict):
     """Process enhanced quiz submissions with multiple question types"""
     try:
@@ -743,7 +743,7 @@ async def submit_batch_quiz(submission: dict):
     
 
 # Enhanced skip batch quiz endpoint
-@app.post("/api/quiz/skip-batch")
+@app.post("/api/v1/quiz/skip-batch")
 async def skip_batch_quiz(user_id: str = "default"):
     """Skip entire batch quiz - give minimal responses"""
     progress = get_user_progress(user_id)
@@ -796,14 +796,14 @@ def get_personalized_questions(user_id: str, count: int = 3) -> List[QuizQuestio
     return random.sample(filtered_questions, min(count, len(filtered_questions)))
 
 # Update the get_quiz_questions to use personalized selection
-@app.get("/api/quiz/questions-personalized")
+@app.get("/api/v1/quiz/questions-personalized")
 async def get_personalized_quiz_questions(count: int = 3, user_id: str = "default"):
     """Get personalized quiz questions based on user's learning progress"""
     questions = get_personalized_questions(user_id, count)
     return {"questions": questions}
 
 # Analytics endpoint for tracking learning patterns
-@app.get("/api/analytics/user/{user_id}")
+@app.get("/api/v1/analytics/user/{user_id}")
 async def get_user_analytics(user_id: str):
     """Get detailed analytics for user learning patterns"""
     progress = get_user_progress(user_id)
