@@ -1,6 +1,8 @@
 /* src/index.css - Fixed and Simplified Styles */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -8,9 +10,11 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
   background-color: #0a0a0a;
   color: #ffffff;
   overflow: hidden;
@@ -287,7 +291,11 @@ html, body {
 }
 
 .stat-card.unlocked {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.1),
+    rgba(5, 150, 105, 0.1)
+  );
   border-color: #10b981;
 }
 
@@ -570,12 +578,20 @@ html, body {
   animation: loadingBounce 1.4s ease-in-out infinite both;
 }
 
-.loading-dot:nth-child(1) { animation-delay: -0.32s; }
-.loading-dot:nth-child(2) { animation-delay: -0.16s; }
-.loading-dot:nth-child(3) { animation-delay: 0s; }
+.loading-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.loading-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.loading-dot:nth-child(3) {
+  animation-delay: 0s;
+}
 
 @keyframes loadingBounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: scale(0.8);
     opacity: 0.5;
   }
@@ -591,39 +607,39 @@ html, body {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
-  
+
   .app-header {
     padding: 16px 20px;
   }
-  
+
   .app-title {
     font-size: 20px;
   }
-  
+
   .learning-progress {
     padding: 20px;
   }
-  
+
   .messages-container {
     padding: 20px;
   }
-  
+
   .input-area {
     padding: 20px;
   }
-  
+
   .message-bubble {
     max-width: 85%;
   }
-  
+
   .welcome-state {
     padding: 20px;
   }
-  
+
   .welcome-title {
     font-size: 24px;
   }
-  
+
   .topic-pills {
     max-width: 100%;
   }
@@ -633,13 +649,13 @@ html, body {
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .progress-header {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
   }
-  
+
   .sidebar.expanded {
     width: 100%;
     position: fixed;
@@ -685,8 +701,12 @@ html, body {
 }
 
 @keyframes fadeInBackdrop {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .quiz-overlay-container {
@@ -704,7 +724,7 @@ html, body {
 }
 
 .quiz-overlay-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -727,8 +747,13 @@ html, body {
 }
 
 @keyframes gradientShift {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Quiz Header */
@@ -744,8 +769,13 @@ html, body {
 }
 
 @keyframes lockBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .quiz-title {
@@ -1197,26 +1227,26 @@ html, body {
     margin: 20px;
     width: calc(100% - 40px);
   }
-  
+
   .quiz-navigation {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .quiz-actions {
     flex-direction: column;
   }
-  
+
   .results-summary {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .quiz-stats-row {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .question-meta {
     flex-direction: column;
     align-items: flex-start;
@@ -1231,169 +1261,175 @@ html, body {
     width: calc(100% - 20px);
     max-height: 95vh;
   }
-  
+
   .quiz-title {
     font-size: 20px;
   }
-  
+
   .question-text {
     font-size: 16px;
   }
-  
+
   .quiz-option-label {
     padding: 12px;
   }
-  
+
   .option-letter {
     width: 24px;
     height: 24px;
     font-size: 11px;
   }
   /* Global auth container styling */
-div[style*="background: #1a1a1a"] .auth-main,
-div[style*="background: #1a1a1a"] .auth-main *,
-.auth-main,
-.auth-main *,
-[class*="auth"] *,
-[class*="Auth"] *,
-form *,
-.welcome-state form *,
-.welcome-state div[style*="background: #1a1a1a"] * {
-  color: #ffffff !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
-  box-sizing: border-box !important;
-}
+  div[style*="background: #1a1a1a"] .auth-main,
+  div[style*="background: #1a1a1a"] .auth-main *,
+  .auth-main,
+  .auth-main *,
+  [class*="auth"] *,
+  [class*="Auth"] *,
+  form *,
+  .welcome-state form *,
+  .welcome-state div[style*="background: #1a1a1a"] * {
+    color: #ffffff !important;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      "Roboto", sans-serif !important;
+    box-sizing: border-box !important;
+  }
 
-/* CRITICAL: Force remove ALL white/light backgrounds */
-.auth-main *,
-[class*="auth"] *,
-[class*="Auth"] *,
-form *,
-.welcome-state form *,
-.welcome-state div[style*="background: #1a1a1a"] *,
-div,
-span,
-p,
-h1, h2, h3, h4, h5, h6 {
-  background-color: transparent !important;
-  background-image: none !important;
-  background: transparent !important;
-}
+  /* CRITICAL: Force remove ALL white/light backgrounds */
+  .auth-main *,
+  [class*="auth"] *,
+  [class*="Auth"] *,
+  form *,
+  .welcome-state form *,
+  .welcome-state div[style*="background: #1a1a1a"] *,
+  div,
+  span,
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    background-color: transparent !important;
+    background-image: none !important;
+    background: transparent !important;
+  }
 
-/* Force dark background for input containers */
-.welcome-state div[style*="background: #1a1a1a"] {
-  background: #1a1a1a !important;
-}
+  /* Force dark background for input containers */
+  .welcome-state div[style*="background: #1a1a1a"] {
+    background: #1a1a1a !important;
+  }
 
-/* Remove all default backgrounds and borders */
-.auth-main,
-.auth-main *:not(input):not(button),
-[class*="auth"] *:not(input):not(button),
-[class*="Auth"] *:not(input):not(button) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
+  /* Remove all default backgrounds and borders */
+  .auth-main,
+  .auth-main *:not(input):not(button),
+  [class*="auth"] *:not(input):not(button),
+  [class*="Auth"] *:not(input):not(button) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
 
-/* Auth titles - all heading variants */
-.auth-main h1,
-.auth-main h2,
-.auth-main h3,
-.auth-main h4,
-.auth-main h5,
-.auth-main h6,
-[class*="auth"] h1,
-[class*="auth"] h2,
-[class*="auth"] h3,
-[class*="Auth"] h1,
-[class*="Auth"] h2,
-[class*="Auth"] h3,
-.welcome-state h1,
-.welcome-state h2,
-.welcome-state h3 {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  margin-bottom: 8px !important;
-  background: transparent !important;
-}
+  /* Auth titles - all heading variants */
+  .auth-main h1,
+  .auth-main h2,
+  .auth-main h3,
+  .auth-main h4,
+  .auth-main h5,
+  .auth-main h6,
+  [class*="auth"] h1,
+  [class*="auth"] h2,
+  [class*="auth"] h3,
+  [class*="Auth"] h1,
+  [class*="Auth"] h2,
+  [class*="Auth"] h3,
+  .welcome-state h1,
+  .welcome-state h2,
+  .welcome-state h3 {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+    background: transparent !important;
+  }
 
-/* Auth paragraphs and text */
-.auth-main p,
-.auth-main span,
-.auth-main div,
-[class*="auth"] p,
-[class*="auth"] span,
-[class*="auth"] div:not([style*="background"]),
-[class*="Auth"] p,
-[class*="Auth"] span {
-  color: #b3b3b3 !important;
-  font-size: 14px !important;
-  background: transparent !important;
-}
+  /* Auth paragraphs and text */
+  .auth-main p,
+  .auth-main span,
+  .auth-main div,
+  [class*="auth"] p,
+  [class*="auth"] span,
+  [class*="auth"] div:not([style*="background"]),
+  [class*="Auth"] p,
+  [class*="Auth"] span {
+    color: #b3b3b3 !important;
+    font-size: 14px !important;
+    background: transparent !important;
+  }
 
-/* Input fields - Force V1 styling with highest specificity */
-input[type="email"],
-input[type="password"],
-input[type="text"],
-.auth-main input,
-[class*="auth"] input,
-[class*="Auth"] input,
-form input,
-.welcome-state input {
-  background: #2a2a2a !important;
-  border: 2px solid #404040 !important;
-  border-radius: 16px !important;
-  color: #ffffff !important;
-  font-size: 14px !important;
-  padding: 16px 20px !important;
-  margin: 8px 0 16px 0 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  transition: border-color 0.2s ease !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
+  /* Input fields - Force V1 styling with highest specificity */
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  .auth-main input,
+  [class*="auth"] input,
+  [class*="Auth"] input,
+  form input,
+  .welcome-state input {
+    background: #2a2a2a !important;
+    border: 2px solid #404040 !important;
+    border-radius: 16px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    padding: 16px 20px !important;
+    margin: 8px 0 16px 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s ease !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
 
-/* Input focus states */
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="text"]:focus,
-.auth-main input:focus,
-[class*="auth"] input:focus,
-[class*="Auth"] input:focus,
-form input:focus,
-.welcome-state input:focus {
-  border-color: #2563eb !important;
-  outline: none !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
-}
+  /* Input focus states */
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="text"]:focus,
+  .auth-main input:focus,
+  [class*="auth"] input:focus,
+  [class*="Auth"] input:focus,
+  form input:focus,
+  .welcome-state input:focus {
+    border-color: #2563eb !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  }
 
-/* Placeholder text */
-input::placeholder,
-.auth-main input::placeholder,
-[class*="auth"] input::placeholder,
-[class*="Auth"] input::placeholder {
-  color: #666666 !important;
-  opacity: 1 !important;
-}
+  /* Placeholder text */
+  input::placeholder,
+  .auth-main input::placeholder,
+  [class*="auth"] input::placeholder,
+  [class*="Auth"] input::placeholder {
+    color: #666666 !important;
+    opacity: 1 !important;
+  }
 
-/* Labels - all possible label selectors */
-label,
-.auth-main label,
-[class*="auth"] label,
-[class*="Auth"] label,
-form label,
-.welcome-state label {
-  color: #b3b3b3 !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  margin-bottom: 8px !important;
-  display: block !important;
-  background: transparent !important;
-}
+  /* Labels - all possible label selectors */
+  label,
+  .auth-main label,
+  [class*="auth"] label,
+  [class*="Auth"] label,
+  form label,
+  .welcome-state label {
+    color: #b3b3b3 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+    background: transparent !important;
+  }
 
-/* Primary buttons - All button variations */
-button[type="submit"],
+  /* Primary buttons - All button variations */
+  /* button[type="submit"],
 button,
 .auth-main button,
 [class*="auth"] button,
@@ -1418,214 +1454,214 @@ input[type="submit"] {
   gap: 8px !important;
   box-shadow: none !important;
   outline: none !important;
-}
+} */
 
-/* Button hover states */
-button[type="submit"]:hover:not(:disabled),
-button:hover:not(:disabled),
-.auth-main button:hover:not(:disabled),
-[class*="auth"] button:hover:not(:disabled),
-[class*="Auth"] button:hover:not(:disabled) {
-  background: #1d4ed8 !important;
-  transform: translateY(-1px) !important;
-}
+  /* Button hover states */
+  button[type="submit"]:hover:not(:disabled),
+  button:hover:not(:disabled),
+  .auth-main button:hover:not(:disabled),
+  [class*="auth"] button:hover:not(:disabled),
+  [class*="Auth"] button:hover:not(:disabled) {
+    background: #1d4ed8 !important;
+    transform: translateY(-1px) !important;
+  }
 
-/* Disabled button states */
-button:disabled,
-button[type="submit"]:disabled,
-.auth-main button:disabled,
-[class*="auth"] button:disabled,
-[class*="Auth"] button:disabled {
-  background: #6b7280 !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  opacity: 0.7 !important;
-}
+  /* Disabled button states */
+  button:disabled,
+  button[type="submit"]:disabled,
+  .auth-main button:disabled,
+  [class*="auth"] button:disabled,
+  [class*="Auth"] button:disabled {
+    background: #6b7280 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    opacity: 0.7 !important;
+  }
 
-/* Google OAuth button specific styling */
-button[class*="google"],
-button[class*="Google"],
-.google-button,
-[class*="google"],
-[class*="Google"] {
-  background: #2a2a2a !important;
-  color: #ffffff !important;
-  border: 2px solid #404040 !important;
-  border-radius: 16px !important;
-  padding: 12px 20px !important;
-}
+  /* Google OAuth button specific styling */
+  button[class*="google"],
+  button[class*="Google"],
+  .google-button,
+  [class*="google"],
+  [class*="Google"] {
+    background: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 2px solid #404040 !important;
+    border-radius: 16px !important;
+    padding: 12px 20px !important;
+  }
 
-button[class*="google"]:hover,
-button[class*="Google"]:hover,
-.google-button:hover {
-  background: #3a3a3a !important;
-  border-color: #555555 !important;
-}
+  button[class*="google"]:hover,
+  button[class*="Google"]:hover,
+  .google-button:hover {
+    background: #3a3a3a !important;
+    border-color: #555555 !important;
+  }
 
-/* Links - all link variations */
-a,
-.auth-main a,
-[class*="auth"] a,
-[class*="Auth"] a,
-form a {
-  color: #2563eb !important;
-  text-decoration: none !important;
-  font-weight: 500 !important;
-  transition: color 0.2s ease !important;
-  background: transparent !important;
-}
+  /* Links - all link variations */
+  a,
+  .auth-main a,
+  [class*="auth"] a,
+  [class*="Auth"] a,
+  form a {
+    color: #2563eb !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    transition: color 0.2s ease !important;
+    background: transparent !important;
+  }
 
-a:hover,
-.auth-main a:hover,
-[class*="auth"] a:hover,
-[class*="Auth"] a:hover {
-  color: #1d4ed8 !important;
-  text-decoration: underline !important;
-}
+  a:hover,
+  .auth-main a:hover,
+  [class*="auth"] a:hover,
+  [class*="Auth"] a:hover {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+  }
 
-/* Toggle/Secondary buttons */
-.secondary-button,
-.btn-secondary,
-button[class*="secondary"],
-a[class*="toggle"] {
-  background: #2a2a2a !important;
-  color: #b3b3b3 !important;
-  border: 2px solid #404040 !important;
-  border-radius: 12px !important;
-  padding: 8px 16px !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  text-decoration: none !important;
-  display: inline-block !important;
-  margin: 8px 4px !important;
-  transition: all 0.2s ease !important;
-}
+  /* Toggle/Secondary buttons */
+  .secondary-button,
+  .btn-secondary,
+  button[class*="secondary"],
+  a[class*="toggle"] {
+    background: #2a2a2a !important;
+    color: #b3b3b3 !important;
+    border: 2px solid #404040 !important;
+    border-radius: 12px !important;
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    margin: 8px 4px !important;
+    transition: all 0.2s ease !important;
+  }
 
-.secondary-button:hover,
-.btn-secondary:hover,
-button[class*="secondary"]:hover,
-a[class*="toggle"]:hover {
-  background: #3a3a3a !important;
-  color: #ffffff !important;
-  border-color: #555555 !important;
-}
+  .secondary-button:hover,
+  .btn-secondary:hover,
+  button[class*="secondary"]:hover,
+  a[class*="toggle"]:hover {
+    background: #3a3a3a !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+  }
 
-/* Error messages */
-.error,
-.error-message,
-[class*="error"],
-div[class*="Error"] {
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: #ef4444 !important;
-  border: 1px solid #ef4444 !important;
-  border-radius: 8px !important;
-  padding: 12px 16px !important;
-  font-size: 14px !important;
-  margin: 12px 0 !important;
-}
+  /* Error messages */
+  .error,
+  .error-message,
+  [class*="error"],
+  div[class*="Error"] {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+    border: 1px solid #ef4444 !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    margin: 12px 0 !important;
+  }
 
-/* Success messages */
-.success,
-.success-message,
-[class*="success"],
-div[class*="Success"] {
-  background: rgba(16, 185, 129, 0.1) !important;
-  color: #10b981 !important;
-  border: 1px solid #10b981 !important;
-  border-radius: 8px !important;
-  padding: 12px 16px !important;
-  font-size: 14px !important;
-  margin: 12px 0 !important;
-}
+  /* Success messages */
+  .success,
+  .success-message,
+  [class*="success"],
+  div[class*="Success"] {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #10b981 !important;
+    border: 1px solid #10b981 !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    margin: 12px 0 !important;
+  }
 
-/* Form sections and groups */
-.form-section,
-.form-group,
-div[class*="form"],
-div[class*="Form"] {
-  margin-bottom: 20px !important;
-  background: transparent !important;
-}
+  /* Form sections and groups */
+  .form-section,
+  .form-group,
+  div[class*="form"],
+  div[class*="Form"] {
+    margin-bottom: 20px !important;
+    background: transparent !important;
+  }
 
-/* Loading states */
-.loading,
-[class*="loading"],
-[class*="Loading"] {
-  color: #b3b3b3 !important;
-  background: transparent !important;
-}
+  /* Loading states */
+  .loading,
+  [class*="loading"],
+  [class*="Loading"] {
+    color: #b3b3b3 !important;
+    background: transparent !important;
+  }
 
-/* Dividers */
-hr,
-.divider,
-div[class*="divider"] {
-  border: none !important;
-  border-top: 1px solid #404040 !important;
-  margin: 20px 0 !important;
-  background: transparent !important;
-}
+  /* Dividers */
+  hr,
+  .divider,
+  div[class*="divider"] {
+    border: none !important;
+    border-top: 1px solid #404040 !important;
+    margin: 20px 0 !important;
+    background: transparent !important;
+  }
 
-/* Divider text */
-.divider-text,
-span[class*="divider"] {
-  color: #b3b3b3 !important;
-  font-size: 12px !important;
-  background: #1a1a1a !important;
-  padding: 0 12px !important;
-}
+  /* Divider text */
+  .divider-text,
+  span[class*="divider"] {
+    color: #b3b3b3 !important;
+    font-size: 12px !important;
+    background: #1a1a1a !important;
+    padding: 0 12px !important;
+  }
 
-/* Force override any inline styles that might conflict */
-.welcome-state div[style*="background: #1a1a1a"] * {
-  color: inherit !important;
-}
+  /* Force override any inline styles that might conflict */
+  .welcome-state div[style*="background: #1a1a1a"] * {
+    color: inherit !important;
+  }
 
-/* Specific form field containers */
-div:has(> input[type="email"]),
-div:has(> input[type="password"]),
-div:has(> label) {
-  background: transparent !important;
-  margin-bottom: 16px !important;
-}
+  /* Specific form field containers */
+  div:has(> input[type="email"]),
+  div:has(> input[type="password"]),
+  div:has(> label) {
+    background: transparent !important;
+    margin-bottom: 16px !important;
+  }
 
-/* Remove any box shadows or borders from containers */
-.auth-main > *,
-[class*="auth"] > *,
-[class*="Auth"] > * {
-  box-shadow: none !important;
-  border: none !important;
-}
+  /* Remove any box shadows or borders from containers */
+  .auth-main > *,
+  [class*="auth"] > *,
+  [class*="Auth"] > * {
+    box-shadow: none !important;
+    border: none !important;
+  }
 
-/* Ensure all text within auth forms is visible */
-.welcome-state div[style*="background: #1a1a1a"] * {
-  color: #ffffff !important;
-}
+  /* Ensure all text within auth forms is visible */
+  .welcome-state div[style*="background: #1a1a1a"] * {
+    color: #ffffff !important;
+  }
 
-/* Override any specific component library styles */
-[class*="MuiTextField"],
-[class*="MuiInput"],
-[class*="MuiButton"],
-[class*="chakra"],
-[class*="ant-"] {
-  background: transparent !important;
-  color: #ffffff !important;
-}
+  /* Override any specific component library styles */
+  [class*="MuiTextField"],
+  [class*="MuiInput"],
+  [class*="MuiButton"],
+  [class*="chakra"],
+  [class*="ant-"] {
+    background: transparent !important;
+    color: #ffffff !important;
+  }
 
-/* Force input styling for any missed inputs */
-.welcome-state input,
-.welcome-state textarea,
-.welcome-state select {
-  background: #2a2a2a !important;
-  border: 2px solid #404040 !important;
-  border-radius: 16px !important;
-  color: #ffffff !important;
-  padding: 16px 20px !important;
-}
+  /* Force input styling for any missed inputs */
+  .welcome-state input,
+  .welcome-state textarea,
+  .welcome-state select {
+    background: #2a2a2a !important;
+    border: 2px solid #404040 !important;
+    border-radius: 16px !important;
+    color: #ffffff !important;
+    padding: 16px 20px !important;
+  }
 
-/* Ensure buttons don't inherit unwanted styles */
-.welcome-state button:not(.topic-pill) {
-  background: #2563eb !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 16px !important;
-}
+  /* Ensure buttons don't inherit unwanted styles */
+  .welcome-state button:not(.topic-pill) {
+    background: #2563eb !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 16px !important;
+  }
 }

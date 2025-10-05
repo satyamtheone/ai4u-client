@@ -1,19 +1,34 @@
-import React, { useState } from 'react';
-import { Building, User, Mail, ArrowRight, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
-import { useAuth } from './AuthProvider';
-import { FormInput } from '../shared/FormInput';
-import { PasswordInput } from '../shared/PasswordInput';
-import { Button } from '../shared/Button';
-import { 
-  validateEmail, 
-  validatePassword, 
-  validateName, 
+import React, { useState } from "react";
+import {
+  Building,
+  User,
+  Mail,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import { useAuth } from "./AuthProvider";
+import { FormInput } from "../shared/FormInput";
+import { PasswordInput } from "../shared/PasswordInput";
+import { Button } from "../shared/Button";
+import {
+  validateEmail,
+  validatePassword,
+  validateName,
   validateConfirmPassword,
   validateOrganizationName,
   validateOrganizationDescription,
-  validateIndustry 
-} from '../../utils/validation/authValidation';
-import { RegisterData, OrganizationRegistrationData } from '../../types/auth/Auth';
+  validateIndustry,
+} from "../../utils/validation/authValidation";
+import {
+  RegisterData,
+  OrganizationRegistrationData,
+} from "../../types/auth/Auth";
+import { FormTextArea } from "../../cmmonComponents/FormTextArea";
+import { FormLabelHeader } from "../../cmmonComponents/FormLabelHeader";
+import { StepProgressBar } from "../../cmmonComponents/StepProgressBar";
+import { FormSelect } from "../../cmmonComponents/FormSelect";
 
 interface OrganizationSignupProps {
   onSwitchToLogin: () => void;
@@ -28,7 +43,7 @@ interface FormData {
   industry: string;
   companySize: string;
   website: string;
-  
+
   // Admin user details
   adminName: string;
   adminEmail: string;
@@ -39,58 +54,60 @@ interface FormData {
 }
 
 const industryOptions = [
-  { value: '', label: 'Select Industry' },
-  { value: 'technology', label: 'Technology' },
-  { value: 'healthcare', label: 'Healthcare' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'education', label: 'Education' },
-  { value: 'retail', label: 'Retail' },
-  { value: 'manufacturing', label: 'Manufacturing' },
-  { value: 'consulting', label: 'Consulting' },
-  { value: 'media', label: 'Media & Entertainment' },
-  { value: 'transportation', label: 'Transportation' },
-  { value: 'energy', label: 'Energy' },
-  { value: 'real-estate', label: 'Real Estate' },
-  { value: 'hospitality', label: 'Hospitality' },
-  { value: 'agriculture', label: 'Agriculture' },
-  { value: 'construction', label: 'Construction' },
-  { value: 'government', label: 'Government' },
-  { value: 'non-profit', label: 'Non-Profit' },
-  { value: 'other', label: 'Other' },
+  { value: "", label: "Select Industry" },
+  { value: "technology", label: "Technology" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "finance", label: "Finance" },
+  { value: "education", label: "Education" },
+  { value: "retail", label: "Retail" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "consulting", label: "Consulting" },
+  { value: "media", label: "Media & Entertainment" },
+  { value: "transportation", label: "Transportation" },
+  { value: "energy", label: "Energy" },
+  { value: "real-estate", label: "Real Estate" },
+  { value: "hospitality", label: "Hospitality" },
+  { value: "agriculture", label: "Agriculture" },
+  { value: "construction", label: "Construction" },
+  { value: "government", label: "Government" },
+  { value: "non-profit", label: "Non-Profit" },
+  { value: "other", label: "Other" },
 ];
 
 const companySizeOptions = [
-  { value: '', label: 'Select Company Size' },
-  { value: '1-10', label: '1-10 employees' },
-  { value: '11-25', label: '11-25 employees' },
-  { value: '26-50', label: '26-50 employees' },
-  { value: '51-100', label: '51-100 employees' },
-  { value: '101-500', label: '101-500 employees' },
-  { value: '501-1000', label: '501-1000 employees' },
-  { value: '1000+', label: '1000+ employees' },
+  { value: "", label: "Select Company Size" },
+  { value: "1-10", label: "1-10 employees" },
+  { value: "11-25", label: "11-25 employees" },
+  { value: "26-50", label: "26-50 employees" },
+  { value: "51-100", label: "51-100 employees" },
+  { value: "101-500", label: "101-500 employees" },
+  { value: "501-1000", label: "501-1000 employees" },
+  { value: "1000+", label: "1000+ employees" },
 ];
 
 export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   onSwitchToLogin,
   onSwitchToIndividualSignup,
-  className = '',
+  className = "",
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
-    organizationName: '',
-    organizationDescription: '',
-    industry: '',
-    companySize: '',
-    website: '',
-    adminName: '',
-    adminEmail: '',
-    adminPassword: '',
-    confirmPassword: '',
+    organizationName: "",
+    organizationDescription: "",
+    industry: "",
+    companySize: "",
+    website: "",
+    adminName: "",
+    adminEmail: "",
+    adminPassword: "",
+    confirmPassword: "",
     acceptTerms: false,
     subscribeNewsletter: false,
   });
 
-  const [errors, setErrors] = useState<Partial<FormData & { submit: string }>>({});
+  const [errors, setErrors] = useState<Partial<FormData & { submit: string }>>(
+    {}
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { register } = useAuth();
@@ -98,12 +115,16 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   const validateStep1 = (): boolean => {
     const newErrors: Partial<FormData> = {};
 
-    const orgNameValidation = validateOrganizationName(formData.organizationName);
+    const orgNameValidation = validateOrganizationName(
+      formData.organizationName
+    );
     if (!orgNameValidation.isValid) {
       newErrors.organizationName = orgNameValidation.error;
     }
 
-    const descValidation = validateOrganizationDescription(formData.organizationDescription);
+    const descValidation = validateOrganizationDescription(
+      formData.organizationDescription
+    );
     if (!descValidation.isValid) {
       newErrors.organizationDescription = descValidation.error;
     }
@@ -114,12 +135,12 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
     }
 
     if (!formData.companySize) {
-      newErrors.companySize = 'Please select company size';
+      newErrors.companySize = "Please select company size";
     }
 
     // Website is optional, but validate if provided
     if (formData.website && !isValidUrl(formData.website)) {
-      newErrors.website = 'Please enter a valid website URL';
+      newErrors.website = "Please enter a valid website URL";
     }
 
     setErrors(newErrors);
@@ -139,7 +160,9 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
       newErrors.adminEmail = emailValidation.error;
     }
 
-    const passwordValidation = validatePassword(formData.adminPassword, { requireStrong: true });
+    const passwordValidation = validatePassword(formData.adminPassword, {
+      requireStrong: true,
+    });
     if (!passwordValidation.isValid) {
       newErrors.adminPassword = passwordValidation.error;
     }
@@ -182,7 +205,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateStep2()) {
       return;
     }
@@ -203,7 +226,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
         name: formData.adminName.trim(),
         email: formData.adminEmail.trim().toLowerCase(),
         password: formData.adminPassword,
-        userType: 'organization_admin',
+        userType: "organization_admin",
         organizationData,
         acceptTerms: formData.acceptTerms,
         subscribeNewsletter: formData.subscribeNewsletter,
@@ -213,37 +236,45 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
       setIsSuccess(true);
 
       // Track successful registration
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'sign_up', {
-          method: 'email',
-          user_type: 'organization_admin',
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "sign_up", {
+          method: "email",
+          user_type: "organization_admin",
           organization_industry: formData.industry,
           organization_size: formData.companySize,
         });
       }
     } catch (error) {
       setErrors({
-        submit: error instanceof Error ? error.message : 'Registration failed. Please try again.',
+        submit:
+          error instanceof Error
+            ? error.message
+            : "Registration failed. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof FormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const value = e.target.type === 'checkbox' 
-      ? (e.target as HTMLInputElement).checked 
-      : e.target.value;
-    
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Clear field error when user starts typing/changing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  };
+  const handleInputChange =
+    (field: keyof FormData) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) => {
+      const value =
+        e.target.type === "checkbox"
+          ? (e.target as HTMLInputElement).checked
+          : e.target.value;
+
+      setFormData((prev) => ({ ...prev, [field]: value }));
+
+      // Clear field error when user starts typing/changing
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      }
+    };
 
   // Success state
   if (isSuccess) {
@@ -252,13 +283,14 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
         <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
-        
+
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-gray-900">
             Organization Created Successfully!
           </h2>
           <p className="text-gray-600">
-            Welcome to AI4U! You can now manage your team and start learning together.
+            Welcome to AI4U! You can now manage your team and start learning
+            together.
           </p>
         </div>
 
@@ -272,7 +304,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
         </div>
 
         <Button
-          onClick={() => window.location.href = '/dashboard'}
+          onClick={() => (window.location.href = "/dashboard")}
           variant="primary"
           size="lg"
           className="w-full"
@@ -287,34 +319,15 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="text-center">
-        <div className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
-          <Building className="h-6 w-6 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900">Create Organization</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Step {currentStep} of 2: {currentStep === 1 ? 'Organization Details' : 'Admin Account'}
-        </p>
-      </div>
+      <FormLabelHeader
+        icon={Building}
+        title=" Create Organization"
+        subtitle={` Step ${currentStep} of 2:${" "}
+          ${currentStep === 1 ? "Organization Details" : "Admin Account"}`}
+      />
 
       {/* Progress Bar */}
-      <div className="flex items-center">
-        <div className="flex-1 flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-            currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
-            1
-          </div>
-          <div className={`flex-1 h-1 mx-2 transition-colors ${
-            currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'
-          }`} />
-        </div>
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-          currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-        }`}>
-          2
-        </div>
-      </div>
+      <StepProgressBar currentStep={currentStep} totalSteps={2} />
 
       {/* Step 1: Organization Details */}
       {currentStep === 1 && (
@@ -322,85 +335,46 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
           <FormInput
             label="Organization Name"
             value={formData.organizationName}
-            onChange={handleInputChange('organizationName')}
+            onChange={handleInputChange("organizationName")}
             placeholder="Enter your organization name"
             error={errors.organizationName}
             icon={Building}
             required
           />
 
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={formData.organizationDescription}
-              onChange={handleInputChange('organizationDescription')}
-              placeholder="Describe your organization and what you do"
-              rows={3}
-              className={`block w-full px-3 py-2 border ${
-                errors.organizationDescription ? 'border-red-300' : 'border-gray-300'
-              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400`}
-              required
-            />
-            {errors.organizationDescription && (
-              <p className="text-sm text-red-600">{errors.organizationDescription}</p>
-            )}
-          </div>
+          <FormTextArea
+            label="Description"
+            required
+            onChange={handleInputChange("organizationDescription")}
+            placeholder="Describe your organization and what you do"
+            error={errors.organizationDescription}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Industry <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.industry}
-                onChange={handleInputChange('industry')}
-                className={`block w-full px-3 py-2 border ${
-                  errors.industry ? 'border-red-300' : 'border-gray-300'
-                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-                required
-              >
-                {industryOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              {errors.industry && (
-                <p className="text-sm text-red-600">{errors.industry}</p>
-              )}
-            </div>
+            <FormSelect
+              error={errors.industry}
+              options={industryOptions}
+              label="Industry"
+              required
+              value={formData.industry}
+              onChange={handleInputChange("industry")}
+            />
 
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Company Size <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.companySize}
-                onChange={handleInputChange('companySize')}
-                className={`block w-full px-3 py-2 border ${
-                  errors.companySize ? 'border-red-300' : 'border-gray-300'
-                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-                required
-              >
-                {companySizeOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              {errors.companySize && (
-                <p className="text-sm text-red-600">{errors.companySize}</p>
-              )}
-            </div>
+            <FormSelect
+              error={errors.companySize}
+              options={companySizeOptions}
+              label="Company Size "
+              required
+              value={formData.companySize}
+              onChange={handleInputChange("companySize")}
+            />
           </div>
 
           <FormInput
             label="Website (Optional)"
             type="url"
             value={formData.website}
-            onChange={handleInputChange('website')}
+            onChange={handleInputChange("website")}
             placeholder="https://your-company.com"
             error={errors.website}
             hint="Optional: Your company website URL"
@@ -422,16 +396,19 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
       {currentStep === 2 && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-1">Admin Account Setup</h3>
+            <h3 className="font-medium text-blue-900 mb-1">
+              Admin Account Setup
+            </h3>
             <p className="text-sm text-blue-700">
-              This account will have full administrative privileges for your organization.
+              This account will have full administrative privileges for your
+              organization.
             </p>
           </div>
 
           <FormInput
             label="Admin Full Name"
             value={formData.adminName}
-            onChange={handleInputChange('adminName')}
+            onChange={handleInputChange("adminName")}
             placeholder="Enter admin full name"
             error={errors.adminName}
             icon={User}
@@ -443,7 +420,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
             label="Admin Email Address"
             type="email"
             value={formData.adminEmail}
-            onChange={handleInputChange('adminEmail')}
+            onChange={handleInputChange("adminEmail")}
             placeholder="Enter admin email address"
             error={errors.adminEmail}
             icon={Mail}
@@ -454,7 +431,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
           <PasswordInput
             label="Password"
             value={formData.adminPassword}
-            onChange={handleInputChange('adminPassword')}
+            onChange={handleInputChange("adminPassword")}
             placeholder="Create a strong password"
             error={errors.adminPassword}
             showStrengthIndicator={true}
@@ -465,7 +442,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
           <PasswordInput
             label="Confirm Password"
             value={formData.confirmPassword}
-            onChange={handleInputChange('confirmPassword')}
+            onChange={handleInputChange("confirmPassword")}
             placeholder="Confirm your password"
             error={errors.confirmPassword}
             autoComplete="new-password"
@@ -478,17 +455,23 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
               <input
                 type="checkbox"
                 checked={formData.acceptTerms}
-                onChange={handleInputChange('acceptTerms')}
+                onChange={handleInputChange("acceptTerms")}
                 className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 required
               />
               <span className="text-sm text-gray-700">
-                I agree to the{' '}
-                <a href="/terms" className="text-blue-600 hover:text-blue-500 underline">
+                I agree to the{" "}
+                <a
+                  href="/terms"
+                  className="text-blue-600 hover:text-blue-500 underline"
+                >
                   Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">
+                </a>{" "}
+                and{" "}
+                <a
+                  href="/privacy"
+                  className="text-blue-600 hover:text-blue-500 underline"
+                >
                   Privacy Policy
                 </a>
                 <span className="text-red-500 ml-1">*</span>
@@ -502,11 +485,12 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
               <input
                 type="checkbox"
                 checked={formData.subscribeNewsletter}
-                onChange={handleInputChange('subscribeNewsletter')}
+                onChange={handleInputChange("subscribeNewsletter")}
                 className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">
-                Subscribe to our newsletter for organizational learning tips and product updates
+                Subscribe to our newsletter for organizational learning tips and
+                product updates
               </span>
             </label>
           </div>
@@ -540,7 +524,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
               disabled={isLoading || !formData.acceptTerms}
               className="flex-1"
             >
-              {isLoading ? 'Creating Organization...' : 'Create Organization'}
+              {isLoading ? "Creating Organization..." : "Create Organization"}
             </Button>
           </div>
         </form>
@@ -549,7 +533,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
       {/* Footer Links */}
       <div className="text-center space-y-3">
         <p className="text-sm text-gray-600">
-          Want to create an individual account?{' '}
+          Want to create an individual account?{" "}
           <button
             type="button"
             onClick={onSwitchToIndividualSignup}
@@ -558,9 +542,9 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
             Sign up as Individual
           </button>
         </p>
-        
+
         <p className="text-sm text-gray-600">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <button
             type="button"
             onClick={onSwitchToLogin}

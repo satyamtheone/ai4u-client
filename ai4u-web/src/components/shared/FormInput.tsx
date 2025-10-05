@@ -1,7 +1,9 @@
-import React, { forwardRef } from 'react';
-import { LucideIcon } from 'lucide-react';
+import React, { forwardRef } from "react";
+import { LucideIcon } from "lucide-react";
+import { FormError } from "../../cmmonComponents/FormError";
 
-export interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface FormInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   icon?: LucideIcon;
@@ -10,23 +12,27 @@ export interface FormInputProps extends React.InputHTMLAttributes<HTMLInputEleme
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ 
-    label, 
-    error, 
-    icon: Icon, 
-    hint, 
-    className = '', 
-    containerClassName = '',
-    ...props 
-  }, ref) => {
-    const inputId = props.id || `input-${label.toLowerCase().replace(/\s+/g, '-')}`;
-    
+  (
+    {
+      label,
+      error,
+      icon: Icon,
+      hint,
+      className = "",
+      containerClassName = "",
+      ...props
+    },
+    ref
+  ) => {
+    const inputId =
+      props.id || `input-${label.toLowerCase().replace(/\s+/g, "-")}`;
+
     return (
-      <div className={`space-y-1 ${containerClassName}`}>
+      <div className={`space-y-2 ${containerClassName}`}>
         {/* Label */}
-        <label 
+        <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-400"
         >
           {label}
           {props.required && <span className="text-red-500 ml-1">*</span>}
@@ -47,12 +53,14 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             id={inputId}
             className={`
               block w-full 
-              ${Icon ? 'pl-10' : 'pl-3'} 
+              ${Icon ? "pl-10" : "pl-3"} 
               pr-3 py-2 
               border 
-              ${error 
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+              bg-transparent
+              ${
+                error
+                  ? "border-red-300 focus:border-red-500 focus:ring-red-500 "
+                  : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               } 
               rounded-md shadow-sm 
               focus:outline-none focus:ring-1
@@ -61,7 +69,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
               ${className}
             `}
-            aria-invalid={error ? 'true' : 'false'}
+            aria-invalid={error ? "true" : "false"}
             aria-describedby={
               error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
             }
@@ -70,25 +78,11 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
         </div>
 
         {/* Error Message */}
-        {error && (
-          <p 
-            id={`${inputId}-error`}
-            className="text-sm text-red-600 flex items-center gap-1"
-            role="alert"
-          >
-            <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {error}
-          </p>
-        )}
+        {error && <FormError id={`${inputId}-error`} message={error} />}
 
         {/* Hint Message */}
         {hint && !error && (
-          <p 
-            id={`${inputId}-hint`}
-            className="text-sm text-gray-500"
-          >
+          <p id={`${inputId}-hint`} className="text-sm text-black">
             {hint}
           </p>
         )}
@@ -97,4 +91,4 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
   }
 );
 
-FormInput.displayName = 'FormInput';
+FormInput.displayName = "FormInput";

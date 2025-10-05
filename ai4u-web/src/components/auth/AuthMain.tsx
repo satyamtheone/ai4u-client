@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from './AuthProvider';
-import { LoginForm } from './LoginForm';
-import { IndividualSignup } from './IndividualSignup';
-import { OrganizationSignup } from './OrganizationSignup';
-import { LoadingSpinner } from '../shared/LoadingSpinner';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "./AuthProvider";
+import { LoginForm } from "./LoginForm";
+import { IndividualSignup } from "./IndividualSignup";
+import { OrganizationSignup } from "./OrganizationSignup";
+import { LoadingSpinner } from "../shared/LoadingSpinner";
 
-type AuthView = 'login' | 'individual-signup' | 'organization-signup';
+type AuthView = "login" | "individual-signup" | "organization-signup";
 
 interface AuthMainProps {
   defaultView?: AuthView;
@@ -15,10 +15,10 @@ interface AuthMainProps {
 }
 
 export const AuthMain: React.FC<AuthMainProps> = ({
-  defaultView = 'login',
+  defaultView = "login",
   onAuthSuccess,
-  redirectTo = '/dashboard',
-  className = '',
+  redirectTo = "/dashboard",
+  className = "",
 }) => {
   const [currentView, setCurrentView] = useState<AuthView>(defaultView);
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -37,28 +37,31 @@ export const AuthMain: React.FC<AuthMainProps> = ({
   // Handle URL parameters for auth flows
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const view = urlParams.get('view') as AuthView;
-    const invite = urlParams.get('invite');
-    
-    if (view && ['login', 'individual-signup', 'organization-signup'].includes(view)) {
+    const view = urlParams.get("view") as AuthView;
+    const invite = urlParams.get("invite");
+
+    if (
+      view &&
+      ["login", "individual-signup", "organization-signup"].includes(view)
+    ) {
       setCurrentView(view);
     }
-    
+
     // If there's an organization invite, default to individual signup
     if (invite) {
-      setCurrentView('individual-signup');
+      setCurrentView("individual-signup");
       // Store invite token for later use
-      sessionStorage.setItem('organizationInvite', invite);
+      sessionStorage.setItem("organizationInvite", invite);
     }
   }, []);
 
   const handleViewChange = (view: AuthView) => {
     setCurrentView(view);
-    
+
     // Update URL without page reload
     const url = new URL(window.location.href);
-    url.searchParams.set('view', view);
-    window.history.replaceState({}, '', url.toString());
+    url.searchParams.set("view", view);
+    window.history.replaceState({}, "", url.toString());
   };
 
   // Show loading while checking authentication
@@ -80,49 +83,52 @@ export const AuthMain: React.FC<AuthMainProps> = ({
   }
 
   return (
-    // <div className={`min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${className}`}>
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          {currentView === 'login' && (
-            <LoginForm
-              onSwitchToIndividualSignup={() => handleViewChange('individual-signup')}
-              onSwitchToOrgSignup={() => handleViewChange('organization-signup')}
-            />
-          )}
-          
-          {currentView === 'individual-signup' && (
-            <IndividualSignup
-              onSwitchToLogin={() => handleViewChange('login')}
-              onSwitchToOrgSignup={() => handleViewChange('organization-signup')}
-            />
-          )}
-          
-          {currentView === 'organization-signup' && (
-            <OrganizationSignup
-              onSwitchToLogin={() => handleViewChange('login')}
-              onSwitchToIndividualSignup={() => handleViewChange('individual-signup')}
-            />
-          )}
-        </div>
-        
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
-            © 2024 AI4U. All rights reserved.
-          </p>
-        </div>
+    <div className="w-full">
+      <div className="bg-[#0f1115] rounded-lg shadow-lg p-8">
+        {currentView === "login" && (
+          <LoginForm
+            onSwitchToIndividualSignup={() =>
+              handleViewChange("individual-signup")
+            }
+            onSwitchToOrgSignup={() => handleViewChange("organization-signup")}
+          />
+        )}
+
+        {currentView === "individual-signup" && (
+          <IndividualSignup
+            onSwitchToLogin={() => handleViewChange("login")}
+            onSwitchToOrgSignup={() => handleViewChange("organization-signup")}
+          />
+        )}
+
+        {currentView === "organization-signup" && (
+          <OrganizationSignup
+            onSwitchToLogin={() => handleViewChange("login")}
+            onSwitchToIndividualSignup={() =>
+              handleViewChange("individual-signup")
+            }
+          />
+        )}
       </div>
+
+      {/* Footer */}
+      <div className="mt-8 text-center">
+        <p className="text-sm text-gray-600">
+          © 2024 AI4U. All rights reserved.
+        </p>
+      </div>
+    </div>
   );
 };
 
 // Hook for managing auth state in other components
 export const useAuthNavigation = () => {
-  const [currentView, setCurrentView] = useState<AuthView>('login');
-  
-  const goToLogin = () => setCurrentView('login');
-  const goToIndividualSignup = () => setCurrentView('individual-signup');
-  const goToOrganizationSignup = () => setCurrentView('organization-signup');
-  
+  const [currentView, setCurrentView] = useState<AuthView>("login");
+
+  const goToLogin = () => setCurrentView("login");
+  const goToIndividualSignup = () => setCurrentView("individual-signup");
+  const goToOrganizationSignup = () => setCurrentView("organization-signup");
+
   return {
     currentView,
     goToLogin,

@@ -1,17 +1,21 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { store } from './store';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { store } from "./store";
+import Appv2 from "./components/Appv2"; // V2 App Component
+import Appbk from "./components/Appbk"; // Backup App Component
 
 // V1 App Component (with V2 auth integration)
-import App from './components/App';
+import App from "./components/App";
 
 // V2 Authentication Provider
-import { AuthProvider } from './components/auth/AuthProvider';
+import { AuthProvider } from "./components/auth/AuthProvider";
 
-import './index.css';
+import "./index.css";
+import ComponentShowCase from "./cmmonComponents/ComponentShowCase";
+import ShowcasePage from "./cmmonComponents/ShowcasePage";
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -40,8 +44,8 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('AI4U App Error:', error, errorInfo);
-    
+    console.error("AI4U App Error:", error, errorInfo);
+
     // You can also log to your error reporting service here
     // Example: Sentry.captureException(error, { extra: errorInfo });
   }
@@ -52,62 +56,81 @@ class ErrorBoundary extends React.Component<
         <div className="app">
           <div className="main-content">
             <div className="welcome-state">
-              <div className="welcome-icon" style={{ fontSize: '48px' }}>⚠️</div>
+              <div className="welcome-icon" style={{ fontSize: "48px" }}>
+                ⚠️
+              </div>
               <h2 className="welcome-title">Oops! Something went wrong</h2>
               <p className="welcome-subtitle">
-                AI4U encountered an unexpected error. Please refresh the page to try again.
+                AI4U encountered an unexpected error. Please refresh the page to
+                try again.
               </p>
-              
+
               <div className="topic-pills">
                 <button
                   className="topic-pill"
                   onClick={() => window.location.reload()}
-                  style={{ background: '#2563eb', color: 'white' }}
+                  style={{ background: "#2563eb", color: "white" }}
                 >
                   🔄 Refresh Page
                 </button>
                 <button
                   className="topic-pill"
-                  onClick={() => window.location.href = '/'}
-                  style={{ background: '#10b981', color: 'white' }}
+                  onClick={() => (window.location.href = "/")}
+                  style={{ background: "#10b981", color: "white" }}
                 >
                   🏠 Go to Home
                 </button>
               </div>
-              
-              {process.env.NODE_ENV === 'development' && (
-                <details style={{ 
-                  marginTop: '24px', 
-                  textAlign: 'left',
-                  background: '#2a2a2a',
-                  border: '1px solid #404040',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  maxWidth: '600px'
-                }}>
-                  <summary style={{ 
-                    cursor: 'pointer', 
-                    fontSize: '14px', 
-                    color: '#b3b3b3',
-                    marginBottom: '8px'
-                  }}>
+
+              {process.env.NODE_ENV === "development" && (
+                <details
+                  style={{
+                    marginTop: "24px",
+                    textAlign: "left",
+                    background: "#2a2a2a",
+                    border: "1px solid #404040",
+                    borderRadius: "8px",
+                    padding: "16px",
+                    maxWidth: "600px",
+                  }}
+                >
+                  <summary
+                    style={{
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      color: "#b3b3b3",
+                      marginBottom: "8px",
+                    }}
+                  >
                     Technical Details (Development Only)
                   </summary>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#ef4444',
-                    fontFamily: 'monospace',
-                    overflow: 'auto',
-                    maxHeight: '200px'
-                  }}>
-                    <div style={{ fontWeight: 600, marginBottom: '8px' }}>Error:</div>
-                    <div style={{ marginBottom: '12px' }}>{this.state.error?.message}</div>
-                    <div style={{ fontWeight: 600, marginBottom: '8px' }}>Stack Trace:</div>
-                    <pre style={{ 
-                      whiteSpace: 'pre-wrap',
-                      fontSize: '11px',
-                      lineHeight: '1.4'
-                    }}>{this.state.error?.stack}</pre>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#ef4444",
+                      fontFamily: "monospace",
+                      overflow: "auto",
+                      maxHeight: "200px",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, marginBottom: "8px" }}>
+                      Error:
+                    </div>
+                    <div style={{ marginBottom: "12px" }}>
+                      {this.state.error?.message}
+                    </div>
+                    <div style={{ fontWeight: 600, marginBottom: "8px" }}>
+                      Stack Trace:
+                    </div>
+                    <pre
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        fontSize: "11px",
+                        lineHeight: "1.4",
+                      }}
+                    >
+                      {this.state.error?.stack}
+                    </pre>
                   </div>
                 </details>
               )}
@@ -122,7 +145,7 @@ class ErrorBoundary extends React.Component<
 }
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 
 root.render(
@@ -132,7 +155,12 @@ root.render(
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <Router>
-              <App />
+              {/* <App /> */}
+              {/* <Appv2 /> */}
+              <Routes>
+                <Route path="/showcase/:component" element={<ShowcasePage />} />
+                <Route path="/" element={<Appbk />} />
+              </Routes>
             </Router>
           </AuthProvider>
         </QueryClientProvider>
