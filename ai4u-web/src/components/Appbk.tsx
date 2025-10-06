@@ -394,7 +394,7 @@ const App: React.FC = () => {
   // Show welcome screen with auth options if not authenticated and not bypassed
   if (!isAuthenticated && !bypassAuth) {
     return (
-      <div className="app">
+      <div className="app ">
         <div className="main-content">
           <div className="welcome-state">
             <div className="welcome-icon">🤖</div>

@@ -16,6 +16,7 @@ import { AuthProvider } from "./components/auth/AuthProvider";
 import "./index.css";
 import ComponentShowCase from "./cmmonComponents/ComponentShowCase";
 import ShowcasePage from "./cmmonComponents/ShowcasePage";
+import ThemeToggleButton from "./cmmonComponents/ThemeToggleButton";
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -157,6 +158,7 @@ root.render(
             <Router>
               {/* <App /> */}
               {/* <Appv2 /> */}
+              <ThemeToggleButton />
               <Routes>
                 <Route path="/showcase/:component" element={<ShowcasePage />} />
                 <Route path="/" element={<Appbk />} />

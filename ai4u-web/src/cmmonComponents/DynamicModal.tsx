@@ -1,4 +1,3 @@
-import { Heading, X } from "lucide-react";
 import { JSX } from "react";
 import ModalCloseButton from "./ModalCloseButton";
 
@@ -22,19 +21,11 @@ const DynamicModal: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0  bg-[rgba(0,0,0,0.8)] backdrop-blur-[8px] flex items-center justify-center z-[1000]"
-      style={{
-        animation: "fadeInBackdrop 0.3s ease-out",
-      }}
-    >
+    <div className="fixed inset-0  bg-darkBackGround-1000  backdrop-blur-[8px] flex items-center justify-center z-[1000] animate-fadeInBackdrop">
       <div
-        className={`bg-[#1a1a1a] border-2 border-[#404040] rounded-[20px] p-4  max-w-${
+        className={` bg-darkBackGround-950 border-2  border-darkBackGround-900 rounded-[20px] p-4  max-w-${
           sizes ? sizes : "[450px]"
-        } w-[90%] max-h-[90vh] overflow-auto relative`}
-        style={{
-          animation: "slideInQuiz 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-        }}
+        } w-[90%] max-h-[90vh] overflow-auto relative animate-slideInQuiz`}
       >
         {/* Close button */}
         <ModalCloseButton onClick={onClose} />
@@ -45,7 +36,9 @@ const DynamicModal: React.FC<{
           <h2 className="text-white text-[24px] font-semibold mb-2">
             {HeadingText}
           </h2>
-          <p className="text-[#b3b3b3] text-[14px]">{HeadingDescription}</p>
+          <p className="text-darkBackGround-400 text-[14px]">
+            {HeadingDescription}
+          </p>
         </div>
 
         {/* V2 Auth Component */}

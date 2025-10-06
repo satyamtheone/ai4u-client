@@ -25,17 +25,17 @@ const DynamicButton: React.FC<ButtonProps> = ({
   switch (variant) {
     case "submit":
       variantStyles =
-        "bg-[#2563eb] text-white border-none rounded-2xl text-[16px] font-semibold py-4 px-6 w-full shadow-none";
+        " bg-primary-600 text-white border-none rounded-2xl text-[16px] font-semibold py-4 px-6 w-full shadow-none";
       break;
 
     case "primary":
       variantStyles =
-        "bg-[#2563eb] text-white border-none rounded-[20px] text-[14px] font-bold py-[14px] px-[26px] transition-all duration-200 ease-in-out";
+        "bg-primary-600 text-white border-none rounded-[20px] text-[14px] font-bold py-[14px] px-[26px] transition-all duration-200 ease-in-out";
       break;
 
     case "secondary":
       variantStyles =
-        "bg-[#10b981] text-white border-none rounded-[20px] text-[14px] font-semibold py-[14px] px-[26px] transition-all duration-200 ease-in-out";
+        "bg-secondary-500  text-white border-none rounded-[20px] text-[14px] font-semibold py-[14px] px-[26px] transition-all duration-200 ease-in-out";
       break;
 
     case "pill":
@@ -45,7 +45,7 @@ const DynamicButton: React.FC<ButtonProps> = ({
 
     default:
       variantStyles =
-        "bg-[#2563eb] text-white border-none rounded-[20px] text-[14px] font-semibold py-[14px] px-[26px] transition-all duration-200 ease-in-out";
+        "bg-primary-600  text-white border-none rounded-[20px] text-[14px] font-semibold py-[14px] px-[26px] transition-all duration-200 ease-in-out";
       break;
   }
 
