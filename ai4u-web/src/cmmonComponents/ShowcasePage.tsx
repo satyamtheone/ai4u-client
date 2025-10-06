@@ -62,7 +62,7 @@ const ShowcasePage: React.FC = () => {
 
   if (!showcase) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f1115] text-gray-300">
+      <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-2xl font-semibold mb-6">Component not found</h1>
       </div>
     );

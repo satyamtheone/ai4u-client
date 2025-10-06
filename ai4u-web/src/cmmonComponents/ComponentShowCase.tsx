@@ -33,9 +33,9 @@ const ComponentShowcase: React.FC<ComponentShowcaseProps> = ({
   `.trim();
 
   return (
-    <div className="h-4/5 flex flex-col md:flex-row bg-[#0f1115] text-white p-6 gap-6">
+    <div className="h-4/5 flex flex-col md:flex-row dark:bg-darkBackGround-50 bg-gray-200 text-white p-6 gap-6">
       {/* Left side — Live Preview */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-[#1a1c20] rounded-2xl p-8 shadow-lg">
+      <div className="flex-1 flex flex-col items-center justify-center dark:bg-darkBackGround-1150 bg-gray-800 rounded-2xl p-8 shadow-lg">
         <h2 className="text-xl font-semibold mb-4">{name} Preview</h2>
         <Component variant={variant} {...propsConfig} />
 
@@ -78,7 +78,7 @@ const ComponentShowcase: React.FC<ComponentShowcaseProps> = ({
       </div>
 
       {/* Right side — Code Section */}
-      <div className=" md:w-2/4 bg-[#1a1c20] rounded-2xl p-8 shadow-lg">
+      <div className=" md:w-2/4 dark:bg-darkBackGround-1150 bg-gray-800 rounded-2xl p-8 shadow-lg">
         <h2 className="text-xl font-semibold mb-4">Code Example</h2>
         <pre className="bg-[#0f1115] text-blue-300 rounded-xl p-6 overflow-x-auto font-mono text-sm leading-relaxed border border-gray-700">
           {codeExample}
