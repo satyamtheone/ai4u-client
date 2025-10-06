@@ -40,7 +40,7 @@ const DynamicButton: React.FC<ButtonProps> = ({
 
     case "pill":
       variantStyles =
-        "bg-[#2a2a2a] text-[#b3b3b3] border border-[#404040] rounded-full text-[13px] font-medium py-2 px-4 transition-all duration-200 ease-in-out hover:bg-[#3a3a3a] hover:text-white hover:border-[#555555]";
+        "bg-darkBackGround-300 text-darkBackGround-400 border border-darkBackGround-900 rounded-full text-[13px] font-medium py-2 px-4 transition-all duration-200 ease-in-out hover:bg-darkBackGround-900 hover:text-white hover:border-darkBackGround-100";
       break;
 
     default:
@@ -54,7 +54,7 @@ const DynamicButton: React.FC<ButtonProps> = ({
   return (
     <button
       {...props}
-      className={`${base} ${variantStyles} ${widthStyle} ${className} `}
+      className={`${base} ${variantStyles} ${widthStyle} ${className}  `}
     >
       {icon && <span>{icon}</span>}
       {label}
