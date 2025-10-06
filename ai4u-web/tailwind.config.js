@@ -14,6 +14,9 @@ module.exports = {
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
       },
+      fontFamily: {
+        sans: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
+      },
       colors: {
         primary: {
           50: "#eff4ff",
@@ -49,8 +52,8 @@ module.exports = {
           400: "#b3b3b3",
           500: "#6d6d6d",
           600: "#5d5d5d",
-          700: "#4f4f4f",
-          800: "#454545",
+          700: "#333333",
+          800: "#0a0a0a",
           900: "#404040",
           950: "#1a1a1a",
           1000: "#000000cc",

@@ -31,10 +31,10 @@ const ThemeToggleButton: React.FC = () => {
       className={`flex items-center gap-2 px-2 absolute top-2 right-2 py-2 rounded-full 
                 transition-all duration-600 
                  shadow-md hover:shadow-lg hover:scale-105 animate-fadeInBackdrop ${
-                   theme === "dark" ? "bg-white" : "bg-gray-800 "
+                   theme === "light" ? "bg-white" : "bg-gray-800 "
                  }`}
     >
-      {theme === "dark" ? (
+      {theme === "light" ? (
         <>
           <Sun className="w-5 h-5 font-extrabold text-yellow-700 animate-slideInQuiz  " />
         </>
