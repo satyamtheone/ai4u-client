@@ -1,5 +1,4 @@
 import { LucideIcon } from "lucide-react";
-import { JSX } from "react";
 
 const LoadingMessage = ({
   message,

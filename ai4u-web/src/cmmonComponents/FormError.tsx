@@ -1,4 +1,3 @@
-import { LucideIcon } from "lucide-react";
 import React, { JSX } from "react";
 
 interface FormErrorProps {

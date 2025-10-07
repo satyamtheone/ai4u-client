@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { ConfigManager } from "../services/ConfigManager";
 import { BackendService } from "../services/BackendService";
 import { LearningGateService } from "../services/LearningGateService";
-import { useNavigate } from "react-router-dom";
 import {
   setConfig,
   setBackendService,
@@ -41,8 +40,6 @@ const App: React.FC = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [bypassAuth, setBypassAuth] = useState(false);
-
-  const navigate = useNavigate();
 
   // V2 Authentication - ALL HOOKS MUST BE AT THE TOP
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
