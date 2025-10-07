@@ -4,17 +4,14 @@ import { Provider } from "react-redux";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { store } from "./store";
-import Appv2 from "./components/Appv2"; // V2 App Component
 import Appbk from "./components/Appbk"; // Backup App Component
 
 // V1 App Component (with V2 auth integration)
-import App from "./components/App";
 
 // V2 Authentication Provider
 import { AuthProvider } from "./components/auth/AuthProvider";
 
 import "./index.css";
-import ComponentShowCase from "./cmmonComponents/ComponentShowCase";
 import ShowcasePage from "./cmmonComponents/ShowcasePage";
 import ThemeToggleButton from "./cmmonComponents/ThemeToggleButton";
 

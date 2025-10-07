@@ -1,17 +1,7 @@
 import React, { useState } from "react";
-import {
-  Building,
-  User,
-  Mail,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import { Building } from "lucide-react";
 import { useAuth } from "./AuthProvider";
-import { FormInput } from "../shared/FormInput";
-import { PasswordInput } from "../shared/PasswordInput";
-import { Button } from "../shared/Button";
+
 import {
   validateEmail,
   validatePassword,
@@ -25,65 +15,14 @@ import {
   RegisterData,
   OrganizationRegistrationData,
 } from "../../types/auth/Auth";
-import { FormTextArea } from "../../cmmonComponents/FormTextArea";
 import { FormLabelHeader } from "../../cmmonComponents/FormLabelHeader";
 import { StepProgressBar } from "../../cmmonComponents/StepProgressBar";
-import { FormSelect } from "../../cmmonComponents/FormSelect";
 
-interface OrganizationSignupProps {
-  onSwitchToLogin: () => void;
-  onSwitchToIndividualSignup: () => void;
-  className?: string;
-}
-
-interface FormData {
-  // Organization details
-  organizationName: string;
-  organizationDescription: string;
-  industry: string;
-  companySize: string;
-  website: string;
-
-  // Admin user details
-  adminName: string;
-  adminEmail: string;
-  adminPassword: string;
-  confirmPassword: string;
-  acceptTerms: boolean;
-  subscribeNewsletter: boolean;
-}
-
-const industryOptions = [
-  { value: "", label: "Select Industry" },
-  { value: "technology", label: "Technology" },
-  { value: "healthcare", label: "Healthcare" },
-  { value: "finance", label: "Finance" },
-  { value: "education", label: "Education" },
-  { value: "retail", label: "Retail" },
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "consulting", label: "Consulting" },
-  { value: "media", label: "Media & Entertainment" },
-  { value: "transportation", label: "Transportation" },
-  { value: "energy", label: "Energy" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "hospitality", label: "Hospitality" },
-  { value: "agriculture", label: "Agriculture" },
-  { value: "construction", label: "Construction" },
-  { value: "government", label: "Government" },
-  { value: "non-profit", label: "Non-Profit" },
-  { value: "other", label: "Other" },
-];
-
-const companySizeOptions = [
-  { value: "", label: "Select Company Size" },
-  { value: "1-10", label: "1-10 employees" },
-  { value: "11-25", label: "11-25 employees" },
-  { value: "26-50", label: "26-50 employees" },
-  { value: "51-100", label: "51-100 employees" },
-  { value: "101-500", label: "101-500 employees" },
-  { value: "501-1000", label: "501-1000 employees" },
-  { value: "1000+", label: "1000+ employees" },
-];
+import StepOne from "../../RefactoredComponents/OrganizationSteps/StepOne";
+import StepTwo from "../../RefactoredComponents/OrganizationSteps/StepTwo";
+import { FormData, OrganizationSignupProps } from "../../cmmonComponents/Types";
+import SuccessStep from "../../RefactoredComponents/OrganizationSteps/SuccessStep";
+import FormFooter from "../../RefactoredComponents/OrganizationSteps/FormFooter";
 
 export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   onSwitchToLogin,
@@ -278,42 +217,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
 
   // Success state
   if (isSuccess) {
-    return (
-      <div className={`text-center space-y-6 ${className}`}>
-        <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
-          <CheckCircle className="h-8 w-8 text-green-600" />
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Organization Created Successfully!
-          </h2>
-          <p className="text-gray-600">
-            Welcome to AI4U! You can now manage your team and start learning
-            together.
-          </p>
-        </div>
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-          <p className="text-sm text-blue-800 font-medium">
-            📧 Please check your email to verify your account
-          </p>
-          <p className="text-sm text-blue-700">
-            👥 You can start inviting team members once your email is verified
-          </p>
-        </div>
-
-        <Button
-          onClick={() => (window.location.href = "/dashboard")}
-          variant="primary"
-          size="lg"
-          className="w-full"
-        >
-          Go to Organization Dashboard
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    );
+    return <SuccessStep className={className} />;
   }
 
   return (
@@ -330,230 +234,30 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
       <StepProgressBar currentStep={currentStep} totalSteps={2} />
 
       {/* Step 1: Organization Details */}
-      {currentStep === 1 && (
-        <div className="space-y-4">
-          <FormInput
-            label="Organization Name"
-            value={formData.organizationName}
-            onChange={handleInputChange("organizationName")}
-            placeholder="Enter your organization name"
-            error={errors.organizationName}
-            icon={Building}
-            required
-          />
-
-          <FormTextArea
-            label="Description"
-            required
-            onChange={handleInputChange("organizationDescription")}
-            placeholder="Describe your organization and what you do"
-            error={errors.organizationDescription}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormSelect
-              error={errors.industry}
-              options={industryOptions}
-              label="Industry"
-              required
-              value={formData.industry}
-              onChange={handleInputChange("industry")}
-            />
-
-            <FormSelect
-              error={errors.companySize}
-              options={companySizeOptions}
-              label="Company Size "
-              required
-              value={formData.companySize}
-              onChange={handleInputChange("companySize")}
-            />
-          </div>
-
-          <FormInput
-            label="Website (Optional)"
-            type="url"
-            value={formData.website}
-            onChange={handleInputChange("website")}
-            placeholder="https://your-company.com"
-            error={errors.website}
-            hint="Optional: Your company website URL"
-          />
-
-          <Button
-            onClick={handleNext}
-            variant="primary"
-            size="lg"
-            className="w-full"
-          >
-            Next: Create Admin Account
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <StepOne
+        currentStep={currentStep}
+        errors={errors}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        handleNext={handleNext}
+      />
 
       {/* Step 2: Admin Account */}
-      {currentStep === 2 && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-1">
-              Admin Account Setup
-            </h3>
-            <p className="text-sm text-blue-700">
-              This account will have full administrative privileges for your
-              organization.
-            </p>
-          </div>
-
-          <FormInput
-            label="Admin Full Name"
-            value={formData.adminName}
-            onChange={handleInputChange("adminName")}
-            placeholder="Enter admin full name"
-            error={errors.adminName}
-            icon={User}
-            autoComplete="name"
-            required
-          />
-
-          <FormInput
-            label="Admin Email Address"
-            type="email"
-            value={formData.adminEmail}
-            onChange={handleInputChange("adminEmail")}
-            placeholder="Enter admin email address"
-            error={errors.adminEmail}
-            icon={Mail}
-            autoComplete="email"
-            required
-          />
-
-          <PasswordInput
-            label="Password"
-            value={formData.adminPassword}
-            onChange={handleInputChange("adminPassword")}
-            placeholder="Create a strong password"
-            error={errors.adminPassword}
-            showStrengthIndicator={true}
-            autoComplete="new-password"
-            required
-          />
-
-          <PasswordInput
-            label="Confirm Password"
-            value={formData.confirmPassword}
-            onChange={handleInputChange("confirmPassword")}
-            placeholder="Confirm your password"
-            error={errors.confirmPassword}
-            autoComplete="new-password"
-            required
-          />
-
-          {/* Terms and Newsletter */}
-          <div className="space-y-3">
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={formData.acceptTerms}
-                onChange={handleInputChange("acceptTerms")}
-                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                required
-              />
-              <span className="text-sm text-gray-700">
-                I agree to the{" "}
-                <a
-                  href="/terms"
-                  className="text-blue-600 hover:text-blue-500 underline"
-                >
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a
-                  href="/privacy"
-                  className="text-blue-600 hover:text-blue-500 underline"
-                >
-                  Privacy Policy
-                </a>
-                <span className="text-red-500 ml-1">*</span>
-              </span>
-            </label>
-            {errors.acceptTerms && (
-              <p className="text-sm text-red-600 ml-7">{errors.acceptTerms}</p>
-            )}
-
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={formData.subscribeNewsletter}
-                onChange={handleInputChange("subscribeNewsletter")}
-                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">
-                Subscribe to our newsletter for organizational learning tips and
-                product updates
-              </span>
-            </label>
-          </div>
-
-          {/* Submit Error */}
-          {errors.submit && (
-            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm">{errors.submit}</span>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              onClick={handleBack}
-              variant="outline"
-              size="lg"
-              className="flex-1"
-              disabled={isLoading}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              loading={isLoading}
-              disabled={isLoading || !formData.acceptTerms}
-              className="flex-1"
-            >
-              {isLoading ? "Creating Organization..." : "Create Organization"}
-            </Button>
-          </div>
-        </form>
-      )}
+      <StepTwo
+        currentStep={currentStep}
+        errors={errors}
+        formData={formData}
+        handleBack={handleBack}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+        isLoading={isLoading}
+      />
 
       {/* Footer Links */}
-      <div className="text-center space-y-3">
-        <p className="text-sm text-gray-600">
-          Want to create an individual account?{" "}
-          <button
-            type="button"
-            onClick={onSwitchToIndividualSignup}
-            className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-          >
-            Sign up as Individual
-          </button>
-        </p>
-
-        <p className="text-sm text-gray-600">
-          Already have an account?{" "}
-          <button
-            type="button"
-            onClick={onSwitchToLogin}
-            className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-          >
-            Sign in
-          </button>
-        </p>
-      </div>
+      <FormFooter
+        onSwitchToIndividualSignup={onSwitchToIndividualSignup}
+        onSwitchToLogin={onSwitchToLogin}
+      />
     </div>
   );
 };

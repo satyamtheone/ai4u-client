@@ -17,154 +17,17 @@ import { sendMessage, addMessage } from "../store/chatSlice";
 import { startQuiz } from "../store/quizSlice";
 import QuizOverlay from "./QuizOverlay";
 import NotificationContainer from "./NotificationContainer";
-
 // V2 Authentication Imports
 import { useAuth } from "./auth/AuthProvider";
-import { AuthMain } from "./auth/AuthMain";
-
-import {
-  Menu,
-  Home,
-  Book,
-  Code,
-  MessageSquare,
-  Brain,
-  User,
-  Search,
-  Send,
-  Loader,
-  Trophy,
-  Zap,
-  Target,
-  Unlock,
-  X,
-} from "lucide-react";
-import DynamicButton from "../cmmonComponents/DynamicButton";
 import DynamicModal from "../cmmonComponents/DynamicModal";
-
-// Loading Component with V1 Styling
-const LoadingScreen: React.FC<{ message?: string }> = ({
-  message = "Initializing AI4U...",
-}) => (
-  <div className="app">
-    <div className="main-content">
-      <div className="welcome-state">
-        <div className="welcome-icon">🤖</div>
-        <h2 className="welcome-title">AI4U</h2>
-        <div className="loading-indicator">
-          <div className="loading-dots">
-            <div className="loading-dot"></div>
-            <div className="loading-dot"></div>
-            <div className="loading-dot"></div>
-          </div>
-          <span
-            style={{ marginLeft: "8px", color: "#b3b3b3", fontSize: "14px" }}
-          >
-            {message}
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Auth Modal Component
-const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
-  isOpen,
-  onClose,
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "rgba(0, 0, 0, 0.8)",
-        backdropFilter: "blur(8px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        animation: "fadeInBackdrop 0.3s ease-out",
-      }}
-    >
-      <div
-        style={{
-          background: "#1a1a1a",
-          border: "2px solid #404040",
-          borderRadius: "20px",
-          padding: "32px",
-          maxWidth: "450px",
-          width: "90%",
-          maxHeight: "90vh",
-          overflow: "auto",
-          position: "relative",
-          animation: "slideInQuiz 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-        }}
-      >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "16px",
-            right: "16px",
-            background: "#2a2a2a",
-            color: "#b3b3b3",
-            border: "none",
-            borderRadius: "8px",
-            padding: "8px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#3a3a3a";
-            e.currentTarget.style.color = "#ffffff";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#2a2a2a";
-            e.currentTarget.style.color = "#b3b3b3";
-          }}
-        >
-          <X size={20} />
-        </button>
-
-        {/* Auth form header */}
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔐</div>
-          <h2
-            style={{
-              color: "#ffffff",
-              fontSize: "24px",
-              fontWeight: 600,
-              marginBottom: "8px",
-            }}
-          >
-            Sign in to AI4U
-          </h2>
-          <p
-            style={{
-              color: "#b3b3b3",
-              fontSize: "14px",
-            }}
-          >
-            Access your personalized learning experience
-          </p>
-        </div>
-
-        {/* V2 Auth Component */}
-        <AuthMain defaultView="login" redirectTo="/dashboard" />
-      </div>
-    </div>
-  );
-};
+import { suggestedTopics } from "../RefactoredComponents/Constants";
+import LoadingScreen from "../RefactoredComponents/LoadingScreen";
+import SideBar from "../RefactoredComponents/SideBar";
+import LearningProgress from "../RefactoredComponents/LearningProgress";
+import ChatMessages from "../RefactoredComponents/ChatMessages";
+import ChatInput from "../RefactoredComponents/ChatInput";
+import ChatHeader from "../RefactoredComponents/ChatHeader";
+import NonLoginPage from "../RefactoredComponents/NonLoginPage";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -377,82 +240,23 @@ const App: React.FC = () => {
     setShowAuthModal(false);
   };
 
-  const suggestedTopics = [
-    "🧠 Explain React hooks",
-    "🔧 Debug this JavaScript error",
-    "💡 Best practices for TypeScript",
-    "❤️ Code review checklist",
-    "✅ Optimize this algorithm",
-  ];
-
   // NOW CONDITIONAL RETURNS AFTER ALL HOOKS
   // Show loading screen while initializing
   if (authLoading) {
-    return <LoadingScreen />;
+    return (
+      <LoadingScreen icon={"🤖"} message="Initializing AI4U..." title="AI4U" />
+    );
   }
 
   // Show welcome screen with auth options if not authenticated and not bypassed
   if (!isAuthenticated && !bypassAuth) {
     return (
-      <div className="app ">
-        <div className="main-content">
-          <div className="welcome-state">
-            <div className="welcome-icon">🤖</div>
-            <h2 className="welcome-title">Welcome to AI4U</h2>
-            <p className="welcome-subtitle">
-              Learn while you code with AI-powered assistance
-            </p>
-
-            <div className="topic-pills" style={{ marginBottom: "32px" }}>
-              <DynamicButton
-                label="🔐 Sign In / Sign Up"
-                variant="primary"
-                className=""
-                onClick={() => handleShowLogin()}
-              />
-              <DynamicButton
-                label="🚀 Continue Without Account"
-                variant="secondary"
-                onClick={() => handleBypassAuth()}
-              />
-            </div>
-
-            <div
-              style={{
-                fontSize: "13px",
-                color: "#666666",
-                maxWidth: "500px",
-                lineHeight: "1.5",
-                textAlign: "center",
-              }}
-            >
-              <div style={{ marginBottom: "12px" }}>
-                <span style={{ color: "#10b981", fontWeight: "600" }}>
-                  ✨ With Account:
-                </span>{" "}
-                Save progress, learning analytics, personalized experience
-              </div>
-              <div>
-                <span style={{ color: "#2563eb", fontWeight: "600" }}>
-                  ⚡ Without Account:
-                </span>{" "}
-                Full access to AI chat, no data saved
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Auth Modal */}
-        {/* <AuthModal isOpen={showAuthModal} onClose={handleCloseAuthModal} /> */}
-        <DynamicModal
-          isOpen={showAuthModal}
-          onClose={handleCloseAuthModal}
-          headerIcon={"🔐"}
-          HeadingText="Sign in to AI4U"
-          HeadingDescription="Access your personalized learning experience"
-          child={<AuthMain defaultView="login" redirectTo="/dashboard" />}
-        />
-      </div>
+      <NonLoginPage
+        handleBypassAuth={handleBypassAuth}
+        handleCloseAuthModal={handleCloseAuthModal}
+        handleShowLogin={handleShowLogin}
+        showAuthModal={showAuthModal}
+      />
     );
   }
 
@@ -465,364 +269,56 @@ const App: React.FC = () => {
   return (
     <div className="app">
       {/* Sidebar */}
-      <div className={`sidebar ${showSidebar ? "expanded" : "collapsed"}`}>
-        {/* Logo */}
-        <div className="logo-section">
-          <div className="logo-icon">
-            <Brain size={20} />
-          </div>
-          {showSidebar && <span className="logo-text">AI4U</span>}
-        </div>
-
-        {/* Navigation */}
-        <div className="nav-section">
-          <button className="nav-item active">
-            <Home className="nav-icon" size={20} />
-            {showSidebar && <span>Home</span>}
-          </button>
-
-          <button className="nav-item">
-            <Book className="nav-icon" size={20} />
-            {showSidebar && <span>Library</span>}
-          </button>
-
-          <button className="nav-item">
-            <Code className="nav-icon" size={20} />
-            {showSidebar && <span>Coding</span>}
-          </button>
-
-          <button className="nav-item">
-            <MessageSquare className="nav-icon" size={20} />
-            {showSidebar && <span>Chats</span>}
-          </button>
-
-          {showSidebar && (
-            <div style={{ marginTop: "32px" }}>
-              <h3
-                style={{
-                  color: "#b3b3b3",
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  marginBottom: "12px",
-                }}
-              >
-                Library
-              </h3>
-              <button className="nav-item">
-                <span style={{ fontSize: "18px" }}>+</span>
-                Create a Thread
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* User Section - Updated for Optional Authentication */}
-        <div className="user-section">
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {showSidebar && (
-              <div
-                style={{
-                  color: "#b3b3b3",
-                  fontSize: "12px",
-                  padding: "0 16px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <User size={16} />
-                <span>{userDisplayName}</span>
-              </div>
-            )}
-
-            {isAuthenticated ? (
-              <button
-                className="sign-in-button"
-                onClick={handleLogout}
-                style={{ background: "#ef4444" }}
-              >
-                {showSidebar ? "Sign Out" : <User size={20} />}
-              </button>
-            ) : (
-              <button className="sign-in-button" onClick={handleShowLogin}>
-                {showSidebar ? "Sign In" : <User size={20} />}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      <SideBar
+        handleLogout={handleLogout}
+        handleShowLogin={handleShowLogin}
+        isAuthenticated={isAuthenticated}
+        showSidebar={showSidebar}
+        userDisplayName={userDisplayName}
+      />
 
       {/* Main Content */}
       <div className="main-content">
         {/* Header */}
-        <div className="app-header">
-          <div className="header-left">
-            <button
-              className="menu-button"
-              onClick={() => setShowSidebar(!showSidebar)}
-            >
-              <Menu size={20} />
-            </button>
-            <h1 className="app-title">🤖 AI4U - Learn While You Code</h1>
-          </div>
-          <div className="connection-status">
-            <div
-              className={`status-dot ${
-                isConnected ? "connected" : "disconnected"
-              }`}
-            ></div>
-            <span
-              className={`status-text ${
-                isConnected ? "connected" : "disconnected"
-              }`}
-            >
-              {isConnected ? "Connected" : "Disconnected"}
-            </span>
-          </div>
-        </div>
+        <ChatHeader
+          isConnected={isConnected}
+          setShowSidebar={setShowSidebar}
+          showSidebar={showSidebar}
+        />
 
         {/* Learning Progress */}
-        <div className="learning-progress">
-          <div className="progress-header">
-            <h2 className="progress-title">🎓 Learning Progress</h2>
-            <button
-              className={`toggle-button ${
-                learningGatesEnabled ? "" : "disabled"
-              }`}
-              onClick={handleToggleLearningGates}
-            >
-              {learningGatesEnabled ? "Disable" : "Enable"} Learning Gates
-            </button>
-          </div>
-
-          <div className="stats-grid">
-            <div className="stat-card">
-              <Trophy
-                className="stat-icon"
-                size={20}
-                style={{ color: "#f59e0b" }}
-              />
-              <div className="stat-content">
-                <div className="stat-label">Level</div>
-                <div className="stat-value">{stats.level}</div>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <Zap
-                className="stat-icon"
-                size={20}
-                style={{ color: "#2563eb" }}
-              />
-              <div className="stat-content">
-                <div className="stat-label">Streak</div>
-                <div className="stat-value">{stats.streak}</div>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <Target
-                className="stat-icon"
-                size={20}
-                style={{ color: "#8b5cf6" }}
-              />
-              <div className="stat-content">
-                <div className="stat-label">Accuracy</div>
-                <div className="stat-value">{stats.accuracy}%</div>
-              </div>
-            </div>
-
-            <div className="stat-card unlocked">
-              <Unlock className="stat-icon" size={20} />
-              <div className="stat-content">
-                <div className="stat-label">Responses Left</div>
-                <div className="stat-value">{stats.unlockedResponses}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <LearningProgress
+          handleToggleLearningGates={handleToggleLearningGates}
+          learningGatesEnabled={learningGatesEnabled}
+          stats={stats}
+        />
 
         {/* Chat Area */}
         <div className="chat-area">
-          <div className="messages-container">
-            {messages.length === 0 ? (
-              <div className="welcome-state">
-                <div className="welcome-icon">🤖</div>
-                <h2 className="welcome-title">Welcome to AI4U</h2>
-                <p className="welcome-subtitle">
-                  Ask anything about coding or mention a topic to get started
-                  {!isAuthenticated && " (Guest Mode)"}
-                </p>
-
-                <div className="topic-pills">
-                  {suggestedTopics.map((topic, index) => (
-                    <button
-                      key={index}
-                      className="topic-pill"
-                      onClick={() => handleSuggestedTopic(topic)}
-                    >
-                      {topic}
-                    </button>
-                  ))}
-                </div>
-
-                {!isAuthenticated && (
-                  <div
-                    style={{
-                      marginTop: "24px",
-                      padding: "16px",
-                      background: "rgba(37, 99, 235, 0.1)",
-                      border: "1px solid #2563eb",
-                      borderRadius: "12px",
-                      maxWidth: "400px",
-                    }}
-                  >
-                    <p
-                      style={{ fontSize: "12px", color: "#2563eb", margin: 0 }}
-                    >
-                      💡 <strong>Sign in</strong> to save your conversations,
-                      track learning progress, and get personalized
-                      recommendations!
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                {messages.map((message, index) => (
-                  <div key={index} className={`message ${message.type}`}>
-                    {message.type === "bot" && (
-                      <div className="message-avatar bot">
-                        <Brain size={16} />
-                      </div>
-                    )}
-
-                    <div className={`message-bubble ${message.type}`}>
-                      <div>{message.message || message.response}</div>
-                      <div className="message-info">
-                        {message.source && (
-                          <span className="message-source">
-                            {message.source}
-                          </span>
-                        )}
-                        <span>
-                          {message.timestamp &&
-                            new Date(message.timestamp).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {message.type === "user" && (
-                      <div className="message-avatar user">
-                        <User size={16} />
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {isLoading && (
-                  <div className="message bot">
-                    <div className="message-avatar bot">
-                      <Brain size={16} />
-                    </div>
-                    <div className="message-bubble bot">
-                      <div className="loading-indicator">
-                        <div className="loading-dots">
-                          <div className="loading-dot"></div>
-                          <div className="loading-dot"></div>
-                          <div className="loading-dot"></div>
-                        </div>
-                        <span
-                          style={{
-                            marginLeft: "8px",
-                            color: "#b3b3b3",
-                            fontSize: "14px",
-                          }}
-                        >
-                          AI is thinking...
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {error && (
-                  <div className="message bot">
-                    <div
-                      className="message-avatar bot"
-                      style={{ background: "#ef4444" }}
-                    >
-                      <span>!</span>
-                    </div>
-                    <div
-                      className="message-bubble bot"
-                      style={{
-                        borderColor: "#ef4444",
-                        background: "rgba(239, 68, 68, 0.1)",
-                      }}
-                    >
-                      <div style={{ color: "#ef4444", fontWeight: 500 }}>
-                        Error
-                      </div>
-                      <div style={{ fontSize: "13px", opacity: 0.9 }}>
-                        {error}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <ChatMessages
+            error={error}
+            handleSuggestedTopic={handleSuggestedTopic}
+            isAuthenticated={isAuthenticated}
+            isLoading={isLoading}
+            messages={messages}
+            suggestedTopics={suggestedTopics}
+          />
 
           {/* Input Area */}
-          <div className="input-area">
-            <div className="input-container">
-              <Search className="search-icon" size={20} />
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  isConnected
-                    ? "Ask me anything about coding..."
-                    : "Please connect to backend first"
-                }
-                disabled={!isConnected || isLoading}
-                rows={1}
-                className="message-input"
-                style={{
-                  minHeight: "24px",
-                  maxHeight: "120px",
-                  overflow: "auto",
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "auto";
-                  target.style.height = target.scrollHeight + "px";
-                }}
-              />
-              <div className="input-actions">
-                <button className="attach-button">📎</button>
-                <button
-                  className="send-button"
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || !isConnected || isLoading}
-                >
-                  {isLoading ? (
-                    <Loader className="animate-spin" size={16} />
-                  ) : (
-                    <Send size={16} />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
+          <ChatInput
+            handleKeyPress={handleKeyPress}
+            handleSendMessage={handleSendMessage}
+            inputMessage={inputMessage}
+            isConnected={isConnected}
+            isLoading={isLoading}
+            setInputMessage={setInputMessage}
+          />
         </div>
       </div>
 
       {/* Only show quiz overlay for authenticated users */}
       {quizActive && isAuthenticated && <QuizOverlay />}
-      <AuthModal isOpen={showAuthModal} onClose={handleCloseAuthModal} />
+      <DynamicModal isOpen={showAuthModal} onClose={handleCloseAuthModal} />
       <NotificationContainer />
     </div>
   );

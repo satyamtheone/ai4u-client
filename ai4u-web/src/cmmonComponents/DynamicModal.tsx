@@ -4,7 +4,7 @@ import ModalCloseButton from "./ModalCloseButton";
 const DynamicModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  child: JSX.Element;
+  child?: JSX.Element;
   headerIcon?: JSX.Element | string;
   HeadingDescription?: string;
   HeadingText?: string;

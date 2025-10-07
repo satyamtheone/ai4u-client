@@ -1,5 +1,5 @@
-import { apiConfig } from '../../config/apiConfig';
-import { ApiResponse, ApiError } from '../../types/api/ApiResponse';
+import { apiConfig } from "../../config/apiConfig";
+import { ApiError } from "../../types/api/ApiResponse";
 
 export class BaseApiService {
   protected baseURL: string;
@@ -14,10 +14,10 @@ export class BaseApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
         ...options.headers,
       },
@@ -26,29 +26,29 @@ export class BaseApiService {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         await this.handleErrorResponse(response);
       }
 
       // Handle empty responses
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
         return data.data || data; // Handle both wrapped and unwrapped responses
       }
-      
+
       return {} as T;
     } catch (error) {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Network error occurred');
+      throw new Error("Network error occurred");
     }
   }
 
   private async handleErrorResponse(response: Response): Promise<never> {
-    let errorMessage = 'Request failed';
+    let errorMessage = "Request failed";
     let errorCode: string | undefined;
 
     try {
@@ -60,30 +60,30 @@ export class BaseApiService {
       errorMessage = response.statusText || errorMessage;
     }
 
-    const apiError: ApiError = {
-      status: response.status,
-      message: errorMessage,
-      code: errorCode,
-    };
+    // const apiError: ApiError = {
+    //   status: response.status,
+    //   message: errorMessage,
+    //   code: errorCode,
+    // };
 
     // Handle specific status codes
     switch (response.status) {
       case 401:
         // Unauthorized - token might be expired
         this.handleUnauthorized();
-        throw new Error('Authentication required');
+        throw new Error("Authentication required");
       case 403:
-        throw new Error('Access forbidden');
+        throw new Error("Access forbidden");
       case 404:
-        throw new Error('Resource not found');
+        throw new Error("Resource not found");
       case 409:
-        throw new Error(errorMessage || 'Conflict occurred');
+        throw new Error(errorMessage || "Conflict occurred");
       case 422:
-        throw new Error(errorMessage || 'Validation failed');
+        throw new Error(errorMessage || "Validation failed");
       case 429:
-        throw new Error('Too many requests. Please try again later.');
+        throw new Error("Too many requests. Please try again later.");
       case 500:
-        throw new Error('Internal server error');
+        throw new Error("Internal server error");
       default:
         throw new Error(errorMessage);
     }
@@ -92,10 +92,10 @@ export class BaseApiService {
   private handleUnauthorized(): void {
     // Clear token and redirect to login
     this.setToken(null);
-    
+
     // Dispatch custom event for auth state change
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     }
   }
 
@@ -108,34 +108,39 @@ export class BaseApiService {
   }
 
   // Utility methods for different HTTP methods
-  protected async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const url = params ? `${endpoint}?${new URLSearchParams(params)}` : endpoint;
-    return this.request<T>(url, { method: 'GET' });
+  protected async get<T>(
+    endpoint: string,
+    params?: Record<string, any>
+  ): Promise<T> {
+    const url = params
+      ? `${endpoint}?${new URLSearchParams(params)}`
+      : endpoint;
+    return this.request<T>(url, { method: "GET" });
   }
 
   protected async post<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   protected async put<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   protected async patch<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PATCH',
+      method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   protected async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, { method: "DELETE" });
   }
 
   // File upload method
@@ -145,8 +150,8 @@ export class BaseApiService {
     additionalData?: Record<string, any>
   ): Promise<T> {
     const formData = new FormData();
-    formData.append('file', file);
-    
+    formData.append("file", file);
+
     if (additionalData) {
       Object.entries(additionalData).forEach(([key, value]) => {
         formData.append(key, String(value));
@@ -154,7 +159,7 @@ export class BaseApiService {
     }
 
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: formData,
       headers: {
         // Don't set Content-Type for FormData, let browser set it with boundary
