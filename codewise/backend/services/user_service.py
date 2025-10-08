@@ -50,9 +50,10 @@ class UserService:
     def create_user(
         self, 
         user_data: UserCreate, 
-        account_type: str = "individual"
+        account_type: str = "INDIVIDUAL"
     ) -> Optional[User]:
         """Create a new user"""
+        account_type = user_data.account_type
         try:
             # Check if user already exists
             existing_user = self.get_by_email(user_data.email)
@@ -68,7 +69,7 @@ class UserService:
                 first_name=user_data.first_name,
                 last_name=user_data.last_name,
                 phone=user_data.phone,
-                auth_method="email"
+                auth_method=user_data.auth_method
             )
             
             self.db.add(user)
@@ -78,7 +79,7 @@ class UserService:
             account = AccountType(
                 user_id=user.id,
                 account_type=account_type,
-                organization_id=None if account_type == "individual" else None
+                organization_id=None if account_type == "INDIVIDUAL" else None
             )
             self.db.add(account)
             

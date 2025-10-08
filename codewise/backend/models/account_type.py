@@ -19,8 +19,7 @@ class AccountType(Base):
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"))
     account_type = Column(
         Enum(AccountTypeEnum, name="accounttypeenum"), 
-        nullable=False,
-        create_type=True
+        nullable=False
     )
     is_primary = Column(Boolean, default=True, nullable=False)
     joined_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

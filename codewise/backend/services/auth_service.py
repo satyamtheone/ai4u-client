@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 import uuid
 import structlog
-
+import json
 from models.user import User
 from models.session import UserSession
 from schemas.auth import Token
@@ -95,10 +95,13 @@ class AuthService:
             self.db.commit()
             
             # Cache session in Redis
-            await RedisClient.set(
+            await RedisClient().set(
                 f"session:{access_token}",
-                {"user_id": str(user_id), "session_id": str(session.id)},
-                expire=1800  # 30 minutes
+                json.dumps({
+                    "user_id": str(user_id),
+                    "session_id": str(session.id)
+                }),
+                expire=1800  # expire in 30 minutes
             )
             
             return {
