@@ -1,4 +1,17 @@
-import { Book, Brain, Code, Home, MessageSquare, User } from "lucide-react";
+import {
+  Book,
+  Brain,
+  Code,
+  Home,
+  MessageSquare,
+  Plus,
+  User,
+} from "lucide-react";
+import DynamicModal from "../cmmonComponents/DynamicModal";
+import { AuthMain } from "../components/auth";
+import { useState } from "react";
+import SidebarButton from "../cmmonComponents/SidebarButton";
+import DynamicButton from "../cmmonComponents/DynamicButton";
 
 const SideBar = ({
   showSidebar,
@@ -13,91 +26,102 @@ const SideBar = ({
   handleShowLogin: () => void;
   userDisplayName: string;
 }) => {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const SideBarHeaders = [
+    { icon: <Home size={20} />, label: "Home", isActive: true },
+    { icon: <Book size={20} />, label: "Library" },
+    { icon: <Code size={20} />, label: "Coding" },
+    { icon: <MessageSquare size={20} />, label: "Chats" },
+  ];
+
   return (
-    <div className={`sidebar ${showSidebar ? "expanded" : "collapsed"}`}>
+    <div
+      className={` flex flex-col flex-shrink-0 transition-[width] duration-200 ease-in-out border-r
+         dark:bg-darkBackGround-950 dark:border-darkBackGround-700 bg-gray-100 border-gray-300 text-black dark:text-white ${
+           showSidebar ? "w-64" : "w-16"
+         }`}
+    >
       {/* Logo */}
-      <div className="logo-section">
-        <div className="logo-icon">
+      <div className="flex items-center gap-3 p-4 pb-7 border-b border-[#333]">
+        <div
+          className="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white
+         bg-gradient-to-br from-blue-600 to-violet-500"
+        >
           <Brain size={20} />
         </div>
-        {showSidebar && <span className="logo-text">AI4U</span>}
+        {showSidebar && (
+          <span className="text-lg font-semibold dark:text-white text-gray-800">
+            AI4U
+          </span>
+        )}
       </div>
 
       {/* Navigation */}
-      <div className="nav-section">
-        <button className="nav-item active">
-          <Home className="nav-icon" size={20} />
-          {showSidebar && <span>Home</span>}
-        </button>
-
-        <button className="nav-item">
-          <Book className="nav-icon" size={20} />
-          {showSidebar && <span>Library</span>}
-        </button>
-
-        <button className="nav-item">
-          <Code className="nav-icon" size={20} />
-          {showSidebar && <span>Coding</span>}
-        </button>
-
-        <button className="nav-item">
-          <MessageSquare className="nav-icon" size={20} />
-          {showSidebar && <span>Chats</span>}
-        </button>
+      <div className="flex-1 p-4 overflow-y-auto">
+        {SideBarHeaders.map((item, i) => (
+          <SidebarButton
+            item={item}
+            showSidebar={showSidebar}
+            key={item.label}
+            isActive={i == 0}
+          />
+        ))}
 
         {showSidebar && (
-          <div style={{ marginTop: "32px" }}>
-            <h3
-              style={{
-                color: "#b3b3b3",
-                fontSize: "12px",
-                fontWeight: 500,
-                marginBottom: "12px",
-              }}
-            >
-              Library
-            </h3>
-            <button className="nav-item">
-              <span style={{ fontSize: "18px" }}>+</span>
-              Create a Thread
-            </button>
+          <div className="mt-8">
+            <h3 className="text-xs font-medium text-gray-400 mb-3">Library</h3>
+
+            {/* Replace with a valid item object or remove this component */}
+            <SidebarButton
+              item={{ icon: <Plus size={20} />, label: "Create a Thread" }}
+              showSidebar={showSidebar}
+            />
           </div>
         )}
       </div>
 
-      {/* User Section - Updated for Optional Authentication */}
-      <div className="user-section">
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {/* User Section */}
+      <div className=" h-28 border-t border-[#333] flex flex-col justify-around">
+        <div className="flex flex-col gap-4 px-4">
           {showSidebar && (
-            <div
-              style={{
-                color: "#b3b3b3",
-                fontSize: "12px",
-                padding: "0 16px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
+            <div className="flex items-center gap-2 px-4 text-xs text-gray-400">
               <User size={16} />
               <span>{userDisplayName}</span>
             </div>
           )}
 
           {isAuthenticated ? (
-            <button
-              className="sign-in-button"
-              onClick={handleLogout}
-              style={{ background: "#ef4444" }}
-            >
-              {showSidebar ? "Sign Out" : <User size={20} />}
-            </button>
+            <DynamicButton
+              label={showSidebar ? "Sign Out" : ""}
+              variant="submit"
+              icon={!showSidebar && <User size={20} />}
+              onClick={() => handleLogout}
+              submitColor="bg-red-500 hover:bg-red-600"
+            />
           ) : (
-            <button className="sign-in-button" onClick={handleShowLogin}>
-              {showSidebar ? "Sign In" : <User size={20} />}
-            </button>
+            <DynamicButton
+              label={showSidebar ? "Sign In" : ""}
+              variant="submit"
+              icon={!showSidebar && <User size={20} />}
+              onClick={() => setShowAuthModal(true)}
+            />
           )}
         </div>
+
+        <DynamicModal
+          isOpen={showAuthModal}
+          onClose={() => {
+            setShowAuthModal(false);
+            const url = new URL(window.location.href);
+            url.searchParams.delete("view");
+            window.history.replaceState({}, "", url);
+          }}
+          headerIcon="🔐"
+          HeadingText="Sign in to AI4U"
+          HeadingDescription="Access your personalized learning experience"
+          child={<AuthMain defaultView="login" redirectTo="/nonLogin" />}
+        />
       </div>
     </div>
   );

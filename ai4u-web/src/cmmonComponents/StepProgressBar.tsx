@@ -25,7 +25,7 @@ export const StepProgressBar: React.FC<StepProgressProps> = ({
               ${
                 currentStep >= step
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-600"
+                  : "dark:bg-gray-200 bg-gray-300 dark:text-gray-600 text-gray-800"
               }
             `}
           >
@@ -37,7 +37,11 @@ export const StepProgressBar: React.FC<StepProgressProps> = ({
             <div
               className={`
                 flex-1 h-1 mx-2 transition-colors duration-300
-                ${currentStep > step ? "bg-blue-600" : "bg-gray-200"}
+                ${
+                  currentStep > step
+                    ? "bg-blue-600"
+                    : "dark:bg-gray-200 bg-gray-800"
+                }
               `}
             />
           )}

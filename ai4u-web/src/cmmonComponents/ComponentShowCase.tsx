@@ -33,7 +33,7 @@ const ComponentShowcase: React.FC<ComponentShowcaseProps> = ({
   `.trim();
 
   return (
-    <div className="h-4/5 flex flex-col md:flex-row dark:bg-darkBackGround-50 bg-gray-200 text-white p-6 gap-6">
+    <div className="h-4/5 flex flex-col md:flex-row dark:bg-darkBackGround-950 bg-gray-200 text-white p-6 gap-6">
       {/* Left side — Live Preview */}
       <div className="flex-1 flex flex-col items-center justify-center dark:bg-darkBackGround-1150 bg-gray-800 rounded-2xl p-8 shadow-lg">
         <h2 className="text-xl font-semibold mb-4">{name} Preview</h2>

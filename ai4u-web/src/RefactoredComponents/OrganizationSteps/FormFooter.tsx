@@ -7,7 +7,7 @@ const FormFooter = ({
 }) => {
   return (
     <div className="text-center space-y-3">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm dark:text-gray-600 text-gray-800">
         Want to create an individual account?{" "}
         <button
           type="button"
@@ -18,7 +18,7 @@ const FormFooter = ({
         </button>
       </p>
 
-      <p className="text-sm text-gray-600">
+      <p className="text-sm dark:text-gray-600 text-gray-800">
         Already have an account?{" "}
         <button
           type="button"

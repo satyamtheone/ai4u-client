@@ -7,6 +7,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   label: string;
   icon?: React.ReactNode;
+  submitColor?: string;
 }
 
 const DynamicButton: React.FC<ButtonProps> = ({
@@ -15,6 +16,7 @@ const DynamicButton: React.FC<ButtonProps> = ({
   label,
   icon,
   className = "",
+  submitColor,
   ...props
 }) => {
   let base =
@@ -24,8 +26,9 @@ const DynamicButton: React.FC<ButtonProps> = ({
 
   switch (variant) {
     case "submit":
-      variantStyles =
-        " bg-primary-600 text-white border-none rounded-2xl text-[16px] font-semibold py-4 px-6 w-full shadow-none";
+      variantStyles = ` w-full px-4 py-3 font-medium text-white transition-colors bg-blue-600 rounded-lg ${
+        submitColor ? submitColor : "bg-blue-600 hover:bg-blue-700"
+      }`;
       break;
 
     case "primary":

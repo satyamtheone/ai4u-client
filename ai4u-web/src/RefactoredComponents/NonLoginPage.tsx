@@ -1,25 +1,45 @@
+import { useEffect, useState } from "react";
 import DynamicButton from "../cmmonComponents/DynamicButton";
 import DynamicModal from "../cmmonComponents/DynamicModal";
-import { AuthMain } from "../components/auth";
+import { AuthMain, useAuth } from "../components/auth";
+import { useNavigate } from "react-router-dom";
 
-const NonLoginPage = ({
-  handleShowLogin,
-  handleBypassAuth,
-  showAuthModal,
-  handleCloseAuthModal,
-}: {
-  handleShowLogin: () => void;
-  handleBypassAuth: () => void;
-  showAuthModal: boolean;
-  handleCloseAuthModal: () => void;
-}) => {
+const NonLoginPage = () => {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const handleCloseAuthModal = () => {
+    setShowAuthModal(false);
+    window.history.replaceState(
+      {},
+      "",
+      (() => {
+        const u = new URL(window.location.href);
+        u.searchParams.delete("view");
+        return u;
+      })()
+    );
+  };
+  const handleShowLogin = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleBypassAuth = () => {
+    if (!isAuthenticated) {
+      navigate("/nonLogin", { replace: true });
+    }
+  };
+
   return (
-    <div className="app ">
-      <div className="main-content">
-        <div className="welcome-state">
+    <div className="app bg-white text-black ">
+      <div className="flex justify-center w-full">
+        <div className="flex  flex-col items-center justify-center">
           <div className="welcome-icon">🤖</div>
-          <h2 className="welcome-title">Welcome to AI4U</h2>
-          <p className="welcome-subtitle">
+          <h2 className="text-[28px] font-semibold dark:text-white  text-black mb-2">
+            Welcome to AI4U
+          </h2>
+          <p className="text-[16px] dark:text-darkBackGround-400 text-gray-600  mb-8">
             Learn while you code with AI-powered assistance
           </p>
 
@@ -69,7 +89,7 @@ const NonLoginPage = ({
         headerIcon={"🔐"}
         HeadingText="Sign in to AI4U"
         HeadingDescription="Access your personalized learning experience"
-        child={<AuthMain defaultView="login" redirectTo="/dashboard" />}
+        child={<AuthMain defaultView="login" redirectTo="/nonLogin" />}
       />
     </div>
   );

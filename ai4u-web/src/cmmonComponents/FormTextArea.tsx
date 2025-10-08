@@ -38,7 +38,7 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
         {/* ---------- Label ---------- */}
         <label
           htmlFor={textAreaId}
-          className="block text-sm font-medium text-gray-400"
+          className="block text-sm font-medium dark:text-gray-400 text-gray-800"
         >
           {label}
           {props.required && <span className="text-red-500 ml-1">*</span>}
@@ -49,7 +49,7 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
           {/* Optional Left Icon */}
           {Icon && (
             <div className="absolute top-3 left-3 flex items-start pointer-events-none">
-              <Icon className="h-5 w-5 text-gray-400" />
+              <Icon className="h-5 w-5 dark:text-gray-400 text-gray-800" />
             </div>
           )}
 
@@ -73,7 +73,7 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
               ${
                 error
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  : "dark:border-gray-300 border-gray-800 focus:border-blue-500 focus:ring-blue-500"
               }
               ${className}
             `}
