@@ -13,7 +13,7 @@ const ChatHeader = ({
   return (
     <div className="flex max-md:flex-col items-center justify-between md:px-6 px-2 md:py-5 py-2.5  border-b border-darkBackGround-700 dark:bg-darkBackGround-950 bg-gray-100">
       {/* Left Section */}
-      <div className="flex items-center gap-4  ma-md:justify-around w-full">
+      <div className="flex items-center md:gap-4 gap-2  max-md:justify-around w-full">
         <SidebarButton
           isOpen={showSidebar}
           onToggle={() => setShowSidebar(!showSidebar)}
