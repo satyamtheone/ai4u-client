@@ -1,6 +1,9 @@
 // User types
-export type UserType = 'individual' | 'organization_admin' | 'organization_user';
-export type UserStatus = 'active' | 'pending' | 'suspended' | 'inactive';
+export type UserType =
+  | "individual"
+  | "organization_admin"
+  | "organization_user";
+export type UserStatus = "active" | "pending" | "suspended" | "inactive";
 
 export interface User {
   id: number;
@@ -20,13 +23,13 @@ export interface User {
 export interface OrganizationMember {
   organizationId: number;
   organizationName: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
   joinedAt: string;
   permissions?: string[];
 }
 
 export interface UserPreferences {
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   notifications: {
     email: boolean;
     push: boolean;
@@ -44,7 +47,9 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
-  name: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
   password: string;
   userType: UserType;
@@ -197,7 +202,7 @@ export interface AuthGuardProps {
 }
 
 // OAuth provider types
-export type OAuthProvider = 'google' | 'github' | 'microsoft';
+export type OAuthProvider = "google" | "github" | "microsoft";
 
 export interface OAuthConfig {
   clientId: string;

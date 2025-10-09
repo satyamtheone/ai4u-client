@@ -259,7 +259,7 @@ const App: React.FC = () => {
       {/* Sidebar */}
       <SideBar
         handleLogout={handleLogout}
-        handleShowLogin={handleShowLogin}
+        setShowSidebar={setShowSidebar}
         isAuthenticated={isAuthenticated}
         showSidebar={showSidebar}
         userDisplayName={userDisplayName}

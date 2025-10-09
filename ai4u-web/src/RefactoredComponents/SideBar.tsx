@@ -1,4 +1,6 @@
 import {
+  ArrowBigLeft,
+  ArrowBigRight,
   Book,
   Brain,
   Code,
@@ -10,23 +12,27 @@ import {
 import DynamicModal from "../cmmonComponents/DynamicModal";
 import { AuthMain } from "../components/auth";
 import { useState } from "react";
-import SidebarButton from "../cmmonComponents/SidebarButton";
 import DynamicButton from "../cmmonComponents/DynamicButton";
+import { useNavigate } from "react-router-dom";
+import SidebarNavigationButton from "../cmmonComponents/SidebarNavigationButton";
+import SidebarButton from "../cmmonComponents/SidebarButton";
+import { log } from "console";
 
 const SideBar = ({
   showSidebar,
   isAuthenticated,
   handleLogout,
-  handleShowLogin,
+  setShowSidebar,
   userDisplayName,
 }: {
   showSidebar: boolean;
   isAuthenticated: boolean;
   handleLogout: () => void;
-  handleShowLogin: () => void;
+  setShowSidebar: (value: React.SetStateAction<boolean>) => void;
   userDisplayName: string;
 }) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const navigate = useNavigate();
 
   const SideBarHeaders = [
     { icon: <Home size={20} />, label: "Home", isActive: true },
@@ -35,15 +41,35 @@ const SideBar = ({
     { icon: <MessageSquare size={20} />, label: "Chats" },
   ];
 
+  const handleNavigateToHome = () => {
+    navigate("/");
+  };
+
+  console.log("====================================");
+  console.log(showSidebar);
+  console.log("====================================");
   return (
     <div
       className={` flex flex-col flex-shrink-0 transition-[width] duration-200 ease-in-out border-r
          dark:bg-darkBackGround-950 dark:border-darkBackGround-700 bg-gray-100 border-gray-300 text-black dark:text-white ${
-           showSidebar ? "w-64" : "w-16"
+           showSidebar ? "w-64 max-md:absolute h-full z-50" : "w-16"
          }`}
     >
+      {showSidebar && (
+        <div className={` md:hidden  absolute top-3 right-2`}>
+          <SidebarButton
+            isOpen={showSidebar}
+            onToggle={() => setShowSidebar(!showSidebar)}
+            closeIcon={<ArrowBigLeft size={20} />}
+            openIcon={<ArrowBigRight size={20} />}
+          />
+        </div>
+      )}
       {/* Logo */}
-      <div className="flex items-center gap-3 p-4 pb-7 border-b border-[#333]">
+      <div
+        className="flex items-center gap-3 p-4 pb-7 border-b border-[#333] cursor-pointer"
+        onClick={handleNavigateToHome}
+      >
         <div
           className="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white
          bg-gradient-to-br from-blue-600 to-violet-500"
@@ -60,7 +86,7 @@ const SideBar = ({
       {/* Navigation */}
       <div className="flex-1 p-4 overflow-y-auto">
         {SideBarHeaders.map((item, i) => (
-          <SidebarButton
+          <SidebarNavigationButton
             item={item}
             showSidebar={showSidebar}
             key={item.label}
@@ -73,7 +99,7 @@ const SideBar = ({
             <h3 className="text-xs font-medium text-gray-400 mb-3">Library</h3>
 
             {/* Replace with a valid item object or remove this component */}
-            <SidebarButton
+            <SidebarNavigationButton
               item={{ icon: <Plus size={20} />, label: "Create a Thread" }}
               showSidebar={showSidebar}
             />

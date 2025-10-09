@@ -1,3 +1,5 @@
+import { Target, Trophy, Unlock, Zap } from "lucide-react";
+
 export const suggestedTopics = [
   "🧠 Explain React hooks",
   "🔧 Debug this JavaScript error",
@@ -36,4 +38,33 @@ export const companySizeOptions = [
   { value: "101-500", label: "101-500 employees" },
   { value: "501-1000", label: "501-1000 employees" },
   { value: "1000+", label: "1000+ employees" },
+];
+
+export const LearningBoxes = [
+  {
+    title: "Level",
+
+    icon: (
+      <Trophy className="w-5 h-5 flex-shrink-0" style={{ color: "#f59e0b" }} />
+    ),
+  },
+  {
+    title: "Streak",
+
+    icon: (
+      <Zap className="w-5 h-5 flex-shrink-0" style={{ color: "#2563eb" }} />
+    ),
+  },
+  {
+    title: "Accuracy",
+
+    icon: (
+      <Target className="w-5 h-5 flex-shrink-0" style={{ color: "#8b5cf6" }} />
+    ),
+  },
+  {
+    title: "Responses Left",
+
+    icon: <Unlock className="w-5 h-5 flex-shrink-0 text-emerald-500" />,
+  },
 ];

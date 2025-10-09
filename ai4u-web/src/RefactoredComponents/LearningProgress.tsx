@@ -1,5 +1,7 @@
-import { Target, Trophy, Unlock, Zap } from "lucide-react";
 import { QuizStats } from "../store/quizSlice";
+import { LearningBoxes } from "./Constants";
+import StatBoxes from "./ChatComponents/StatBoxes";
+import DynamicDropDown from "../cmmonComponents/DynamicDropDown";
 
 const LearningProgress = ({
   handleToggleLearningGates,
@@ -11,59 +13,38 @@ const LearningProgress = ({
   stats: QuizStats;
 }) => {
   return (
-    <div className="learning-progress">
-      <div className="progress-header">
-        <h2 className="progress-title">🎓 Learning Progress</h2>
+    <DynamicDropDown
+      title="🎓 Learning Progress"
+      rightElement={
         <button
-          className={`toggle-button ${learningGatesEnabled ? "" : "disabled"}`}
           onClick={handleToggleLearningGates}
+          className={`md:px-4 px-2 md:py-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+            learningGatesEnabled
+              ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+              : "bg-gray-500 text-white cursor-not-allowed"
+          }`}
         >
           {learningGatesEnabled ? "Disable" : "Enable"} Learning Gates
         </button>
+      }
+    >
+      <div className="grid md:grid-cols-4 grid-cols-2 gap-4 ">
+        {LearningBoxes.map((details, i) => {
+          const key = details.title?.toLowerCase().trim();
+          const statValue =
+            key && key in stats ? stats[key as keyof QuizStats] : 0;
+
+          return (
+            <StatBoxes
+              details={details}
+              value={statValue}
+              key={i}
+              isActive={details.title === "Responses Left"}
+            />
+          );
+        })}
       </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <Trophy
-            className="stat-icon"
-            size={20}
-            style={{ color: "#f59e0b" }}
-          />
-          <div className="stat-content">
-            <div className="stat-label">Level</div>
-            <div className="stat-value">{stats.level}</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <Zap className="stat-icon" size={20} style={{ color: "#2563eb" }} />
-          <div className="stat-content">
-            <div className="stat-label">Streak</div>
-            <div className="stat-value">{stats.streak}</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <Target
-            className="stat-icon"
-            size={20}
-            style={{ color: "#8b5cf6" }}
-          />
-          <div className="stat-content">
-            <div className="stat-label">Accuracy</div>
-            <div className="stat-value">{stats.accuracy}%</div>
-          </div>
-        </div>
-
-        <div className="stat-card unlocked">
-          <Unlock className="stat-icon" size={20} />
-          <div className="stat-content">
-            <div className="stat-label">Responses Left</div>
-            <div className="stat-value">{stats.unlockedResponses}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </DynamicDropDown>
   );
 };
 

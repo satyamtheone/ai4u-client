@@ -26,13 +26,23 @@ const IndividualInputs = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormInput
-        label="Full Name"
-        value={formData.name}
-        onChange={handleInputChange("name")}
-        placeholder="Enter your full name"
-        error={errors.name}
+        label="First Name"
+        value={formData.first_name}
+        onChange={handleInputChange("first_name")}
+        placeholder="Enter your first name"
+        error={errors.first_name}
         icon={User}
-        autoComplete="name"
+        autoComplete="first_name"
+        required
+      />
+      <FormInput
+        label="Last Name"
+        value={formData.last_name}
+        onChange={handleInputChange("last_name")}
+        placeholder="Enter your last name"
+        error={errors.last_name}
+        icon={User}
+        autoComplete="last_name"
         required
       />
 

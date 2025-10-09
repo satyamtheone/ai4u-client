@@ -1,3 +1,5 @@
+import { JSX } from "react";
+
 export interface OrganizationSignupProps {
   onSwitchToLogin: () => void;
   onSwitchToIndividualSignup: () => void;
@@ -28,10 +30,16 @@ export interface IndividualSignupProps {
 }
 
 export interface IndividualFormData {
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
   confirmPassword: string;
   acceptTerms: boolean;
   subscribeNewsletter: boolean;
+}
+
+export interface StatsBoxProps {
+  title: string;
+  icon: JSX.Element;
 }

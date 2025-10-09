@@ -23,7 +23,8 @@ export const IndividualSignup: React.FC<IndividualSignupProps> = ({
   className = "",
 }) => {
   const [formData, setFormData] = useState<IndividualFormData>({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -42,9 +43,9 @@ export const IndividualSignup: React.FC<IndividualSignupProps> = ({
     const newErrors: Partial<IndividualFormData> = {};
 
     // Name validation
-    const nameValidation = validateName(formData.name);
+    const nameValidation = validateName(formData.first_name);
     if (!nameValidation.isValid) {
-      newErrors.name = nameValidation.error;
+      newErrors.first_name = nameValidation.error;
     }
 
     // Email validation
@@ -92,7 +93,8 @@ export const IndividualSignup: React.FC<IndividualSignupProps> = ({
 
     try {
       const registerData: RegisterData = {
-        name: formData.name.trim(),
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         userType: "individual",

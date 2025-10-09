@@ -1,4 +1,5 @@
-import { Menu } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight, Menu, XIcon } from "lucide-react";
+import SidebarButton from "../cmmonComponents/SidebarButton";
 
 const ChatHeader = ({
   setShowSidebar,
@@ -10,23 +11,32 @@ const ChatHeader = ({
   isConnected: boolean;
 }) => {
   return (
-    <div className="app-header">
-      <div className="header-left">
-        <button
-          className="menu-button"
-          onClick={() => setShowSidebar(!showSidebar)}
-        >
-          <Menu size={20} />
-        </button>
-        <h1 className="app-title">🤖 AI4U - Learn While You Code</h1>
+    <div className="flex max-md:flex-col items-center justify-between md:px-6 px-2 md:py-5 py-2.5  border-b border-darkBackGround-700 dark:bg-darkBackGround-950 bg-gray-100">
+      {/* Left Section */}
+      <div className="flex items-center gap-4  ma-md:justify-around w-full">
+        <SidebarButton
+          isOpen={showSidebar}
+          onToggle={() => setShowSidebar(!showSidebar)}
+          closeIcon={<ArrowBigLeft size={20} />}
+          openIcon={<ArrowBigRight size={20} />}
+        />
+        <h1 className="md:text-2xl  text-lg font-semibold  m-0">
+          🤖 AI4U - Learn While You Code
+        </h1>
+        <span></span>
       </div>
-      <div className="connection-status">
+
+      {/* Connection Status */}
+      <div className="flex items-center gap-2 text-sm pr-7">
         <div
-          className={`status-dot ${isConnected ? "connected" : "disconnected"}`}
+          className={`w-3 h-3 rounded-full ${
+            isConnected ? "bg-emerald-500" : "bg-red-500"
+          }`}
         ></div>
+
         <span
-          className={`status-text ${
-            isConnected ? "connected" : "disconnected"
+          className={`font-medium ${
+            isConnected ? "text-emerald-500" : "text-red-500"
           }`}
         >
           {isConnected ? "Connected" : "Disconnected"}

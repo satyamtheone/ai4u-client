@@ -67,7 +67,7 @@ export const AuthMain: React.FC<AuthMainProps> = ({
   // Show loading while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-[60vh] animate-pulse  w-full  bg-slate-100 dark:bg-darkBackGround-950 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
       </div>
     );

@@ -15,13 +15,17 @@ const ModalCloseButton: React.FC<CloseButtonProps> = ({
       onClick={onClick}
       className={`
         absolute top-4 right-4
-        bg-[#2a2a2a] text-[#b3b3b3]
+        dark:bg-darkBackGround-300 dark:text-darkBackGround-400
+        bg-gray-200
+        shadow-md
         border-none rounded-[8px]
         p-2
         flex items-center justify-center
         cursor-pointer
         transition-all duration-200 ease-in-out
-        hover:bg-[#3a3a3a] hover:text-white
+        dark:hover:bg-darkBackGround-200
+        hover:bg-gray-100 dark:hover:text-white
+        hover:text-gray-700
         ${className ?? ""}
       `}
     >
