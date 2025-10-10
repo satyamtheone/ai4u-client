@@ -18,7 +18,6 @@ import QuizOverlay from "./QuizOverlay";
 import NotificationContainer from "./NotificationContainer";
 // V2 Authentication Imports
 import { useAuth } from "./auth/AuthProvider";
-import DynamicModal from "../cmmonComponents/DynamicModal";
 import { suggestedTopics } from "../RefactoredComponents/Constants";
 import LoadingScreen from "../RefactoredComponents/LoadingScreen";
 import SideBar from "../RefactoredComponents/SideBar";
@@ -26,7 +25,6 @@ import LearningProgress from "../RefactoredComponents/LearningProgress";
 import ChatMessages from "../RefactoredComponents/ChatMessages";
 import ChatInput from "../RefactoredComponents/ChatInput";
 import ChatHeader from "../RefactoredComponents/ChatHeader";
-import NonLoginPage from "../RefactoredComponents/NonLoginPage";
 import { useNavigate } from "react-router-dom";
 
 const App: React.FC = () => {
@@ -37,7 +35,7 @@ const App: React.FC = () => {
   const { messages, isLoading, error } = useAppSelector((state) => state.chat);
   const { isActive: quizActive, stats } = useAppSelector((state) => state.quiz);
 
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [bypassAuth, setBypassAuth] = useState(false);
@@ -266,7 +264,7 @@ const App: React.FC = () => {
       />
 
       {/* Main Content */}
-      <div className="main-content">
+      <div className="flex-1 flex flex-col dark:bg-[#0a0a0a] bg-slate-200 overflow-hidden">
         {/* Header */}
         <ChatHeader
           isConnected={isConnected}
@@ -282,7 +280,7 @@ const App: React.FC = () => {
         />
 
         {/* Chat Area */}
-        <div className="chat-area ">
+        <div className="flex flex-col overflow-hidden">
           <ChatMessages
             error={error}
             handleSuggestedTopic={handleSuggestedTopic}

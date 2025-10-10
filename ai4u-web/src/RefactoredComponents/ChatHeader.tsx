@@ -1,4 +1,4 @@
-import { ArrowBigLeft, ArrowBigRight, Menu, XIcon } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import SidebarButton from "../cmmonComponents/SidebarButton";
 
 const ChatHeader = ({

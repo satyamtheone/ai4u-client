@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DynamicButton from "../cmmonComponents/DynamicButton";
 import DynamicModal from "../cmmonComponents/DynamicModal";
 import { AuthMain, useAuth } from "../components/auth";

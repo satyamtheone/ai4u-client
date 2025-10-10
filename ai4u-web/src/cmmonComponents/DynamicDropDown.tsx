@@ -11,7 +11,7 @@ interface DropdownSectionProps {
 const DynamicDropDown = ({
   title,
   children,
-  defaultOpen = true,
+  defaultOpen = false,
   rightElement,
 }: DropdownSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);

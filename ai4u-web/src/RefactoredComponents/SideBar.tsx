@@ -16,7 +16,6 @@ import DynamicButton from "../cmmonComponents/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import SidebarNavigationButton from "../cmmonComponents/SidebarNavigationButton";
 import SidebarButton from "../cmmonComponents/SidebarButton";
-import { log } from "console";
 
 const SideBar = ({
   showSidebar,
@@ -45,9 +44,6 @@ const SideBar = ({
     navigate("/");
   };
 
-  console.log("====================================");
-  console.log(showSidebar);
-  console.log("====================================");
   return (
     <div
       className={` flex flex-col flex-shrink-0 transition-[width] duration-200 ease-in-out border-r
@@ -108,8 +104,8 @@ const SideBar = ({
       </div>
 
       {/* User Section */}
-      <div className=" h-28 border-t border-[#333] flex flex-col justify-around">
-        <div className="flex flex-col gap-4 px-4">
+      <div className=" md:h-[108px] h-[72px] border-t border-[#333] flex flex-col justify-around">
+        <div className="flex flex-col md:gap-4 gap-2 px-4">
           {showSidebar && (
             <div className="flex items-center gap-2 px-4 text-xs text-gray-400">
               <User size={16} />
@@ -131,6 +127,7 @@ const SideBar = ({
               variant="submit"
               icon={!showSidebar && <User size={20} />}
               onClick={() => setShowAuthModal(true)}
+              className={`${showSidebar && "max-md:py-0"}`}
             />
           )}
         </div>
