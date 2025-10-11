@@ -1,4 +1,13 @@
-import { Target, Trophy, Unlock, Zap } from "lucide-react";
+import {
+  Book,
+  Code,
+  Home,
+  MessageSquare,
+  Target,
+  Trophy,
+  Unlock,
+  Zap,
+} from "lucide-react";
 import { ChatMessage } from "../types";
 
 export const suggestedTopics = [
@@ -109,4 +118,11 @@ export const chatMessages: ChatMessage[] = [
     session_id: "session_001",
     source: "system",
   },
+];
+
+export const SideBarHeaders = [
+  { icon: <Home size={20} />, label: "Home", isActive: true },
+  { icon: <Book size={20} />, label: "Library" },
+  { icon: <Code size={20} />, label: "Coding" },
+  { icon: <MessageSquare size={20} />, label: "Chats" },
 ];

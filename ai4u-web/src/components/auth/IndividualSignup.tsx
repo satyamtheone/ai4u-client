@@ -8,11 +8,11 @@ import {
   validateConfirmPassword,
 } from "../../utils/validation/authValidation";
 import { RegisterData } from "../../types/auth/Auth";
-import { FormLabelHeader } from "../../cmmonComponents/FormLabelHeader";
+import { FormLabelHeader } from "../../commonComponents/FormLabelHeader";
 import {
   IndividualFormData,
   IndividualSignupProps,
-} from "../../cmmonComponents/Types";
+} from "../../commonComponents/Types";
 import IndividualInputs from "../../RefactoredComponents/IndividualFormComponents/IndividualInputs";
 import IndividualSuccess from "../../RefactoredComponents/IndividualFormComponents/IndividualSuccess";
 import IndividualFormFooter from "../../RefactoredComponents/IndividualFormComponents/IndividualFormFooter";

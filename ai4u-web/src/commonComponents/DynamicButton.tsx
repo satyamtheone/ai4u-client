@@ -26,7 +26,7 @@ const DynamicButton: React.FC<ButtonProps> = ({
 
   switch (variant) {
     case "submit":
-      variantStyles = ` w-full px-4 py-3 font-medium text-white transition-colors bg-blue-600 rounded-lg ${
+      variantStyles = `w-full px-4 py-3 font-medium text-white transition-colors bg-blue-600 rounded-lg ${
         submitColor ? submitColor : "bg-blue-600 hover:bg-blue-700"
       }`;
       break;

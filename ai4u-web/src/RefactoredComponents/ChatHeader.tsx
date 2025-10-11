@@ -1,5 +1,5 @@
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
-import SidebarButton from "../cmmonComponents/SidebarButton";
+import SidebarButton from "../commonComponents/SidebarButton";
 
 const ChatHeader = ({
   setShowSidebar,

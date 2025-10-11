@@ -1,7 +1,19 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { AuthService } from '../../services/api/AuthService';
-import { StorageService } from '../../services/utils/StorageService';
-import { User, LoginCredentials, RegisterData, AuthState, UserType } from '../../types/auth/Auth';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { AuthService } from "../../services/api/AuthService";
+import { StorageService } from "../../services/utils/StorageService";
+import {
+  User,
+  LoginCredentials,
+  RegisterData,
+  AuthState,
+  UserType,
+} from "../../types/auth/Auth";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -19,7 +31,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, setState] = useState<AuthState>({
     user: null,
-    token: null,
+    access_token: null,
     isAuthenticated: false,
     isLoading: true,
     error: null,
@@ -30,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     initializeAuth();
+    console.log("AuthProvider mounted and initialized", authService);
   }, []);
 
   const initializeAuth = async () => {
@@ -37,38 +50,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = storageService.getToken();
       if (token) {
         authService.setToken(token);
+        storageService.setToken(token); // Ensure token is
+
         await refreshUser();
       } else {
-        setState(prev => ({ ...prev, isLoading: false }));
+        setState((prev) => ({ ...prev, isLoading: false }));
       }
     } catch (error) {
-      console.error('Auth initialization failed:', error);
+      console.error("Auth initialization failed:", error);
       logout();
     }
   };
 
   const login = async (credentials: LoginCredentials) => {
     try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const response = await authService.login(credentials);
-      const { token, user } = response;
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+      console.log("credentials", credentials);
 
-      authService.setToken(token);
-      storageService.setToken(token);
+      const response = await authService.login(credentials);
+      const access_token = response.access_token;
+      authService.setToken(access_token);
+      storageService.setToken(access_token);
+      const user = await authService.getCurrentUser();
 
       setState({
         user,
-        token,
+        access_token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
       });
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Login failed',
+        error: error instanceof Error ? error.message : "Login failed",
       }));
       throw error;
     }
@@ -76,26 +92,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (userData: RegisterData) => {
     try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const response = await authService.register(userData);
-      const { token, user } = response;
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      authService.setToken(token);
-      storageService.setToken(token);
+      const response = await authService.register(userData);
+      const { access_token, user } = response;
+
+      authService.setToken(access_token);
+      storageService.setToken(access_token);
 
       setState({
         user,
-        token,
+        access_token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
       });
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Registration failed',
+        error: error instanceof Error ? error.message : "Registration failed",
       }));
       throw error;
     }
@@ -104,10 +120,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     authService.setToken(null);
     storageService.clearTokens();
-    
+
     setState({
       user: null,
-      token: null,
+      access_token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -117,14 +133,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshUser = async () => {
     try {
       const user = await authService.getCurrentUser();
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         user,
         isAuthenticated: true,
         isLoading: false,
       }));
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      console.error("Failed to refresh user:", error);
       logout();
     }
   };
@@ -138,16 +154,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -165,12 +179,14 @@ export const usePermissions = () => {
   };
 
   const canManageOrganization = (): boolean => {
-    return user?.userType === 'organization_admin';
+    return user?.userType === "organization_admin";
   };
 
   const canManageTeam = (): boolean => {
-    return user?.userType === 'organization_admin' || 
-           (user?.organization?.role === 'admin');
+    return (
+      user?.userType === "organization_admin" ||
+      user?.organization?.role === "admin"
+    );
   };
 
   const isInOrganization = (): boolean => {
@@ -182,15 +198,15 @@ export const usePermissions = () => {
   };
 
   const isIndividualUser = (): boolean => {
-    return user?.userType === 'individual';
+    return user?.userType === "individual";
   };
 
   const isOrganizationAdmin = (): boolean => {
-    return user?.userType === 'organization_admin';
+    return user?.userType === "organization_admin";
   };
 
   const isOrganizationUser = (): boolean => {
-    return user?.userType === 'organization_user';
+    return user?.userType === "organization_user";
   };
 
   const canInviteUsers = (): boolean => {
@@ -198,11 +214,14 @@ export const usePermissions = () => {
   };
 
   const canViewAnalytics = (): boolean => {
-    return user?.userType === 'organization_admin' || user?.userType === 'organization_user';
+    return (
+      user?.userType === "organization_admin" ||
+      user?.userType === "organization_user"
+    );
   };
 
   const canManageBilling = (): boolean => {
-    return user?.userType === 'organization_admin';
+    return user?.userType === "organization_admin";
   };
 
   return {

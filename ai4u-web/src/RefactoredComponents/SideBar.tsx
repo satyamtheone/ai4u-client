@@ -1,21 +1,13 @@
-import {
-  ArrowBigLeft,
-  ArrowBigRight,
-  Book,
-  Brain,
-  Code,
-  Home,
-  MessageSquare,
-  Plus,
-  User,
-} from "lucide-react";
-import DynamicModal from "../cmmonComponents/DynamicModal";
+import { ArrowBigLeft, ArrowBigRight, Brain, Plus, User } from "lucide-react";
 import { AuthMain } from "../components/auth";
 import { useState } from "react";
-import DynamicButton from "../cmmonComponents/DynamicButton";
+import DynamicButton from "../commonComponents/DynamicButton";
 import { useNavigate } from "react-router-dom";
-import SidebarNavigationButton from "../cmmonComponents/SidebarNavigationButton";
-import SidebarButton from "../cmmonComponents/SidebarButton";
+import SidebarNavigationButton from "../commonComponents/SidebarNavigationButton";
+import SidebarButton from "../commonComponents/SidebarButton";
+import { useDialog } from "../commonComponents/Dialog/DialogProvider";
+import ModalProvider from "../commonComponents/Dialog/ModalProvider";
+import { SideBarHeaders } from "./Constants";
 
 const SideBar = ({
   showSidebar,
@@ -30,18 +22,25 @@ const SideBar = ({
   setShowSidebar: (value: React.SetStateAction<boolean>) => void;
   userDisplayName: string;
 }) => {
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const navigate = useNavigate();
+  const { openDialog, closeDialog } = useDialog();
 
-  const SideBarHeaders = [
-    { icon: <Home size={20} />, label: "Home", isActive: true },
-    { icon: <Book size={20} />, label: "Library" },
-    { icon: <Code size={20} />, label: "Coding" },
-    { icon: <MessageSquare size={20} />, label: "Chats" },
-  ];
-
-  const handleNavigateToHome = () => {
-    navigate("/");
+  const handleLogin = () => {
+    openDialog({
+      children: (
+        <ModalProvider
+          onClose={() => {
+            closeDialog();
+            const url = new URL(window.location.href);
+            url.searchParams.delete("view");
+            window.history.replaceState({}, "", url);
+          }}
+          headerIcon="🔐"
+          HeadingText="Sign in to AI4U"
+          HeadingDescription="Access your personalized learning experience"
+          children={<AuthMain defaultView="login" redirectTo="/dashboard" />}
+        />
+      ),
+    });
   };
 
   return (
@@ -62,10 +61,7 @@ const SideBar = ({
         </div>
       )}
       {/* Logo */}
-      <div
-        className="flex items-center gap-3 p-4 pb-7 border-b border-[#333] cursor-pointer"
-        onClick={handleNavigateToHome}
-      >
+      <div className="flex items-center gap-3 p-4 pb-7 border-b border-[#333] cursor-pointer">
         <div
           className="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white
          bg-gradient-to-br from-blue-600 to-violet-500"
@@ -93,7 +89,6 @@ const SideBar = ({
         {showSidebar && (
           <div className="mt-8">
             <h3 className="text-xs font-medium text-gray-400 mb-3">Library</h3>
-
             {/* Replace with a valid item object or remove this component */}
             <SidebarNavigationButton
               item={{ icon: <Plus size={20} />, label: "Create a Thread" }}
@@ -104,7 +99,7 @@ const SideBar = ({
       </div>
 
       {/* User Section */}
-      <div className=" md:h-[108px] h-[72px] border-t border-[#333] flex flex-col justify-around">
+      <div className=" md:h-[108px] h-[72px] border-t border-[#333] flex flex-col justify-around ">
         <div className="flex flex-col md:gap-4 gap-2 px-4">
           {showSidebar && (
             <div className="flex items-center gap-2 px-4 text-xs text-gray-400">
@@ -118,33 +113,20 @@ const SideBar = ({
               label={showSidebar ? "Sign Out" : ""}
               variant="submit"
               icon={!showSidebar && <User size={20} />}
-              onClick={() => handleLogout}
+              onClick={() => handleLogout()}
               submitColor="bg-red-500 hover:bg-red-600"
+              className={`${showSidebar && "max-md:py-0"}`}
             />
           ) : (
             <DynamicButton
               label={showSidebar ? "Sign In" : ""}
               variant="submit"
               icon={!showSidebar && <User size={20} />}
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => handleLogin()}
               className={`${showSidebar && "max-md:py-0"}`}
             />
           )}
         </div>
-
-        <DynamicModal
-          isOpen={showAuthModal}
-          onClose={() => {
-            setShowAuthModal(false);
-            const url = new URL(window.location.href);
-            url.searchParams.delete("view");
-            window.history.replaceState({}, "", url);
-          }}
-          headerIcon="🔐"
-          HeadingText="Sign in to AI4U"
-          HeadingDescription="Access your personalized learning experience"
-          child={<AuthMain defaultView="login" redirectTo="/nonLogin" />}
-        />
       </div>
     </div>
   );

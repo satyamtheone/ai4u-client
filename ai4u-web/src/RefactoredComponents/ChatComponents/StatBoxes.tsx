@@ -1,4 +1,4 @@
-import { StatsBoxProps } from "../../cmmonComponents/Types";
+import { StatsBoxProps } from "../../commonComponents/Types";
 
 const StatBoxes = ({
   details,

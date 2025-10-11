@@ -1,31 +1,28 @@
-import { BaseApiService } from './BaseApiService';
-import { 
-  LoginCredentials, 
-  RegisterData, 
-  AuthResponse, 
+import { BaseApiService } from "./BaseApiService";
+import {
+  LoginCredentials,
+  RegisterData,
+  AuthResponse,
   User,
-  GoogleAuthResponse 
-} from '../../types/auth/Auth';
-import { API_ENDPOINTS } from '../../utils/constants/apiEndpoints';
+  GoogleAuthResponse,
+} from "../../types/auth/Auth";
+import { API_ENDPOINTS } from "../../utils/constants/apiEndpoints";
 
 export class AuthService extends BaseApiService {
-  
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await this.post<AuthResponse>(
         API_ENDPOINTS.AUTH.LOGIN,
         credentials
       );
-      
-      if (response.token) {
-        this.setToken(response.token);
+
+      if (response.access_token) {
+        this.setToken(response.access_token);
       }
-      
+
       return response;
     } catch (error) {
-      throw new Error(
-        error instanceof Error ? error.message : 'Login failed'
-      );
+      throw new Error(error instanceof Error ? error.message : "Login failed");
     }
   }
 
@@ -35,15 +32,15 @@ export class AuthService extends BaseApiService {
         API_ENDPOINTS.AUTH.REGISTER,
         userData
       );
-      
-      if (response.token) {
-        this.setToken(response.token);
+
+      if (response.access_token) {
+        this.setToken(response.access_token);
       }
-      
+
       return response;
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Registration failed'
+        error instanceof Error ? error.message : "Registration failed"
       );
     }
   }
@@ -53,7 +50,7 @@ export class AuthService extends BaseApiService {
       return await this.get<User>(API_ENDPOINTS.USERS.ME);
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Failed to get user profile'
+        error instanceof Error ? error.message : "Failed to get user profile"
       );
     }
   }
@@ -63,7 +60,7 @@ export class AuthService extends BaseApiService {
       return await this.put<User>(API_ENDPOINTS.USERS.ME, profileData);
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Failed to update profile'
+        error instanceof Error ? error.message : "Failed to update profile"
       );
     }
   }
@@ -73,7 +70,7 @@ export class AuthService extends BaseApiService {
       return await this.get<GoogleAuthResponse>(API_ENDPOINTS.AUTH.GOOGLE);
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Failed to get Google auth URL'
+        error instanceof Error ? error.message : "Failed to get Google auth URL"
       );
     }
   }
@@ -84,15 +81,15 @@ export class AuthService extends BaseApiService {
         API_ENDPOINTS.AUTH.GOOGLE_CALLBACK,
         { code }
       );
-      
-      if (response.token) {
-        this.setToken(response.token);
+
+      if (response.access_token) {
+        this.setToken(response.access_token);
       }
-      
+
       return response;
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Google authentication failed'
+        error instanceof Error ? error.message : "Google authentication failed"
       );
     }
   }
@@ -103,15 +100,15 @@ export class AuthService extends BaseApiService {
         API_ENDPOINTS.AUTH.REFRESH,
         { refreshToken }
       );
-      
-      if (response.token) {
-        this.setToken(response.token);
+
+      if (response.access_token) {
+        this.setToken(response.access_token);
       }
-      
+
       return response;
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Token refresh failed'
+        error instanceof Error ? error.message : "Token refresh failed"
       );
     }
   }
@@ -124,7 +121,7 @@ export class AuthService extends BaseApiService {
       );
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Password reset request failed'
+        error instanceof Error ? error.message : "Password reset request failed"
       );
     }
   }
@@ -140,7 +137,7 @@ export class AuthService extends BaseApiService {
       );
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Password reset failed'
+        error instanceof Error ? error.message : "Password reset failed"
       );
     }
   }
@@ -156,7 +153,7 @@ export class AuthService extends BaseApiService {
       );
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Password change failed'
+        error instanceof Error ? error.message : "Password change failed"
       );
     }
   }
@@ -166,7 +163,7 @@ export class AuthService extends BaseApiService {
       await this.post(API_ENDPOINTS.AUTH.LOGOUT);
     } catch (error) {
       // Continue with logout even if server request fails
-      console.warn('Server logout failed:', error);
+      console.warn("Server logout failed:", error);
     } finally {
       this.setToken(null);
     }
@@ -180,7 +177,7 @@ export class AuthService extends BaseApiService {
       );
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Email verification failed'
+        error instanceof Error ? error.message : "Email verification failed"
       );
     }
   }
@@ -193,7 +190,9 @@ export class AuthService extends BaseApiService {
       );
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : 'Failed to resend verification email'
+        error instanceof Error
+          ? error.message
+          : "Failed to resend verification email"
       );
     }
   }

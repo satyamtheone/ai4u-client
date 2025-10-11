@@ -1,4 +1,4 @@
-import DynamicButton from "../../cmmonComponents/DynamicButton";
+import DynamicButton from "../../commonComponents/DynamicButton";
 import { suggestedTopics } from "../Constants";
 
 const ChatLandingScreen = ({

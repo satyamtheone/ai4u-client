@@ -9,6 +9,7 @@ export interface FormTextAreaProps
   icon?: LucideIcon;
   hint?: string;
   containerClassName?: string;
+  variant?: "primary";
 }
 
 /**
@@ -25,6 +26,7 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
       icon: Icon,
       hint,
       className = "",
+      variant,
       containerClassName = "",
       ...props
     },
@@ -32,6 +34,19 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
   ) => {
     const textAreaId =
       props.id || `textarea-${label.toLowerCase().replace(/\s+/g, "-")}`;
+
+    let base =
+      " pr-3 py-2 border bg-transparent rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 transition-colors duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed resize-y";
+
+    let variantStyles = "";
+
+    switch (variant) {
+      case "primary":
+        variantStyles = ``;
+        break;
+      default:
+        variantStyles = `${base}`;
+    }
 
     return (
       <div className={`space-y-2 ${containerClassName}`}>

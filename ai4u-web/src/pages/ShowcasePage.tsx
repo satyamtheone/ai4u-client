@@ -1,10 +1,10 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import DynamicButton from "./DynamicButton";
-import { StepProgressBar } from "./StepProgressBar";
-import { FormTextArea } from "./FormTextArea";
-import { FormSelect } from "./FormSelect";
-import ComponentShowcase from "./ComponentShowCase";
+import DynamicButton from "../commonComponents/DynamicButton";
+import { StepProgressBar } from "../commonComponents/StepProgressBar";
+import { FormTextArea } from "../commonComponents/FormTextArea";
+import { FormSelect } from "../commonComponents/FormSelect";
+import ComponentShowcase from "../RefactoredComponents/RefactoredShowcase/ComponentShowCase";
 
 // ✅ Define all showcase components in one place
 const showcaseComponents = {

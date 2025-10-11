@@ -16,12 +16,12 @@ export class BaseApiService {
     const url = `${this.baseURL}${endpoint}`;
 
     const config: RequestInit = {
+      ...options,
       headers: {
         "Content-Type": "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
         ...options.headers,
       },
-      ...options,
     };
 
     try {

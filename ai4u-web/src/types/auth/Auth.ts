@@ -67,8 +67,8 @@ export interface OrganizationRegistrationData {
 }
 
 export interface AuthResponse {
+  access_token: string;
   success: boolean;
-  token: string;
   refreshToken?: string;
   user: User;
   expiresIn?: number;
@@ -82,7 +82,7 @@ export interface GoogleAuthResponse {
 // Auth state
 export interface AuthState {
   user: User | null;
-  token: string | null;
+  access_token: string | null;
   refreshToken?: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;

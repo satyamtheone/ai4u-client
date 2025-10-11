@@ -1,16 +1,17 @@
 import { useState } from "react";
-import DynamicButton from "../cmmonComponents/DynamicButton";
-import DynamicModal from "../cmmonComponents/DynamicModal";
+import DynamicButton from "../commonComponents/DynamicButton";
 import { AuthMain, useAuth } from "../components/auth";
 import { useNavigate } from "react-router-dom";
+import { useDialog } from "../commonComponents/Dialog/DialogProvider";
+import ModalProvider from "../commonComponents/Dialog/ModalProvider";
 
-const NonLoginPage = () => {
-  const [showAuthModal, setShowAuthModal] = useState(false);
+const LandingPage = () => {
+  const { openDialog, closeDialog } = useDialog();
+  const { isAuthenticated, user } = useAuth();
 
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const handleCloseAuthModal = () => {
-    setShowAuthModal(false);
+    closeDialog();
     window.history.replaceState(
       {},
       "",
@@ -21,14 +22,25 @@ const NonLoginPage = () => {
       })()
     );
   };
-  const handleShowLogin = () => {
-    setShowAuthModal(true);
-  };
 
   const handleBypassAuth = () => {
     if (!isAuthenticated) {
-      navigate("/nonLogin", { replace: true });
+      navigate("/dashboard", { replace: true });
     }
+  };
+
+  const handleLogin = () => {
+    openDialog({
+      children: (
+        <ModalProvider
+          onClose={() => handleCloseAuthModal()}
+          headerIcon="🔐"
+          HeadingText="Sign in to AI4U"
+          HeadingDescription="Access your personalized learning experience"
+          children={<AuthMain defaultView="login" redirectTo="/dashboard" />}
+        />
+      ),
+    });
   };
 
   return (
@@ -47,7 +59,8 @@ const NonLoginPage = () => {
             <DynamicButton
               label="🔐 Sign In / Sign Up"
               variant="primary"
-              onClick={() => handleShowLogin()}
+              onClick={() => handleLogin()}
+              className="py-0"
             />
             <DynamicButton
               label="🚀 Continue Without Account"
@@ -83,16 +96,8 @@ const NonLoginPage = () => {
 
       {/* Auth Modal */}
       {/* <AuthModal isOpen={showAuthModal} onClose={handleCloseAuthModal} /> */}
-      <DynamicModal
-        isOpen={showAuthModal}
-        onClose={handleCloseAuthModal}
-        headerIcon={"🔐"}
-        HeadingText="Sign in to AI4U"
-        HeadingDescription="Access your personalized learning experience"
-        child={<AuthMain defaultView="login" redirectTo="/nonLogin" />}
-      />
     </div>
   );
 };
 
-export default NonLoginPage;
+export default LandingPage;

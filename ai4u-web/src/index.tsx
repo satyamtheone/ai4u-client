@@ -6,11 +6,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { store } from "./store";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import "./index.css";
-import ShowcasePage from "./cmmonComponents/ShowcasePage";
-import ThemeToggleButton from "./cmmonComponents/ThemeToggleButton";
+import ShowcasePage from "./pages/ShowcasePage";
+import ThemeToggleButton from "./commonComponents/ThemeToggleButton";
 import App from "./components/App";
 import ErrorBoundary from "./RefactoredComponents/ErrorBoundary";
-import NonLoginPage from "./RefactoredComponents/NonLoginPage";
+import LandingPage from "./RefactoredComponents/LandingPage";
+import DialogProvider from "./commonComponents/Dialog/DialogProvider";
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -34,14 +35,19 @@ root.render(
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <Router>
-              <ThemeToggleButton />
-              <Routes>
-                <Route path="/showcase/:component" element={<ShowcasePage />} />
-                <Route path="/" element={<NonLoginPage />} />
-                <Route path="/nonLogin" element={<App />} />
-              </Routes>
-            </Router>
+            <DialogProvider>
+              <Router>
+                <ThemeToggleButton />
+                <Routes>
+                  <Route
+                    path="/showcase/:component"
+                    element={<ShowcasePage />}
+                  />
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/dashboard" element={<App />} />
+                </Routes>
+              </Router>
+            </DialogProvider>
           </AuthProvider>
         </QueryClientProvider>
       </Provider>

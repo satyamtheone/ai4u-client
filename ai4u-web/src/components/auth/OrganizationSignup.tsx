@@ -15,12 +15,15 @@ import {
   RegisterData,
   OrganizationRegistrationData,
 } from "../../types/auth/Auth";
-import { FormLabelHeader } from "../../cmmonComponents/FormLabelHeader";
-import { StepProgressBar } from "../../cmmonComponents/StepProgressBar";
+import { FormLabelHeader } from "../../commonComponents/FormLabelHeader";
+import { StepProgressBar } from "../../commonComponents/StepProgressBar";
 
 import StepOne from "../../RefactoredComponents/OrganizationSteps/StepOne";
 import StepTwo from "../../RefactoredComponents/OrganizationSteps/StepTwo";
-import { FormData, OrganizationSignupProps } from "../../cmmonComponents/Types";
+import {
+  FormData,
+  OrganizationSignupProps,
+} from "../../commonComponents/Types";
 import SuccessStep from "../../RefactoredComponents/OrganizationSteps/SuccessStep";
 import FormFooter from "../../RefactoredComponents/OrganizationSteps/FormFooter";
 

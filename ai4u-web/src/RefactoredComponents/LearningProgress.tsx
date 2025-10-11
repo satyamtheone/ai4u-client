@@ -1,7 +1,7 @@
 import { QuizStats } from "../store/quizSlice";
 import { LearningBoxes } from "./Constants";
 import StatBoxes from "./ChatComponents/StatBoxes";
-import DynamicDropDown from "../cmmonComponents/DynamicDropDown";
+import DynamicDropDown from "../commonComponents/DynamicDropDown";
 
 const LearningProgress = ({
   handleToggleLearningGates,

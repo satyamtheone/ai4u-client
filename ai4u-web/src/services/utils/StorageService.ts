@@ -1,17 +1,17 @@
 // Storage Service for managing local/session storage
 export class StorageService {
-  private tokenKey = 'authToken';
-  private refreshTokenKey = 'refreshToken';
-  private userKey = 'userData';
-  private preferencesKey = 'userPreferences';
-  private cachePrefix = 'api_cache_';
+  private tokenKey = "authToken";
+  private refreshTokenKey = "refreshToken";
+  private userKey = "userData";
+  private preferencesKey = "userPreferences";
+  private cachePrefix = "api_cache_";
 
   // Token management
   setToken(token: string): void {
     try {
       localStorage.setItem(this.tokenKey, token);
     } catch (error) {
-      console.error('Failed to save token:', error);
+      console.error("Failed to save token:", error);
     }
   }
 
@@ -19,7 +19,7 @@ export class StorageService {
     try {
       return localStorage.getItem(this.tokenKey);
     } catch (error) {
-      console.error('Failed to get token:', error);
+      console.error("Failed to get token:", error);
       return null;
     }
   }
@@ -28,7 +28,7 @@ export class StorageService {
     try {
       localStorage.setItem(this.refreshTokenKey, token);
     } catch (error) {
-      console.error('Failed to save refresh token:', error);
+      console.error("Failed to save refresh token:", error);
     }
   }
 
@@ -36,7 +36,7 @@ export class StorageService {
     try {
       return localStorage.getItem(this.refreshTokenKey);
     } catch (error) {
-      console.error('Failed to get refresh token:', error);
+      console.error("Failed to get refresh token:", error);
       return null;
     }
   }
@@ -46,7 +46,7 @@ export class StorageService {
       localStorage.removeItem(this.tokenKey);
       localStorage.removeItem(this.refreshTokenKey);
     } catch (error) {
-      console.error('Failed to clear tokens:', error);
+      console.error("Failed to clear tokens:", error);
     }
   }
 
@@ -55,7 +55,7 @@ export class StorageService {
     try {
       localStorage.setItem(this.userKey, JSON.stringify(user));
     } catch (error) {
-      console.error('Failed to save user data:', error);
+      console.error("Failed to save user data:", error);
     }
   }
 
@@ -64,7 +64,7 @@ export class StorageService {
       const userData = localStorage.getItem(this.userKey);
       return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      console.error('Failed to get user data:', error);
+      console.error("Failed to get user data:", error);
       return null;
     }
   }
@@ -73,7 +73,7 @@ export class StorageService {
     try {
       localStorage.removeItem(this.userKey);
     } catch (error) {
-      console.error('Failed to clear user data:', error);
+      console.error("Failed to clear user data:", error);
     }
   }
 
@@ -82,7 +82,7 @@ export class StorageService {
     try {
       localStorage.setItem(this.preferencesKey, JSON.stringify(preferences));
     } catch (error) {
-      console.error('Failed to save preferences:', error);
+      console.error("Failed to save preferences:", error);
     }
   }
 
@@ -91,7 +91,7 @@ export class StorageService {
       const preferences = localStorage.getItem(this.preferencesKey);
       return preferences ? JSON.parse(preferences) : null;
     } catch (error) {
-      console.error('Failed to get preferences:', error);
+      console.error("Failed to get preferences:", error);
       return null;
     }
   }
@@ -102,7 +102,7 @@ export class StorageService {
       const updatedPreferences = { ...currentPreferences, ...updates };
       this.setPreferences(updatedPreferences);
     } catch (error) {
-      console.error('Failed to update preferences:', error);
+      console.error("Failed to update preferences:", error);
     }
   }
 
@@ -152,12 +152,12 @@ export class StorageService {
     try {
       const cacheKey = this.cachePrefix + key;
       const cached = localStorage.getItem(cacheKey);
-      
+
       if (!cached) return null;
 
       const cacheData = JSON.parse(cached);
       const now = Date.now();
-      
+
       // Check if cache has expired
       if (now - cacheData.timestamp > cacheData.ttl) {
         this.clearCache(key);
@@ -183,13 +183,13 @@ export class StorageService {
   clearAllCache(): void {
     try {
       const keys = Object.keys(localStorage);
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (key.startsWith(this.cachePrefix)) {
           localStorage.removeItem(key);
         }
       });
     } catch (error) {
-      console.error('Failed to clear all cache:', error);
+      console.error("Failed to clear all cache:", error);
     }
   }
 
@@ -197,7 +197,8 @@ export class StorageService {
   setItem(key: string, value: any, useSessionStorage = false): void {
     try {
       const storage = useSessionStorage ? sessionStorage : localStorage;
-      const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
+      const serializedValue =
+        typeof value === "string" ? value : JSON.stringify(value);
       storage.setItem(key, serializedValue);
     } catch (error) {
       console.error(`Failed to save item for key ${key}:`, error);
@@ -208,7 +209,7 @@ export class StorageService {
     try {
       const storage = useSessionStorage ? sessionStorage : localStorage;
       const value = storage.getItem(key);
-      
+
       if (!value) return null;
 
       // Try to parse as JSON, fall back to string
@@ -238,7 +239,7 @@ export class StorageService {
       localStorage.clear();
       sessionStorage.clear();
     } catch (error) {
-      console.error('Failed to clear all storage:', error);
+      console.error("Failed to clear all storage:", error);
     }
   }
 
@@ -248,11 +249,13 @@ export class StorageService {
   }
 
   // Storage utilities
-  isStorageAvailable(type: 'localStorage' | 'sessionStorage' = 'localStorage'): boolean {
+  isStorageAvailable(
+    type: "localStorage" | "sessionStorage" = "localStorage"
+  ): boolean {
     try {
       const storage = window[type];
-      const testKey = '__storage_test__';
-      storage.setItem(testKey, 'test');
+      const testKey = "__storage_test__";
+      storage.setItem(testKey, "test");
       storage.removeItem(testKey);
       return true;
     } catch {
@@ -260,20 +263,22 @@ export class StorageService {
     }
   }
 
-  getStorageSize(type: 'localStorage' | 'sessionStorage' = 'localStorage'): number {
+  getStorageSize(
+    type: "localStorage" | "sessionStorage" = "localStorage"
+  ): number {
     try {
       const storage = window[type];
       let totalSize = 0;
-      
+
       for (let key in storage) {
         if (storage.hasOwnProperty(key)) {
           totalSize += storage[key].length + key.length;
         }
       }
-      
+
       return totalSize;
     } catch (error) {
-      console.error('Failed to calculate storage size:', error);
+      console.error("Failed to calculate storage size:", error);
       return 0;
     }
   }
@@ -287,7 +292,10 @@ export class StorageService {
         localStorage.removeItem(oldKey);
       }
     } catch (error) {
-      console.error(`Failed to migrate data from ${oldKey} to ${newKey}:`, error);
+      console.error(
+        `Failed to migrate data from ${oldKey} to ${newKey}:`,
+        error
+      );
     }
   }
 
@@ -295,7 +303,7 @@ export class StorageService {
   exportData(): string {
     try {
       const data: Record<string, any> = {};
-      
+
       // Export localStorage
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -303,27 +311,27 @@ export class StorageService {
           data[key] = localStorage.getItem(key);
         }
       }
-      
+
       return JSON.stringify(data, null, 2);
     } catch (error) {
-      console.error('Failed to export data:', error);
-      return '{}';
+      console.error("Failed to export data:", error);
+      return "{}";
     }
   }
 
   importData(dataString: string, overwrite = false): boolean {
     try {
       const data = JSON.parse(dataString);
-      
+
       Object.entries(data).forEach(([key, value]) => {
         if (overwrite || !localStorage.getItem(key)) {
           localStorage.setItem(key, value as string);
         }
       });
-      
+
       return true;
     } catch (error) {
-      console.error('Failed to import data:', error);
+      console.error("Failed to import data:", error);
       return false;
     }
   }
@@ -334,11 +342,11 @@ export class StorageService {
       callback(e);
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener("storage", handleStorageChange);
+
     // Return cleanup function
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }
 }

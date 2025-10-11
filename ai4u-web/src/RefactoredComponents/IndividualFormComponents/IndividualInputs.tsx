@@ -2,7 +2,7 @@ import { AlertCircle, ArrowRight, Mail, User } from "lucide-react";
 import { Button } from "../../components/shared/Button";
 import { FormInput } from "../../components/shared/FormInput";
 import { PasswordInput } from "../../components/shared/PasswordInput";
-import { IndividualFormData } from "../../cmmonComponents/Types";
+import { IndividualFormData } from "../../commonComponents/Types";
 
 const IndividualInputs = ({
   formData,

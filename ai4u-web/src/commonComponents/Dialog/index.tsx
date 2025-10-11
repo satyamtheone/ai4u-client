@@ -1,29 +1,25 @@
-import { JSX } from "react";
-import ModalCloseButton from "./ModalCloseButton";
-
-const DynamicModal: React.FC<{
-  isOpen: boolean;
+import React, { JSX } from "react";
+import ModalCloseButton from "../ModalCloseButton";
+export type TModalProps = {
   onClose: () => void;
-  child?: JSX.Element;
+  children?: JSX.Element;
   headerIcon?: JSX.Element | string;
   HeadingDescription?: string;
   HeadingText?: string;
   sizes?: "xl" | "lg" | "md" | "sm" | "full";
-}> = ({
-  isOpen,
+};
+const Modal = ({
   onClose,
-  child,
+  children,
   sizes,
   headerIcon,
   HeadingDescription,
   HeadingText,
-}) => {
-  if (!isOpen) return null;
-
+}: TModalProps) => {
   return (
     <div className="fixed inset-0  dark:bg-darkBackGround-1000 bg-white/65  backdrop-blur-[8px] flex items-center justify-center z-[1000] animate-fadeInBackdrop">
       <div
-        className={` dark:bg-darkBackGround-950 bg-white dark:text-white  text-black border-2  dark:border-darkBackGround-900 shadow-2xl  rounded-[20px] p-4  max-w-${
+        className={`pt-10 dark:bg-darkBackGround-950 bg-white dark:text-white  text-black border-2  dark:border-darkBackGround-900 shadow-2xl  rounded-[20px] p-4  max-w-${
           sizes ? sizes : "[450px]"
         } w-[90%] max-h-[90vh] overflow-auto relative animate-slideInQuiz`}
       >
@@ -32,16 +28,18 @@ const DynamicModal: React.FC<{
 
         {/* Auth form header */}
         <div className="text-center mb-6">
-          <div className="text-[48px] mb-4">{headerIcon}</div>
+          <div className="text-[48px] mb-4 flex justify-center">
+            {headerIcon}
+          </div>
           <h2 className="t text-[24px] font-semibold mb-2">{HeadingText}</h2>
           <p className=" text-[14px]">{HeadingDescription}</p>
         </div>
 
         {/* V2 Auth Component */}
-        <div className="w-full flex justify-center ">{child}</div>
+        <div className="w-full flex justify-center ">{children}</div>
       </div>
     </div>
   );
 };
 
-export default DynamicModal;
+export default Modal;

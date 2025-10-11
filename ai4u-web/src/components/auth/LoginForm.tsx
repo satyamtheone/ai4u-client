@@ -8,7 +8,7 @@ import {
   validatePassword,
 } from "../../utils/validation/authValidation";
 import { LoginCredentials } from "../../types/auth/Auth";
-import { FormLabelHeader } from "../../cmmonComponents/FormLabelHeader";
+import { FormLabelHeader } from "../../commonComponents/FormLabelHeader";
 import LoginFormInputs from "../../RefactoredComponents/LoginFormComponents/LoginFormInputs";
 import LoginFormFooter from "../../RefactoredComponents/LoginFormComponents/LoginFormFooter";
 
@@ -65,6 +65,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     try {
       await login(formData);
+      console.log("form data", formData);
+
       // Successful login - user will be redirected by AuthGuard
     } catch (error) {
       setErrors({

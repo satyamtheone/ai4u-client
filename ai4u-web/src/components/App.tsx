@@ -26,12 +26,18 @@ import ChatMessages from "../RefactoredComponents/ChatMessages";
 import ChatInput from "../RefactoredComponents/ChatInput";
 import ChatHeader from "../RefactoredComponents/ChatHeader";
 import { useNavigate } from "react-router-dom";
+import { StorageService } from "../services/utils/StorageService";
+import { useDialog } from "../commonComponents/Dialog/DialogProvider";
+import ModalProvider from "../commonComponents/Dialog/ModalProvider";
+import DynamicButton from "../commonComponents/DynamicButton";
+import { LogOut } from "lucide-react";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
   const { config, isConnected, learningGatesEnabled } = useAppSelector(
     (state) => state.config
   );
+  const { openDialog, closeDialog } = useDialog();
   const { messages, isLoading, error } = useAppSelector((state) => state.chat);
   const { isActive: quizActive, stats } = useAppSelector((state) => state.quiz);
 
@@ -40,6 +46,8 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [bypassAuth, setBypassAuth] = useState(false);
   const navigate = useNavigate();
+
+  const storageService = new StorageService();
 
   // V2 Authentication - ALL HOOKS MUST BE AT THE TOP
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
@@ -225,9 +233,40 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    logout();
-    setBypassAuth(false);
-    navigate("/", { replace: true });
+    openDialog({
+      children: (
+        <ModalProvider
+          onClose={closeDialog}
+          headerIcon={<LogOut size={24} />}
+          HeadingText="Do you want to Leave?"
+          HeadingDescription="After logout you will be redirected to guest mode."
+          children={
+            <div className="flex justify-between  max-md:flex-col gap-3">
+              <div>
+                <DynamicButton
+                  label="Close"
+                  onClick={closeDialog}
+                  variant="submit"
+                />
+              </div>
+              <div>
+                <DynamicButton
+                  label="Logout & Return to Guest Mode"
+                  variant="submit"
+                  onClick={() => {
+                    logout();
+                    setBypassAuth(false);
+                    navigate("/", { replace: true });
+                    closeDialog();
+                  }}
+                  submitColor="bg-red-500 hover:bg-red-600"
+                />
+              </div>
+            </div>
+          }
+        />
+      ),
+    });
   };
 
   const handleBypassAuth = () => {
@@ -256,13 +295,12 @@ const App: React.FC = () => {
     <div className="app">
       {/* Sidebar */}
       <SideBar
-        handleLogout={handleLogout}
+        handleLogout={() => handleLogout()}
         setShowSidebar={setShowSidebar}
         isAuthenticated={isAuthenticated}
         showSidebar={showSidebar}
         userDisplayName={userDisplayName}
       />
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col dark:bg-[#0a0a0a] bg-slate-200 overflow-hidden">
         {/* Header */}
@@ -280,7 +318,7 @@ const App: React.FC = () => {
         />
 
         {/* Chat Area */}
-        <div className="flex flex-col overflow-hidden">
+        <div className="flex flex-col overflow-hidden relative h-full">
           <ChatMessages
             error={error}
             handleSuggestedTopic={handleSuggestedTopic}
@@ -291,20 +329,20 @@ const App: React.FC = () => {
           />
 
           {/* Input Area */}
-          <ChatInput
-            handleKeyPress={handleKeyPress}
-            handleSendMessage={handleSendMessage}
-            inputMessage={inputMessage}
-            isConnected={isConnected}
-            isLoading={isLoading}
-            setInputMessage={setInputMessage}
-          />
+          <div className="absolute w-full bottom-0">
+            <ChatInput
+              handleKeyPress={handleKeyPress}
+              handleSendMessage={handleSendMessage}
+              inputMessage={inputMessage}
+              isConnected={isConnected}
+              isLoading={isLoading}
+              setInputMessage={setInputMessage}
+            />
+          </div>
         </div>
       </div>
-
       {/* Only show quiz overlay for authenticated users */}
       {quizActive && isAuthenticated && <QuizOverlay />}
-
       <NotificationContainer />
     </div>
   );

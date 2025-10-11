@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 import { LucideIcon } from "lucide-react";
-import { FormError } from "../../cmmonComponents/FormError";
+import { FormError } from "../../commonComponents/FormError";
 
 export interface FormInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

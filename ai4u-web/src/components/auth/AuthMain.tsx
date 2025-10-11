@@ -65,19 +65,10 @@ export const AuthMain: React.FC<AuthMainProps> = ({
   };
 
   // Show loading while checking authentication
-  if (isLoading) {
+  if (isLoading && isAuthenticated && user) {
     return (
       <div className="min-h-[60vh] animate-pulse  w-full  bg-slate-100 dark:bg-darkBackGround-950 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
-      </div>
-    );
-  }
-
-  // Don't render if already authenticated (will redirect)
-  if (isAuthenticated && user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Redirecting..." />
       </div>
     );
   }

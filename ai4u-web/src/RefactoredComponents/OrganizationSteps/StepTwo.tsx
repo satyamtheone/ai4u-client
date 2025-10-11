@@ -2,7 +2,7 @@ import { AlertCircle, ArrowLeft, Mail, User } from "lucide-react";
 import { Button } from "../../components/shared/Button";
 import { FormInput } from "../../components/shared/FormInput";
 import { PasswordInput } from "../../components/shared/PasswordInput";
-import { FormData } from "../../cmmonComponents/Types";
+import { FormData } from "../../commonComponents/Types";
 
 const StepTwo = ({
   currentStep,

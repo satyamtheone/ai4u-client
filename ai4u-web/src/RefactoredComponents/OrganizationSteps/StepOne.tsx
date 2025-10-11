@@ -1,9 +1,9 @@
 import { ArrowRight, Building } from "lucide-react";
-import { FormSelect } from "../../cmmonComponents/FormSelect";
-import { FormTextArea } from "../../cmmonComponents/FormTextArea";
+import { FormSelect } from "../../commonComponents/FormSelect";
+import { FormTextArea } from "../../commonComponents/FormTextArea";
 import { Button } from "../../components/shared/Button";
 import { FormInput } from "../../components/shared/FormInput";
-import { FormData } from "../../cmmonComponents/Types";
+import { FormData } from "../../commonComponents/Types";
 import { companySizeOptions, industryOptions } from "../Constants";
 
 const StepOne = ({
