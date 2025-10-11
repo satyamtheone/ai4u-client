@@ -35,6 +35,8 @@ class User(Base):
     auth_method = Column(Enum(AuthMethodEnum), default=AuthMethodEnum.EMAIL, nullable=False)
     timezone = Column(String(50), default="UTC")
     locale = Column(String(10), default="en")
+    accept_terms = Column(Boolean, default=False, nullable=False)
+    subscribe_newsletter = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

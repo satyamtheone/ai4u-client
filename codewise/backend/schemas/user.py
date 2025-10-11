@@ -4,12 +4,16 @@ from datetime import datetime
 import uuid
 
 class UserBase(BaseModel):
-    email: EmailStr
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
     phone: Optional[str] = Field(None, max_length=20)
     auth_method: Optional[str] = Field("EMAIL")
     account_type: Optional[str] = Field("INDIVIDUAL")
+    accept_terms: bool = True
+    subscribe_newsletter: bool = False
+    timezone: Optional[str] = Field(None, max_length=50)
+    locale: Optional[str] = Field(None, max_length=10)
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)

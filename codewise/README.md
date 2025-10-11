@@ -179,3 +179,11 @@ chat_messages      - Conversation history
         case_sensitive = True
 
 settings = Settings()
+
+
+## For Fresh DataLoad & Table create
+docker compose down
+docker volume rm codewise_postgres_data
+make dev-setup
+
+

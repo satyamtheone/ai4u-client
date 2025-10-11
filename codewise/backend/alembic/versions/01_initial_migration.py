@@ -53,6 +53,8 @@ def upgrade() -> None:
     sa.Column('auth_method', sa.Enum('EMAIL', 'SSO', 'HYBRID', name='authmethodenum'), nullable=False),
     sa.Column('timezone', sa.String(length=50), nullable=True),
     sa.Column('locale', sa.String(length=10), nullable=True),
+    sa.Column('accept_terms', sa.Boolean(), nullable=False),
+    sa.Column('subscribe_newsletter', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
