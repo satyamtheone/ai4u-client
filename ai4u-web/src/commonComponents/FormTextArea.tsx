@@ -12,6 +12,21 @@ export interface FormTextAreaProps
   variant?: "primary";
 }
 
+// 3. CONSTANTS
+const BASE_STYLES =
+  "pr-3 py-2 border bg-transparent rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 transition-colors duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed resize-y";
+
+const VARIANT_STYLES: Record<string, string> = {
+  primary: ``,
+};
+
+// 4. HELPER FUNCTIONS
+const getVariantStyles = (variant?: string): string => {
+  return VARIANT_STYLES[variant ?? ""] || BASE_STYLES;
+};
+
+// 5. MAIN COMPONENT
+
 /**
  * FormTextArea Component
  * -----------------------
@@ -32,22 +47,12 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
     },
     ref
   ) => {
+    // Computed values
     const textAreaId =
       props.id || `textarea-${label.toLowerCase().replace(/\s+/g, "-")}`;
+    const variantClasses = getVariantStyles(variant);
 
-    let base =
-      " pr-3 py-2 border bg-transparent rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 transition-colors duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed resize-y";
-
-    let variantStyles = "";
-
-    switch (variant) {
-      case "primary":
-        variantStyles = ``;
-        break;
-      default:
-        variantStyles = `${base}`;
-    }
-
+    // JSX Return
     return (
       <div className={`space-y-2 ${containerClassName}`}>
         {/* ---------- Label ---------- */}
@@ -76,15 +81,7 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
             className={`
               block w-full
               ${Icon ? "pl-10" : "pl-3"}
-              pr-3 py-2
-              border
-              bg-transparent
-              rounded-md shadow-sm
-              placeholder-gray-400
-              focus:outline-none focus:ring-1
-              transition-colors duration-200
-              disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
-              resize-y
+              ${variantClasses}
               ${
                 error
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -118,4 +115,5 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
   }
 );
 
+// 6. EXPORT
 FormTextArea.displayName = "FormTextArea";

@@ -1,5 +1,5 @@
 import { ArrowBigLeft, ArrowBigRight, Brain, Plus, User } from "lucide-react";
-import { AuthMain } from "../components/auth";
+import { AuthMain, useAuth } from "../components/auth";
 import { useState } from "react";
 import DynamicButton from "../commonComponents/DynamicButton";
 import { useNavigate } from "react-router-dom";
@@ -11,18 +11,18 @@ import { SideBarHeaders } from "./Constants";
 
 const SideBar = ({
   showSidebar,
-  isAuthenticated,
   handleLogout,
   setShowSidebar,
-  userDisplayName,
 }: {
   showSidebar: boolean;
-  isAuthenticated: boolean;
   handleLogout: () => void;
   setShowSidebar: (value: React.SetStateAction<boolean>) => void;
-  userDisplayName: string;
 }) => {
   const { openDialog, closeDialog } = useDialog();
+  const { isAuthenticated, user } = useAuth();
+  const userDisplayName = isAuthenticated
+    ? user?.email || "User"
+    : "Guest User";
 
   const handleLogin = () => {
     openDialog({

@@ -43,7 +43,6 @@ const App: React.FC = () => {
 
   const [showSidebar, setShowSidebar] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [bypassAuth, setBypassAuth] = useState(false);
   const navigate = useNavigate();
 
@@ -116,10 +115,6 @@ const App: React.FC = () => {
 
     initializeApp();
   }, [dispatch, isAuthenticated, bypassAuth]);
-
-  // if (!isAuthenticated && !bypassAuth) {
-  //   return <NonLoginPage />;
-  // }
 
   // HELPER FUNCTIONS AFTER HOOKS BUT BEFORE RETURNS
   const testConnection = async (service: BackendService) => {
@@ -269,14 +264,6 @@ const App: React.FC = () => {
     });
   };
 
-  const handleBypassAuth = () => {
-    setBypassAuth(true);
-  };
-
-  const handleShowLogin = () => {
-    setShowAuthModal(true);
-  };
-
   // NOW CONDITIONAL RETURNS AFTER ALL HOOKS
   // Show loading screen while initializing
   if (authLoading) {
@@ -286,9 +273,7 @@ const App: React.FC = () => {
   }
 
   // MAIN APP RENDER - AFTER AUTHENTICATION OR BYPASS
-  const userDisplayName = isAuthenticated
-    ? user?.email || "User"
-    : "Guest User";
+
   const showLearningProgress = isAuthenticated; // KEY: Only show learning progress for authenticated users
 
   return (
@@ -297,9 +282,7 @@ const App: React.FC = () => {
       <SideBar
         handleLogout={() => handleLogout()}
         setShowSidebar={setShowSidebar}
-        isAuthenticated={isAuthenticated}
         showSidebar={showSidebar}
-        userDisplayName={userDisplayName}
       />
       {/* Main Content */}
       <div className="flex-1 flex flex-col dark:bg-[#0a0a0a] bg-slate-200 overflow-hidden">

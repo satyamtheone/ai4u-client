@@ -20,7 +20,7 @@ const ChatMessages = ({
   isLoading: boolean;
 }) => {
   return (
-    <div className="flex-1 md:p-6 p-1 overflow-y-auto h-fu flex flex-col gap-5 ">
+    <div className="flex-1 md:p-6 p-1 overflow-auto h-full flex flex-col gap-5 ">
       {messages.length === 0 ? (
         <ChatLandingScreen
           handleSuggestedTopic={handleSuggestedTopic}
