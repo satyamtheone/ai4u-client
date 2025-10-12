@@ -13,9 +13,9 @@ export interface FormData {
   industry: string;
   companySize: string;
   website: string;
-
   // Admin user details
-  adminName: string;
+  adminFirstName: string;
+  adminLastName: string;
   adminEmail: string;
   adminPassword: string;
   confirmPassword: string;

@@ -39,7 +39,8 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
     industry: "",
     companySize: "",
     website: "",
-    adminName: "",
+    adminFirstName: "",
+    adminLastName: "",
     adminEmail: "",
     adminPassword: "",
     confirmPassword: "",
@@ -52,36 +53,42 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const { register } = useAuth();
+  const { register, login } = useAuth();
 
   const validateStep1 = (): boolean => {
+    const {
+      organizationName,
+      organizationDescription,
+      industry,
+      companySize,
+      website,
+    } = formData;
+
     const newErrors: Partial<FormData> = {};
 
-    const orgNameValidation = validateOrganizationName(
-      formData.organizationName
-    );
-    if (!orgNameValidation.isValid) {
-      newErrors.organizationName = orgNameValidation.error;
+    const validations = [
+      {
+        field: "organizationName",
+        result: validateOrganizationName(organizationName),
+      },
+      {
+        field: "organizationDescription",
+        result: validateOrganizationDescription(organizationDescription),
+      },
+      { field: "industry", result: validateIndustry(industry) },
+    ] as const;
+
+    for (const { field, result } of validations) {
+      if (!result.isValid) {
+        newErrors[field] = result.error;
+      }
     }
 
-    const descValidation = validateOrganizationDescription(
-      formData.organizationDescription
-    );
-    if (!descValidation.isValid) {
-      newErrors.organizationDescription = descValidation.error;
-    }
-
-    const industryValidation = validateIndustry(formData.industry);
-    if (!industryValidation.isValid) {
-      newErrors.industry = industryValidation.error;
-    }
-
-    if (!formData.companySize) {
+    if (!companySize) {
       newErrors.companySize = "Please select company size";
     }
 
-    // Website is optional, but validate if provided
-    if (formData.website && !isValidUrl(formData.website)) {
+    if (website && !isValidUrl(website)) {
       newErrors.website = "Please enter a valid website URL";
     }
 
@@ -90,41 +97,43 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   };
 
   const validateStep2 = (): boolean => {
+    const {
+      adminFirstName,
+      adminLastName,
+      adminEmail,
+      adminPassword,
+      confirmPassword,
+      acceptTerms,
+    } = formData;
+
     const newErrors: Partial<FormData> = {};
 
-    const nameValidation = validateName(formData.adminName);
-    if (!nameValidation.isValid) {
-      newErrors.adminName = nameValidation.error;
+    const validations = [
+      { field: "adminFirstName", result: validateName(adminFirstName) },
+      { field: "adminLastName", result: validateName(adminLastName) },
+      { field: "adminEmail", result: validateEmail(adminEmail) },
+      {
+        field: "adminPassword",
+        result: validatePassword(adminPassword, { requireStrong: true }),
+      },
+      {
+        field: "confirmPassword",
+        result: validateConfirmPassword(adminPassword, confirmPassword),
+      },
+    ] as const;
+
+    for (const { field, result } of validations) {
+      if (!result.isValid) {
+        newErrors[field] = result.error;
+      }
     }
 
-    const emailValidation = validateEmail(formData.adminEmail);
-    if (!emailValidation.isValid) {
-      newErrors.adminEmail = emailValidation.error;
-    }
-
-    const passwordValidation = validatePassword(formData.adminPassword, {
-      requireStrong: true,
-    });
-    if (!passwordValidation.isValid) {
-      newErrors.adminPassword = passwordValidation.error;
-    }
-
-    const confirmPasswordValidation = validateConfirmPassword(
-      formData.adminPassword,
-      formData.confirmPassword
-    );
-    if (!confirmPasswordValidation.isValid) {
-      newErrors.confirmPassword = confirmPasswordValidation.error;
-    }
-
-    if (!formData.acceptTerms) {
+    if (!acceptTerms) {
       newErrors.acceptTerms = true;
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const isValidUrl = (string: string): boolean => {
     try {
       new URL(string);
@@ -151,13 +160,13 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
     if (!validateStep2()) {
       return;
     }
-
     setIsLoading(true);
     setErrors({});
 
     try {
       const organizationData: OrganizationRegistrationData = {
-        name: formData.organizationName.trim(),
+        first_name: formData.adminFirstName.trim(),
+        last_name: formData.adminLastName.trim(),
         description: formData.organizationDescription.trim(),
         industry: formData.industry,
         size: formData.companySize,
@@ -165,7 +174,8 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
       };
 
       const registerData: RegisterData = {
-        name: formData.adminName.trim(),
+        first_name: formData.adminFirstName.trim(),
+        last_name: formData.adminLastName.trim(),
         email: formData.adminEmail.trim().toLowerCase(),
         password: formData.adminPassword,
         userType: "organization_admin",
@@ -175,6 +185,12 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
       };
 
       await register(registerData);
+      //after register we have to login the user
+      await login({
+        email: formData.adminEmail,
+        password: formData.adminPassword,
+      });
+
       setIsSuccess(true);
 
       // Track successful registration
@@ -224,7 +240,11 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div
+      className={`space-y-6 ${className} ${
+        isLoading && "pointer-events-none"
+      } `}
+    >
       {/* Header */}
       <FormLabelHeader
         icon={Building}

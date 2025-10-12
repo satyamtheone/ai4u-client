@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AI4UConfig } from '../types';
-import { BackendService } from '../services/BackendService';
-import { LearningGateService } from '../services/LearningGateService';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AI4UConfig } from "../types";
+import { BackendService } from "../services/BackendService";
+import { LearningGateService } from "../services/LearningGateService";
 
 interface ConfigState {
   config: AI4UConfig;
@@ -14,16 +14,16 @@ interface ConfigState {
 
 const initialState: ConfigState = {
   config: {
-    backendUrl: 'http://localhost:8000',
+    backendUrl: "http://15.207.0.129:8000",
     timeout: 30000,
   },
   isConnected: false,
-  connectionMessage: 'Not connected',
+  connectionMessage: "Not connected",
   learningGatesEnabled: true,
 };
 
 const configSlice = createSlice({
-  name: 'config',
+  name: "config",
   initialState,
   reducers: {
     setConfig: (state, action: PayloadAction<AI4UConfig>) => {
@@ -33,11 +33,17 @@ const configSlice = createSlice({
       // Store reference for access (Redux Toolkit handles this safely)
       (state as any).backendService = action.payload;
     },
-    setLearningGateService: (state, action: PayloadAction<LearningGateService>) => {
+    setLearningGateService: (
+      state,
+      action: PayloadAction<LearningGateService>
+    ) => {
       // Store reference for access (Redux Toolkit handles this safely)
       (state as any).learningGateService = action.payload;
     },
-    setConnectionStatus: (state, action: PayloadAction<{ connected: boolean, message: string }>) => {
+    setConnectionStatus: (
+      state,
+      action: PayloadAction<{ connected: boolean; message: string }>
+    ) => {
       state.isConnected = action.payload.connected;
       state.connectionMessage = action.payload.message;
     },
@@ -45,8 +51,9 @@ const configSlice = createSlice({
       state.learningGatesEnabled = action.payload;
       // Update services if they exist
       const backendService = (state as any).backendService as BackendService;
-      const learningGateService = (state as any).learningGateService as LearningGateService;
-      
+      const learningGateService = (state as any)
+        .learningGateService as LearningGateService;
+
       if (backendService) {
         backendService.setLearningGatesEnabled(action.payload);
       }
@@ -57,11 +64,11 @@ const configSlice = createSlice({
   },
 });
 
-export const { 
-  setConfig, 
-  setBackendService, 
-  setLearningGateService, 
-  setConnectionStatus, 
-  setLearningGatesEnabled 
+export const {
+  setConfig,
+  setBackendService,
+  setLearningGateService,
+  setConnectionStatus,
+  setLearningGatesEnabled,
 } = configSlice.actions;
 export default configSlice.reducer;

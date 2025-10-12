@@ -1,10 +1,10 @@
 import { ArrowRight, Building } from "lucide-react";
 import { FormSelect } from "../../commonComponents/FormSelect";
 import { FormTextArea } from "../../commonComponents/FormTextArea";
-import { Button } from "../../components/shared/Button";
 import { FormInput } from "../../components/shared/FormInput";
 import { FormData } from "../../commonComponents/Types";
 import { companySizeOptions, industryOptions } from "../Constants";
+import DynamicButton from "../../commonComponents/DynamicButton";
 
 const StepOne = ({
   currentStep,
@@ -81,15 +81,14 @@ const StepOne = ({
             hint="Optional: Your company website URL"
           />
 
-          <Button
+          <DynamicButton
             onClick={handleNext}
+            label={" Next: Create Admin Account"}
+            icon={<ArrowRight className="ml-2 h-4 w-4" />}
             variant="primary"
-            size="lg"
-            className="w-full"
-          >
-            Next: Create Admin Account
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+            iconPosition="flex-row-reverse"
+            className="w-full "
+          />
         </div>
       )}
     </>

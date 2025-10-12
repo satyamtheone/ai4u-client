@@ -1,5 +1,6 @@
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "../../components/shared/Button";
+import DynamicButton from "../../commonComponents/DynamicButton";
 
 const SuccessStep = ({ className }: { className: string }) => {
   return (
@@ -36,6 +37,13 @@ const SuccessStep = ({ className }: { className: string }) => {
         Go to Organization Dashboard
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
+      <DynamicButton
+        label={"Go to Organization Dashboard"}
+        iconPosition="flex-row-reverse"
+        icon={<ArrowRight className="ml-2 h-4 w-4" />}
+        className="w-full"
+        onClick={() => (window.location.href = "/dashboard")}
+      />
     </div>
   );
 };

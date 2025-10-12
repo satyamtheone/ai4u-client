@@ -1,8 +1,9 @@
-import { AlertCircle, ArrowRight, Mail } from "lucide-react";
+import { AlertCircle, ArrowRight, ArrowRightCircle, Mail } from "lucide-react";
 import { FormInput } from "../../components/shared/FormInput";
 import { PasswordInput } from "../../components/shared/PasswordInput";
 import { Button } from "../../components/shared/Button";
 import { LoginCredentials } from "../../components/auth";
+import DynamicButton from "../../commonComponents/DynamicButton";
 
 const LoginFormInputs = ({
   handleSubmit,
@@ -26,6 +27,7 @@ const LoginFormInputs = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormInput
+        data-testid="login-form"
         label="Email Address"
         type="email"
         value={formData.email}
@@ -38,6 +40,7 @@ const LoginFormInputs = ({
       />
 
       <PasswordInput
+        data-testid="password-input"
         label="Password"
         value={formData.password}
         onChange={handleInputChange("password")}
@@ -56,17 +59,17 @@ const LoginFormInputs = ({
       )}
 
       {/* Submit Button */}
-      <Button
+
+      <DynamicButton
         type="submit"
-        variant="primary"
-        size="lg"
-        loading={isLoading}
-        className="w-full"
+        data-testid="login-button"
+        variant="submit"
+        icon={!isLoading ? <ArrowRight className="ml-2 h-4 w-4" /> : <></>}
         disabled={isLoading}
-      >
-        {isLoading ? "Signing in..." : "Sign In"}
-        {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
-      </Button>
+        loading={isLoading}
+        label={`${isLoading ? "Signing in..." : "Sign In"}`}
+        iconPosition="flex-row-reverse"
+      />
     </form>
   );
 };

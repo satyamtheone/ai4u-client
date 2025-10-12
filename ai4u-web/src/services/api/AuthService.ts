@@ -33,6 +33,7 @@ export class AuthService extends BaseApiService {
         userData
       );
 
+      console.log("AuthService register response:", response);
       if (response.access_token) {
         this.setToken(response.access_token);
       }

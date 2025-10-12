@@ -1,8 +1,9 @@
 import { AlertCircle, ArrowRight, Mail, User } from "lucide-react";
-import { Button } from "../../components/shared/Button";
 import { FormInput } from "../../components/shared/FormInput";
 import { PasswordInput } from "../../components/shared/PasswordInput";
 import { IndividualFormData } from "../../commonComponents/Types";
+import DynamicButton from "../../commonComponents/DynamicButton";
+import IndividualFormCheckBox from "./IndividualFormCheckBox";
 
 const IndividualInputs = ({
   formData,
@@ -80,49 +81,11 @@ const IndividualInputs = ({
       />
 
       {/* Terms and Newsletter */}
-      <div className="space-y-3">
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={formData.acceptTerms}
-            onChange={handleInputChange("acceptTerms")}
-            className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            required
-          />
-          <span className="text-sm text-gray-400">
-            I agree to the{" "}
-            <a
-              href="/terms"
-              className="text-blue-600 hover:text-blue-500 underline"
-            >
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a
-              href="/privacy"
-              className="text-blue-600 hover:text-blue-500 underline"
-            >
-              Privacy Policy
-            </a>
-            <span className="text-red-500 ml-1">*</span>
-          </span>
-        </label>
-        {errors.acceptTerms && (
-          <p className="text-sm text-red-600 ml-7">{errors.acceptTerms}</p>
-        )}
-
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={formData.subscribeNewsletter}
-            onChange={handleInputChange("subscribeNewsletter")}
-            className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-400">
-            Subscribe to our newsletter for learning tips and updates
-          </span>
-        </label>
-      </div>
+      <IndividualFormCheckBox
+        errors={errors}
+        formData={formData}
+        handleInputChange={handleInputChange}
+      />
 
       {/* Submit Error */}
       {errors.submit && (
@@ -133,17 +96,18 @@ const IndividualInputs = ({
       )}
 
       {/* Submit Button */}
-      <Button
+
+      <DynamicButton
         type="submit"
+        data-testid="login-button"
         variant="primary"
-        size="lg"
+        icon={!isLoading ? <ArrowRight className="ml-2 h-4 w-4" /> : <></>}
+        disabled={isLoading}
         loading={isLoading}
-        disabled={isLoading || !formData.acceptTerms}
+        label={` ${isLoading ? "Creating Account..." : "Create Account"}`}
+        iconPosition="flex-row-reverse"
         className="w-full"
-      >
-        {isLoading ? "Creating Account..." : "Create Account"}
-        {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
-      </Button>
+      />
     </form>
   );
 };

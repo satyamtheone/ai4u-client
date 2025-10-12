@@ -65,7 +65,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     try {
       await login(formData);
-      console.log("form data", formData);
 
       // Successful login - user will be redirected by AuthGuard
     } catch (error) {
@@ -92,7 +91,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     };
 
   return (
-    <div className={`space-y-6 ${className} `}>
+    <div className={`space-y-6 ${className} `} data-testid="login-form">
       {/* Header */}
       <FormLabelHeader
         icon={Mail}

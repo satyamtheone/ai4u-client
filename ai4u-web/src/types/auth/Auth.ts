@@ -59,7 +59,8 @@ export interface RegisterData {
 }
 
 export interface OrganizationRegistrationData {
-  name: string;
+  first_name: string;
+  last_name: string;
   description: string;
   industry: string;
   size?: string;

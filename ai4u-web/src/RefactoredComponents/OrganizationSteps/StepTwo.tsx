@@ -3,6 +3,8 @@ import { Button } from "../../components/shared/Button";
 import { FormInput } from "../../components/shared/FormInput";
 import { PasswordInput } from "../../components/shared/PasswordInput";
 import { FormData } from "../../commonComponents/Types";
+import OrganizationFormCheckBox from "./OrganizationFormCheckBox";
+import DynamicButton from "../../commonComponents/DynamicButton";
 
 const StepTwo = ({
   currentStep,
@@ -46,11 +48,21 @@ const StepTwo = ({
           </div>
 
           <FormInput
-            label="Admin Full Name"
-            value={formData.adminName}
-            onChange={handleInputChange("adminName")}
-            placeholder="Enter admin full name"
-            error={errors.adminName}
+            label="Admin First Name"
+            value={formData.adminFirstName}
+            onChange={handleInputChange("adminFirstName")}
+            placeholder="Enter admin first name"
+            error={errors.adminFirstName}
+            icon={User}
+            autoComplete="name"
+            required
+          />
+          <FormInput
+            label="Admin Last Name"
+            value={formData.adminLastName}
+            onChange={handleInputChange("adminLastName")}
+            placeholder="Enter admin last name"
+            error={errors.adminLastName}
             icon={User}
             autoComplete="name"
             required
@@ -90,51 +102,11 @@ const StepTwo = ({
           />
 
           {/* Terms and Newsletter */}
-          <div className="space-y-3">
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={formData.acceptTerms}
-                onChange={handleInputChange("acceptTerms")}
-                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                required
-              />
-              <span className="text-sm text-gray-700">
-                I agree to the{" "}
-                <a
-                  href="/terms"
-                  className="text-blue-600 hover:text-blue-500 underline"
-                >
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a
-                  href="/privacy"
-                  className="text-blue-600 hover:text-blue-500 underline"
-                >
-                  Privacy Policy
-                </a>
-                <span className="text-red-500 ml-1">*</span>
-              </span>
-            </label>
-            {errors.acceptTerms && (
-              <p className="text-sm text-red-600 ml-7">{errors.acceptTerms}</p>
-            )}
-
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={formData.subscribeNewsletter}
-                onChange={handleInputChange("subscribeNewsletter")}
-                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">
-                Subscribe to our newsletter for organizational learning tips and
-                product updates
-              </span>
-            </label>
-          </div>
-
+          <OrganizationFormCheckBox
+            errors={errors}
+            formData={formData}
+            handleInputChange={handleInputChange}
+          />
           {/* Submit Error */}
           {errors.submit && (
             <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
@@ -144,28 +116,21 @@ const StepTwo = ({
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button
-              type="button"
+          <div className="flex gap-3 max-md:flex-col">
+            <DynamicButton
               onClick={handleBack}
-              variant="outline"
-              size="lg"
-              className="flex-1"
+              label={"Back"}
+              icon={<ArrowLeft className="mr-2 h-4 w-4" />}
               disabled={isLoading}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-            <Button
+              variant="secondary"
+            />
+            <DynamicButton
               type="submit"
-              variant="primary"
-              size="lg"
+              label={isLoading ? "Creating..." : "Create Organization"}
               loading={isLoading}
               disabled={isLoading || !formData.acceptTerms}
-              className="flex-1"
-            >
-              {isLoading ? "Creating Organization..." : "Create Organization"}
-            </Button>
+              variant="submit"
+            />
           </div>
         </form>
       )}

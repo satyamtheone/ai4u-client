@@ -51,6 +51,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
           <input
             ref={ref}
             id={inputId}
+            data-testid="email-input"
             className={`
               block w-full 
               ${Icon ? "pl-10" : "pl-3"} 
@@ -78,7 +79,13 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
         </div>
 
         {/* Error Message */}
-        {error && <FormError id={`${inputId}-error`} message={error} />}
+        {error && (
+          <FormError
+            data-testid="error-message"
+            id={`${inputId}-error`}
+            message={error}
+          />
+        )}
 
         {/* Hint Message */}
         {hint && !error && (
