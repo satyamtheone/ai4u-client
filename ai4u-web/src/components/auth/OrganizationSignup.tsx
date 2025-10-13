@@ -24,7 +24,6 @@ import {
   FormData,
   OrganizationSignupProps,
 } from "../../commonComponents/Types";
-import SuccessStep from "../../RefactoredComponents/OrganizationSteps/SuccessStep";
 import FormFooter from "../../RefactoredComponents/OrganizationSteps/FormFooter";
 
 export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
@@ -52,7 +51,6 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
     {}
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const { register, login } = useAuth();
 
   const validateStep1 = (): boolean => {
@@ -191,8 +189,6 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
         password: formData.adminPassword,
       });
 
-      setIsSuccess(true);
-
       // Track successful registration
       if (typeof window !== "undefined" && (window as any).gtag) {
         (window as any).gtag("event", "sign_up", {
@@ -233,11 +229,6 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
         setErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     };
-
-  // Success state
-  if (isSuccess) {
-    return <SuccessStep className={className} />;
-  }
 
   return (
     <div

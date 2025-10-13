@@ -9,6 +9,7 @@ export interface FormInputProps
   icon?: LucideIcon;
   hint?: string;
   containerClassName?: string;
+  errorCyName?: string;
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
@@ -20,6 +21,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
       hint,
       className = "",
       containerClassName = "",
+      errorCyName,
       ...props
     },
     ref
@@ -81,9 +83,9 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
         {/* Error Message */}
         {error && (
           <FormError
-            data-testid="error-message"
             id={`${inputId}-error`}
             message={error}
+            errorCyName={errorCyName}
           />
         )}
 

@@ -27,8 +27,8 @@ const LoginFormInputs = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormInput
-        data-testid="login-form"
         label="Email Address"
+        data-cy="email-address"
         type="email"
         value={formData.email}
         onChange={handleInputChange("email")}
@@ -40,7 +40,7 @@ const LoginFormInputs = ({
       />
 
       <PasswordInput
-        data-testid="password-input"
+        data-cy="password"
         label="Password"
         value={formData.password}
         onChange={handleInputChange("password")}
@@ -48,11 +48,15 @@ const LoginFormInputs = ({
         error={errors.password}
         autoComplete="current-password"
         required
+        errorCyName="password-input-error"
       />
 
       {/* Submit Error */}
       {errors.submit && (
-        <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+        <div
+          data-cy="submit-error"
+          className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg"
+        >
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span className="text-sm">{errors.submit}</span>
         </div>
@@ -61,8 +65,8 @@ const LoginFormInputs = ({
       {/* Submit Button */}
 
       <DynamicButton
+        data-cy="submit-button"
         type="submit"
-        data-testid="login-button"
         variant="submit"
         icon={!isLoading ? <ArrowRight className="ml-2 h-4 w-4" /> : <></>}
         disabled={isLoading}

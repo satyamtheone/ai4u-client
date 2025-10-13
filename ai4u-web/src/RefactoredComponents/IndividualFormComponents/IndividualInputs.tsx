@@ -27,6 +27,7 @@ const IndividualInputs = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormInput
+        data-cy="first-name-input"
         label="First Name"
         value={formData.first_name}
         onChange={handleInputChange("first_name")}
@@ -35,8 +36,10 @@ const IndividualInputs = ({
         icon={User}
         autoComplete="first_name"
         required
+        errorCyName="first-name-error"
       />
       <FormInput
+        data-cy="last-name-input"
         label="Last Name"
         value={formData.last_name}
         onChange={handleInputChange("last_name")}
@@ -45,11 +48,12 @@ const IndividualInputs = ({
         icon={User}
         autoComplete="last_name"
         required
+        errorCyName="last-name-error"
       />
 
       <FormInput
+        data-cy="email-input"
         label="Email Address"
-        type="email"
         value={formData.email}
         onChange={handleInputChange("email")}
         placeholder="Enter your email address"
@@ -57,9 +61,11 @@ const IndividualInputs = ({
         icon={Mail}
         autoComplete="email"
         required
+        errorCyName="email-error"
       />
 
       <PasswordInput
+        data-cy="password-input"
         label="Password"
         value={formData.password}
         onChange={handleInputChange("password")}
@@ -68,9 +74,11 @@ const IndividualInputs = ({
         showStrengthIndicator={true}
         autoComplete="new-password"
         required
+        errorCyName="password-error"
       />
 
       <PasswordInput
+        data-cy="confirm-password-input"
         label="Confirm Password"
         value={formData.confirmPassword}
         onChange={handleInputChange("confirmPassword")}
@@ -78,6 +86,7 @@ const IndividualInputs = ({
         error={errors.confirmPassword}
         autoComplete="new-password"
         required
+        errorCyName="confirm-password-error"
       />
 
       {/* Terms and Newsletter */}
@@ -89,7 +98,10 @@ const IndividualInputs = ({
 
       {/* Submit Error */}
       {errors.submit && (
-        <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+        <div
+          data-cy="submit-error"
+          className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg"
+        >
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span className="text-sm">{errors.submit}</span>
         </div>
@@ -98,6 +110,7 @@ const IndividualInputs = ({
       {/* Submit Button */}
 
       <DynamicButton
+        data-cy="submit-button"
         type="submit"
         data-testid="login-button"
         variant="primary"

@@ -12,6 +12,7 @@ const ModalCloseButton: React.FC<CloseButtonProps> = ({
 }) => {
   return (
     <button
+      data-cy="modal-close-button"
       onClick={onClick}
       className={`
         absolute top-4 right-4

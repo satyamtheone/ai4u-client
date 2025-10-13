@@ -8,6 +8,7 @@ export interface PasswordInputProps
   hint?: string;
   showStrengthIndicator?: boolean;
   containerClassName?: string;
+  errorCyName?: string;
 }
 
 interface PasswordStrength {
@@ -27,6 +28,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       containerClassName = "",
       value = "",
       onChange,
+      errorCyName,
       ...props
     },
     ref
@@ -203,6 +205,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             id={`${inputId}-error`}
             className="text-sm text-red-600 flex items-center gap-1"
             role="alert"
+            data-cy={errorCyName}
           >
             <svg
               className="h-4 w-4 flex-shrink-0"

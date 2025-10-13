@@ -5,6 +5,7 @@ interface FormErrorProps {
   icon?: JSX.Element;
   className?: string;
   id?: string;
+  errorCyName?: string;
 }
 const ErrorIcon = (
   <svg
@@ -23,12 +24,14 @@ export const FormError: React.FC<FormErrorProps> = ({
   message,
   icon,
   className = "",
+  errorCyName,
   id,
 }) => {
   if (!message) return null;
 
   return (
     <p
+      data-cy={errorCyName}
       id={id}
       role="alert"
       className={`flex items-center gap-1 text-sm text-red-600 ${className}`}

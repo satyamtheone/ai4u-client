@@ -78,6 +78,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
 
   return (
     <Button
+      data-cy="google-auth-button"
       variant="outline"
       size="lg"
       onClick={handleGoogleLogin}

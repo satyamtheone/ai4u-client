@@ -19,6 +19,7 @@ const Modal = ({
   return (
     <div className="fixed inset-0  dark:bg-darkBackGround-1000 bg-white/65  backdrop-blur-[8px] flex items-center justify-center z-[1000] animate-fadeInBackdrop">
       <div
+        data-cy="modal-container"
         className={`pt-10 dark:bg-darkBackGround-950 bg-white dark:text-white  text-black border-2  dark:border-darkBackGround-900 shadow-2xl  rounded-[20px] p-4  max-w-${
           sizes ? sizes : "[450px]"
         } w-[90%] max-h-[90vh] overflow-auto relative animate-slideInQuiz`}

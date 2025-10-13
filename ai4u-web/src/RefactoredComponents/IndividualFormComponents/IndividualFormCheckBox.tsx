@@ -35,6 +35,7 @@ const IndividualFormCheckBox = ({
   return (
     <div className="space-y-3">
       <FormCheckBox
+        data-cy="individual-term-checkbox"
         message={termsCheckMessage}
         required
         checked={formData.acceptTerms}
@@ -47,6 +48,7 @@ const IndividualFormCheckBox = ({
       />
 
       <FormCheckBox
+        data-cy="individual-subscribe-checkbox"
         message={
           <span className="text-sm text-gray-400">
             Subscribe to our newsletter for learning tips and updates

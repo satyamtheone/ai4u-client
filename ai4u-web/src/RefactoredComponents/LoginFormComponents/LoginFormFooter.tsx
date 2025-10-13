@@ -10,6 +10,7 @@ const LoginFormFooter = ({
       <p className="text-sm text-gray-600">
         Don't have an account?{" "}
         <button
+          data-cy="individual-signup-button"
           type="button"
           onClick={onSwitchToIndividualSignup}
           className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
