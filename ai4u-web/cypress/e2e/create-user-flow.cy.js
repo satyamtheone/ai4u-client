@@ -240,7 +240,7 @@ describe("AI4U Create User Flow", () => {
   });
 
   // Check successful registration flow
-  it.only("successfully registers a user and closes modal", () => {
+  it("successfully registers a user and closes modal", () => {
     cy.contains("Sign In").click();
 
     cy.get('[data-cy="first-name-input"]').type("Satyam");
