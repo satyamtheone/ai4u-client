@@ -39,6 +39,7 @@ const OrganizationFormCheckBox = ({
   return (
     <div className="space-y-3">
       <FormCheckBox
+        data-cy="accept-terms"
         message={termsCheckMessage}
         required
         checked={formData.acceptTerms}
@@ -50,6 +51,7 @@ const OrganizationFormCheckBox = ({
         }
       />
       <FormCheckBox
+        data-cy="subscribe-newsletter"
         message={
           <span className="text-sm text-gray-400">
             Subscribe to our newsletter for organizational learning tips and

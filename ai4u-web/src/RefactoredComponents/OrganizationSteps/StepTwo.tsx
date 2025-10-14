@@ -48,27 +48,32 @@ const StepTwo = ({
           </div>
 
           <FormInput
+            data-cy="admin-first-name"
             label="Admin First Name"
             value={formData.adminFirstName}
             onChange={handleInputChange("adminFirstName")}
             placeholder="Enter admin first name"
             error={errors.adminFirstName}
             icon={User}
-            autoComplete="name"
+            autoComplete="first-name"
             required
+            errorCyName="admin-first-name-error"
           />
           <FormInput
+            data-cy="admin-last-name"
             label="Admin Last Name"
             value={formData.adminLastName}
             onChange={handleInputChange("adminLastName")}
             placeholder="Enter admin last name"
             error={errors.adminLastName}
             icon={User}
-            autoComplete="name"
+            autoComplete="last-name"
             required
+            errorCyName="admin-last-name-error"
           />
 
           <FormInput
+            data-cy="admin-email"
             label="Admin Email Address"
             type="email"
             value={formData.adminEmail}
@@ -78,9 +83,11 @@ const StepTwo = ({
             icon={Mail}
             autoComplete="email"
             required
+            errorCyName="admin-email-error"
           />
 
           <PasswordInput
+            data-cy="admin-password"
             label="Password"
             value={formData.adminPassword}
             onChange={handleInputChange("adminPassword")}
@@ -89,9 +96,11 @@ const StepTwo = ({
             showStrengthIndicator={true}
             autoComplete="new-password"
             required
+            errorCyName="admin-password-error"
           />
 
           <PasswordInput
+            data-cy="admin-confirm-password"
             label="Confirm Password"
             value={formData.confirmPassword}
             onChange={handleInputChange("confirmPassword")}
@@ -99,6 +108,7 @@ const StepTwo = ({
             error={errors.confirmPassword}
             autoComplete="new-password"
             required
+            errorCyName="admin-confirm-password-error"
           />
 
           {/* Terms and Newsletter */}
@@ -109,7 +119,10 @@ const StepTwo = ({
           />
           {/* Submit Error */}
           {errors.submit && (
-            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+            <div
+              data-cy="submit-error"
+              className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg"
+            >
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm">{errors.submit}</span>
             </div>
@@ -118,6 +131,7 @@ const StepTwo = ({
           {/* Action Buttons */}
           <div className="flex gap-3 max-md:flex-col">
             <DynamicButton
+              data-cy="back-to-step-one"
               onClick={handleBack}
               label={"Back"}
               icon={<ArrowLeft className="mr-2 h-4 w-4" />}
@@ -125,6 +139,7 @@ const StepTwo = ({
               variant="secondary"
             />
             <DynamicButton
+              data-cy="create-organization"
               type="submit"
               label={isLoading ? "Creating..." : "Create Organization"}
               loading={isLoading}

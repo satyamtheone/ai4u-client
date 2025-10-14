@@ -10,6 +10,7 @@ export interface FormTextAreaProps
   hint?: string;
   containerClassName?: string;
   variant?: "primary";
+  errorCyName?: string;
 }
 
 // 3. CONSTANTS
@@ -43,6 +44,7 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
       className = "",
       variant,
       containerClassName = "",
+      errorCyName,
       ...props
     },
     ref
@@ -102,7 +104,13 @@ export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
         </div>
 
         {/* ---------- Error Message ---------- */}
-        {error && <FormError id={`${textAreaId}-error`} message={error} />}
+        {error && (
+          <FormError
+            errorCyName={errorCyName}
+            id={`${textAreaId}-error`}
+            message={error}
+          />
+        )}
 
         {/* ---------- Hint Message ---------- */}
         {hint && !error && (

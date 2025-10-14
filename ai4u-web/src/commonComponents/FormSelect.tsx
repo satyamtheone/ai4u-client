@@ -15,6 +15,7 @@ export interface FormSelectProps
   hint?: string;
   icon?: LucideIcon;
   containerClassName?: string;
+  errorCyName?: string;
 }
 
 /**
@@ -33,6 +34,7 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
       icon: Icon,
       className = "",
       containerClassName = "",
+      errorCyName,
       ...props
     },
     ref
@@ -91,7 +93,11 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
             {...props}
           >
             {options.map((option) => (
-              <option key={option.value} value={option.value}>
+              <option
+                data-cy={`option-${option.value}`}
+                key={option.value}
+                value={option.value}
+              >
                 {option.label}
               </option>
             ))}
@@ -114,7 +120,13 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
           </div>
         </div>
 
-        {error && <FormError id={`${selectId}-error`} message={error} />}
+        {error && (
+          <FormError
+            errorCyName={errorCyName}
+            id={`${selectId}-error`}
+            message={error}
+          />
+        )}
         {hint && !error && (
           <p id={`${selectId}-hint`} className="text-sm text-gray-400">
             {hint}

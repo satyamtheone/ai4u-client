@@ -170,6 +170,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
         size: formData.companySize,
         website: formData.website.trim() || undefined,
       };
+      console.log(organizationData);
 
       const registerData: RegisterData = {
         first_name: formData.adminFirstName.trim(),

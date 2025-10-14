@@ -83,7 +83,7 @@ describe("AI4U Login Flow", () => {
       .and("contain.text", "Authentication required");
   });
 
-  it.only("logs in successfully and closes modal", () => {
+  it("logs in successfully and closes modal", () => {
     cy.contains("Sign In").click();
 
     cy.get('[data-cy="email-address"]').type("satyam@example.com");
