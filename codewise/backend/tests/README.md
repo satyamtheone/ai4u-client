@@ -14,15 +14,13 @@ Integration tests for individual user registration:
 - ✅ Duplicate email handling
 - ✅ Edge cases (unicode, special characters, case sensitivity)
 - ✅ Default values
-- ✅ Health check endpoint
 
 **Test Classes:**
 - `TestIndividualRegistrationIntegration` - Core registration functionality (4 tests)
 - `TestIndividualRegistrationValidationIntegration` - Input validation (4 tests)
 - `TestIndividualRegistrationEdgeCasesIntegration` - Edge cases (4 tests)
-- `TestHealthCheckIntegration` - API health check (1 test)
 
-**Total:** 13 integration tests
+**Total:** 12 integration tests
 
 ### `test_organization_integration.py`
 Integration tests for organization admin registration:
@@ -42,6 +40,28 @@ Integration tests for organization admin registration:
 - `TestOrganizationRegistrationRollbackIntegration` - Transaction integrity (1 test)
 
 **Total:** 13 integration tests
+
+### `test_health_integration.py`
+Integration tests for API health check and server connectivity:
+- ✅ Health endpoint accessibility
+- ✅ Healthy status verification
+- ✅ Response structure validation
+- ✅ Response time performance
+- ✅ Multiple concurrent requests
+- ✅ Content type verification
+- ✅ Server connectivity tests
+- ✅ Edge cases (query params, headers, HTTP methods)
+- ✅ Performance tests (concurrent, rapid succession)
+- ✅ Reliability tests (consistency, idempotency)
+
+**Test Classes:**
+- `TestHealthCheckIntegration` - Core health check functionality (6 tests)
+- `TestAPIServerConnectivityIntegration` - Server connectivity (3 tests)
+- `TestHealthCheckEdgeCasesIntegration` - Edge cases (5 tests)
+- `TestHealthCheckPerformanceIntegration` - Performance tests (3 tests)
+- `TestHealthCheckReliabilityIntegration` - Reliability tests (3 tests)
+
+**Total:** 20 integration tests
 
 ### `integration_test_config.py`
 Configuration for integration tests:
@@ -125,6 +145,13 @@ pytest tests/test_individual_integration.py -v -s
 ```bash
 # Test organization admin registration
 pytest tests/test_organization_integration.py -v -s
+```
+
+### Run Health Check Tests Only
+
+```bash
+# Test API health check and connectivity
+pytest tests/test_health_integration.py -v -s
 ```
 
 ### Run Specific Test Classes
@@ -215,7 +242,6 @@ PASSED
 - ✅ 4 success scenarios with database verification
 - ✅ 4 validation error scenarios
 - ✅ 4 edge case scenarios
-- ✅ 1 health check test
 
 **Organization Registration Tests:**
 - ✅ 5 success scenarios with database verification
@@ -223,7 +249,14 @@ PASSED
 - ✅ 4 validation error scenarios
 - ✅ 1 transaction rollback scenario
 
-**Total:** 26 integration tests
+**Health Check Tests:**
+- ✅ 6 core health check tests
+- ✅ 3 server connectivity tests
+- ✅ 5 edge case tests
+- ✅ 3 performance tests
+- ✅ 3 reliability tests
+
+**Total:** 45 integration tests
 
 ## How Integration Tests Work
 

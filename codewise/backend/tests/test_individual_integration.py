@@ -377,25 +377,3 @@ class TestIndividualRegistrationEdgeCasesIntegration:
         assert data["is_email_verified"] is False
 
         print("✓ Default values correctly applied")
-
-
-class TestHealthCheckIntegration:
-    """Test API health check"""
-
-    def test_health_check(self):
-        """Test health endpoint - REAL API CALL"""
-        print_test_info("Testing Health Check")
-
-        url = get_full_url(Endpoints.HEALTH)
-        print(f"GET {url}")
-
-        response = requests.get(url, timeout=TEST_TIMEOUT)
-
-        print(f"Status Code: {response.status_code}")
-        print(f"Response: {response.json()}")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-
-        print("✓ API is healthy")
