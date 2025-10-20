@@ -10,6 +10,7 @@ from models.user import User
 from schemas.learning import ChatRequest, ChatResponse, QuizQuestionSafe
 from services.learning_service import LearningService
 from services.activity_service import ActivityService
+from models.activity_log import ActivityActionEnum
 from core.config import settings
 
 logger = structlog.get_logger(__name__)
@@ -185,7 +186,7 @@ class ChatService:
             self.activity_service.log_activity(
                 user_id=user_id,
                 organization_id=organization_id,
-                action="chat_message",
+                action=ActivityActionEnum("chat_message"),
                 resource_type="chat_session",
                 resource_id=session.id,
                 metadata={

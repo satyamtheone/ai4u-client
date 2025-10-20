@@ -26,6 +26,12 @@ class ActivityActionEnum(enum.Enum):
     SSO_UNLINKED = "sso_unlinked"
     INVITATION_SENT = "invitation_sent"
     INVITATION_ACCEPTED = "invitation_accepted"
+    INVITATION_REJECTED = "invitation_rejected"
+    PASSWORD_RESET_REQUEST = "password_reset_request"
+    PASSWORD_RESET = "password_reset"
+    CHAT_MESSAGE = "chat_message"
+    QUIZ_ANSWER_SUBMITTED = "quiz_submitted"
+
 
 class ActivityLog(Base):
     __tablename__ = "activity_logs"

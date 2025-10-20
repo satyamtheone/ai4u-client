@@ -10,6 +10,7 @@ from core.database import Base
 class AccountTypeEnum(enum.Enum):
     INDIVIDUAL = "individual"
     ORGANIZATION_MEMBER = "organization_member"
+    ORGANIZATION_ADMIN = "organization_admin"
 
 class AccountType(Base):
     __tablename__ = "account_types"

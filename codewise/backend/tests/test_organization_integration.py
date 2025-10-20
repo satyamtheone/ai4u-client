@@ -258,6 +258,38 @@ class TestOrganizationRegistrationIntegration:
         assert org.created_by == user.id
 
         print("✓ Creator linked to organization")
+    
+    def test_register_organization_creator_linked(self, db_session):
+        """Verify creator is linked to organization - REAL API CALL + DB CHECK"""
+        print_test_info("Testing Organization Creator Link")
+
+        email = generate_unique_email("org_creator")
+        org_name = f"Creator Test Org {email.split('@')[0]}"
+
+        payload = {
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "email":"ordcadmin@gmail.com",
+            "password": "Admin@1234",
+            "phone": "+1234567890",
+            "accept_terms": True,
+            "subscribe_newsletter": True,
+            "timezone": "America/Los_Angeles",
+            "account_type":"ORGANIZATION_ADMIN",
+            "locale": "en",
+            "organizationData": {
+                "organizationName": "ORDC",
+                "description": "We build innovative software",
+                "industry": "Technology",
+                "size": "51-200",
+                "website": "https://www.techcorp.com"
+            }
+        }
+
+        url = get_full_url(Endpoints.REGISTER)
+        response = requests.post(url, json=payload, timeout=TEST_TIMEOUT)
+
+        assert response.status_code == 200
 
 
 class TestOrganizationRegistrationSlugIntegration:

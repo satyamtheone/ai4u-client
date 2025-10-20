@@ -11,6 +11,7 @@ from models.learning import (
     QuizQuestion, UserProgress, QuizSubmission, 
     ChatSession, ChatMessage, DifficultyEnum, QuestionTypeEnum
 )
+from models.activity_log import ActivityActionEnum
 from models.user import User
 from schemas.learning import QuizQuestionCreate, QuizSubmissionRequest
 from services.activity_service import ActivityService
@@ -207,12 +208,11 @@ class LearningService:
             level_up = progress.level > old_level
             
             self.db.commit()
-            
             # Log activity
             self.activity_service.log_activity(
                 user_id=user_id,
                 organization_id=organization_id,
-                action="quiz_submitted",
+                action=ActivityActionEnum("quiz_submitted"),
                 resource_type="quiz_question",
                 resource_id=question_id,
                 metadata={

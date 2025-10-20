@@ -22,7 +22,8 @@ class ActivityService:
         resource_id: Optional[uuid.UUID] = None,
         activity_metadata: Optional[Dict[str, Any]] = None,
         ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> Optional[ActivityLog]:
         """Log an activity"""
         try:

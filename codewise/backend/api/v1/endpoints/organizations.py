@@ -56,10 +56,9 @@ async def get_my_organizations(
     try:
         from models.organization import Organization
         from models.account_type import AccountType
-        
         organizations = db.query(Organization).join(AccountType).filter(
             AccountType.user_id == current_user.id,
-            AccountType.account_type == "organization_member",
+            AccountType.account_type == current_user.account_types[0].account_type,
             Organization.is_active == True,
             Organization.is_deleted == False
         ).all()
