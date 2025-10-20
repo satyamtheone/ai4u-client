@@ -80,7 +80,7 @@ class OrganizationService:
         try:
             from models.role import Role
             
-            # Create account type
+            # Create account type (must match AccountTypeEnum.ORGANIZATION_MEMBER)
             account = AccountType(
                 user_id=user_id,
                 organization_id=organization_id,

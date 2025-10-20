@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, validator
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
 import uuid
 
@@ -15,14 +15,69 @@ class UserBase(BaseModel):
     timezone: Optional[str] = Field(None, max_length=50)
     locale: Optional[str] = Field(None, max_length=10)
 
+class OrganizationData(BaseModel):
+    """Embedded organization data for registration"""
+    name: str = Field(..., alias="organizationName", min_length=1, max_length=255)
+    description: Optional[str] = None
+    industry: str = Field(..., min_length=1, max_length=100)
+    company_size: Optional[str] = Field(None, alias="size")
+    website: Optional[str] = None
+
+    class Config:
+        populate_by_name = True
+
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)
-    
+    organization_data: Optional[OrganizationData] = Field(None, alias="organizationData")
+    user_type: Optional[str] = Field(None, alias="userType")
+
     @validator('password')
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters')
         return v
+
+    @validator('account_type', pre=True, always=True)
+    def normalize_account_type(cls, v, values):
+        """Normalize account_type to match AccountTypeEnum (lowercase)
+
+        Note: For organization registration, we return 'individual' here.
+        The user will be converted to 'organization_member' after the organization is created.
+        This is necessary because the database constraint requires organization_id to be set
+        when account_type = 'organization_member'.
+        """
+        # Use userType if account_type not provided
+        if not v and 'user_type' in values:
+            v = values['user_type']
+
+        # If organization_data is present, always return 'individual'
+        # (will be converted to organization_member after org creation)
+        if 'organization_data' in values and values['organization_data']:
+            return "individual"
+
+        if not v:
+            return "individual"
+
+        # Convert to lowercase for comparison
+        v_lower = str(v).lower()
+
+        # Direct matches (AccountTypeEnum uses lowercase values)
+        if v_lower in ["individual", "organization_member"]:
+            return v_lower
+
+        # Map legacy/alternative frontend values
+        # For backward compatibility, but these should return 'individual' if org_data present
+        mapping = {
+            "organization_admin": "individual",  # Will be converted later
+            "organization_user": "individual",   # Will be converted later
+            "org_admin": "individual",
+            "org_user": "individual",
+        }
+
+        return mapping.get(v_lower, "individual")
+
+    class Config:
+        populate_by_name = True
 
 class UserLogin(BaseModel):
     email: EmailStr

@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
-from typing import Dict, Any
 
 from core.database import get_db
-from schemas.auth import Token, GoogleAuthRequest, PasswordResetRequest
+from schemas.auth import Token, GoogleAuthRequest
 from schemas.user import UserCreate, UserLogin, UserResponse
 from schemas.common import ResponseModel
 from services.auth_service import AuthService
@@ -26,29 +25,73 @@ async def register(
     """Register a new user with email and password"""
     try:
         user_service = UserService(db)
-        
-        user = user_service.create_user(user_data)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User with this email already exists"
+
+        # Check if organization registration (user has organization_data)
+        if user_data.organization_data:
+            from services.organization_service import OrganizationService
+            from schemas.organization import OrganizationCreate
+            import re
+
+            # Create user without AccountType (will be created by OrganizationService)
+            user = user_service.create_user(
+                user_data,
+                account_type="individual",
+                skip_account_type_creation=True
             )
-        
-        logger.info("User registered successfully", user_id=str(user.id))
-        
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="User with this email already exists"
+                )
+
+            # Generate slug from organization name
+            slug = re.sub(r'[^a-z0-9-]', '-', user_data.organization_data.name.lower())
+            slug = re.sub(r'-+', '-', slug).strip('-')
+
+            # Create organization
+            org_service = OrganizationService(db)
+            org_create = OrganizationCreate(
+                name=user_data.organization_data.name,
+                slug=slug,
+                description=user_data.organization_data.description,
+                industry=user_data.organization_data.industry,
+                website=user_data.organization_data.website
+            )
+
+            organization = org_service.create_organization(org_create, user.id)
+            if not organization:
+                # Rollback user creation if organization creation fails
+                db.rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Failed to create organization. Slug may already exist."
+                )
+
+            logger.info("Organization and admin user created", user_id=str(user.id), org_id=str(organization.id))
+        else:
+            # Individual user registration
+            user = user_service.create_user(user_data)
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="User with this email already exists"
+                )
+
+            logger.info("Individual user registered successfully", user_id=str(user.id))
+
         return ResponseModel(
             success=True,
             message="User registered successfully",
             data=UserResponse.from_orm(user)
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error("Registration failed", error=str(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed"
+            detail=f"Registration failed: {str(e)}"
         )
 
 @router.post("/login", response_model=ResponseModel[Token])

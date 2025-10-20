@@ -113,7 +113,7 @@ user_sessions = {}
 user_progress_db: Dict[str, UserProgress] = {}
 
 # Configuration
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = "Testing"#os.getenv("OPENAI_API_KEY")
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 
 # === QUESTION BANK ===
@@ -827,4 +827,4 @@ async def get_user_analytics(user_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

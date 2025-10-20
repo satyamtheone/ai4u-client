@@ -48,12 +48,25 @@ class UserService:
             return None
     
     def create_user(
-        self, 
-        user_data: UserCreate, 
-        account_type: str = "INDIVIDUAL"
+        self,
+        user_data: UserCreate,
+        account_type: Optional[str] = None,
+        skip_account_type_creation: bool = False
     ) -> Optional[User]:
-        """Create a new user"""
-        account_type = user_data.account_type
+        """Create a new user
+
+        Args:
+            user_data: User creation data
+            account_type: Optional account type override
+            skip_account_type_creation: If True, don't create AccountType record
+                                       (useful for org admin where it will be created later)
+        """
+        # Use account_type from user_data if not explicitly provided
+        if account_type is None:
+            account_type = user_data.account_type or "individual"
+
+        # Normalize to lowercase (AccountTypeEnum uses lowercase)
+        account_type = account_type.lower()
         try:
             # Check if user already exists
             existing_user = self.get_by_email(user_data.email)
@@ -72,7 +85,7 @@ class UserService:
                 auth_method=user_data.auth_method
             )
             
-            # Set optional fields 
+            # Set optional fields
             if user_data.timezone:
                 user.timezone = user_data.timezone
             if user_data.locale:
@@ -81,27 +94,23 @@ class UserService:
                 user.accept_terms = user_data.accept_terms
             if user_data.subscribe_newsletter:
                 user.subscribe_newsletter = user_data.subscribe_newsletter
-            
-            # Create account type
-            account = AccountType(
-                user_id=user.id,
-                account_type=account_type,
-                organization_id=None if account_type == "INDIVIDUAL" else None
-            )
-            
+
             self.db.add(user)
             self.db.flush()
-            
-            # Create account type
-            account = AccountType(
-                user_id=user.id,
-                account_type=account_type,
-                organization_id=None if account_type == "INDIVIDUAL" else None
-            )
-            self.db.add(account)
-            
-            # Assign default role
-            self._assign_default_role(user.id, account_type)
+
+            # Create account type only if not skipped
+            # (For org admin, this will be created by OrganizationService)
+            if not skip_account_type_creation:
+                # Create account type (must match AccountTypeEnum values: "individual" or "organization_member")
+                account = AccountType(
+                    user_id=user.id,
+                    account_type=account_type,
+                    organization_id=None  # Will be set later for organization members
+                )
+                self.db.add(account)
+
+                # Assign default role
+                self._assign_default_role(user.id, account_type)
             
             self.db.commit()
             
@@ -122,13 +131,15 @@ class UserService:
             return None
     
     def _assign_default_role(self, user_id: uuid.UUID, account_type: str):
-        """Assign default role to user"""
+        """Assign default role to user based on account type"""
         try:
             from models.role import Role
-            
+
+            # Map account type to role slug
+            # AccountTypeEnum: "individual" or "organization_member"
             role_slug = "individual_user" if account_type == "individual" else "org_user"
             role = self.db.query(Role).filter(Role.slug == role_slug).first()
-            
+
             if role:
                 user_role = UserRole(
                     user_id=user_id,
@@ -136,6 +147,8 @@ class UserService:
                     organization_id=None
                 )
                 self.db.add(user_role)
-                
+            else:
+                logger.warning("Role not found", role_slug=role_slug, user_id=str(user_id), account_type=account_type)
+
         except Exception as e:
             logger.error("Failed to assign default role", user_id=str(user_id), error=str(e))
