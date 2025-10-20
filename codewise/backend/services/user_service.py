@@ -5,7 +5,7 @@ import uuid
 import structlog
 
 from models.user import User
-from models.account_type import AccountType, UserRole
+from models.account_type import AccountType, AccountTypeEnum, UserRole
 from schemas.user import UserCreate, UserUpdate
 from core.security import SecurityService
 from services.activity_service import ActivityService
@@ -101,10 +101,13 @@ class UserService:
             # Create account type only if not skipped
             # (For org admin, this will be created by OrganizationService)
             if not skip_account_type_creation:
-                # Create account type (must match AccountTypeEnum values: "individual" or "organization_member")
+                # Map string account_type to enum member
+                account_type_enum = AccountTypeEnum.INDIVIDUAL if account_type == "individual" else AccountTypeEnum.ORGANIZATION_MEMBER
+
+                # Create account type using enum member
                 account = AccountType(
                     user_id=user.id,
-                    account_type=account_type,
+                    account_type=account_type_enum,
                     organization_id=None  # Will be set later for organization members
                 )
                 self.db.add(account)

@@ -4,7 +4,7 @@ import uuid
 import structlog
 
 from models.organization import Organization
-from models.account_type import AccountType, UserRole
+from models.account_type import AccountType, AccountTypeEnum, UserRole
 from schemas.organization import OrganizationCreate
 from services.activity_service import ActivityService
 
@@ -80,11 +80,11 @@ class OrganizationService:
         try:
             from models.role import Role
             
-            # Create account type (must match AccountTypeEnum.ORGANIZATION_MEMBER)
+            # Create account type using the enum member (not string)
             account = AccountType(
                 user_id=user_id,
                 organization_id=organization_id,
-                account_type="organization_member"
+                account_type=AccountTypeEnum.ORGANIZATION_MEMBER
             )
             self.db.add(account)
             
