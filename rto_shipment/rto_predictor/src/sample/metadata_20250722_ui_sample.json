@@ -1,0 +1,8 @@
+{
+  "source_file": "/Users/anilkumargupta/Documents/study/ttt/ai4u/rto_shipment/rto_predictor/data/to_predict/predict_2025_06_03.csv",
+  "processing_timestamp": "20250722",
+  "total_orders": 2888,
+  "successful_predictions": 2888,
+  "failed_predictions": 0,
+  "model_version": "unknown"
+}

@@ -1,89 +1,36 @@
+"""
+Data Validation and Quality Assessment Module
+Handles all data validation, quality checks, and input verification
+"""
 
-class ValidationPipeline:
+import pandas as pd
+import numpy as np
+from datetime import datetime
+from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class DataValidationError(Exception):
+    """Custom exception for data validation errors"""
+    pass
+
+
+class DataQualityError(Exception):
+    """Custom exception for data quality issues"""
+    pass
+
+
+class DataValidator:
     """
-    Production-ready RTO (Return to Origin) Prediction Pipeline
-    
-    Enhanced with monitoring, error handling, validation, and fault tolerance
+    Handles all data validation and quality assessment operations
     """
     
-    def __init__(self, 
-                 preprocessing_config: PreprocessingConfig = None,
-                 model_config: ModelConfig = None,
-                 pipeline_config: PipelineConfig = None):
-        """Initialize the production RTO Predictor"""
-        
-        # Initialize configurations
-        self.preprocessing_config = preprocessing_config or PreprocessingConfig()
-        self.model_config = model_config or ModelConfig()
-        self.pipeline_config = pipeline_config or PipelineConfig()
-        
-        # Setup directories
-        self._setup_directories()
-        
-        # Initialize monitoring
-        self.metrics_collector = MetricsCollector()
-        
-        # Initialize circuit breaker
-        if self.pipeline_config.enable_circuit_breaker:
-            self.circuit_breaker = CircuitBreaker(
-                self.pipeline_config.circuit_breaker_threshold,
-                self.pipeline_config.circuit_breaker_timeout
-            )
-        else:
-            self.circuit_breaker = None
-        
-        # Feature importance weights (keeping backward compatibility)
-        self.feature_weights = {
-            'CLIENT_NAME': 0.1,      # Very Low
-            'CUSTOMER_NAME': 0.2,    # Low
-            'CUSTOMER_PHONE': 0.95,  # Very High
-            'CUSTOMER_ADDRESS': 0.95,# Very High
-            'CUSTOMER_CITY': 0.3,    # Low or based on history
-            'CUSTOMER_STATE': 0.3,   # Low or based on history
-            'PINCODE': 0.3,          # Low or based on history
-            'PAYMENT_MODE': 0.8,     # High
-            'COURIER_NAME': 0.8,     # High
-            'ITEM_DESCRIPTION': 0.7, # High or based on history
-            'WEIGHT': 0.2,           # Low
-            'QTY': 0.2,              # Low
-            'INVOICE_VALUE': 0.2,     # Low
-            'ORDER_CREATION_DATE': 0.1, # Very Low
-            'COLLECTABLE_AMOUNT': 0.1, # Very Low
-            'EDD': 0.3,              # Very Low
-            'ZONE': 0.3,             # Low or based on history
-        }
-        
-        # Model components
-        self.model = None
-        self.label_encoders = {}
-        self.scaler = None
-        self.tfidf_vectorizer = None
-        self.feature_columns = None
-        self.historical_data = None
-        
-        # Performance tracking
-        self.performance_metrics = {}
-        self.courier_performance = defaultdict(dict)
-        self.pincode_stats = defaultdict(dict)
-        
-        # Health check status
-        self.health_status = {
-            'model_loaded': False,
-            'last_prediction': None,
-            'last_training': None,
-            'error_count': 0
-        }
-        
-        logger.info("Production RTO Predictor initialized")
+    def __init__(self, preprocessing_config):
+        self.preprocessing_config = preprocessing_config
     
-    def _setup_directories(self):
-        """Setup required directories"""
-        for dir_attr in ['data_dir', 'model_dir', 'output_dir', 'log_dir', 'backup_dir']:
-            dir_path = Path(getattr(self.pipeline_config, dir_attr))
-            dir_path.mkdir(exist_ok=True)
-    
-    @monitor_performance
-    def _validate_input_data(self, df: pd.DataFrame) -> None:
+    def validate_input_data(self, df: pd.DataFrame) -> None:
         """Comprehensive input data validation"""
         logger.info("Validating input data...")
         
@@ -118,7 +65,7 @@ class ValidationPipeline:
         
         logger.info("Input data validation completed")
     
-    def _data_quality_checks(self, df: pd.DataFrame) -> Dict[str, Any]:
+    def data_quality_checks(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Comprehensive data quality assessment"""
         quality_report = {
             'total_rows': len(df),
@@ -142,4 +89,3 @@ class ValidationPipeline:
         quality_report['quality_score'] = max(0, 100 - missing_penalty - duplicate_penalty)
         
         return quality_report
-    

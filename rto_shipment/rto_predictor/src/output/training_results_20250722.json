@@ -1,0 +1,133 @@
+{
+  "best_model": "LogisticRegression",
+  "best_score": 0.864291277258567,
+  "model_results": {
+    "RandomForest": {
+      "cv_mean": 0.8104765042180254,
+      "cv_std": 0.017429530107342103,
+      "test_auc": 0.841778621495327,
+      "classification_report": {
+        "0": {
+          "precision": 0.8721973094170403,
+          "recall": 0.9088785046728972,
+          "f1-score": 0.8901601830663616,
+          "support": 428.0
+        },
+        "1": {
+          "precision": 0.5,
+          "recall": 0.40625,
+          "f1-score": 0.4482758620689655,
+          "support": 96.0
+        },
+        "accuracy": 0.816793893129771,
+        "macro avg": {
+          "precision": 0.6860986547085202,
+          "recall": 0.6575642523364487,
+          "f1-score": 0.6692180225676636,
+          "support": 524.0
+        },
+        "weighted avg": {
+          "precision": 0.8040084893711703,
+          "recall": 0.816793893129771,
+          "f1-score": 0.8092042769294341,
+          "support": 524.0
+        }
+      }
+    },
+    "GradientBoosting": {
+      "cv_mean": 0.8008833508912712,
+      "cv_std": 0.014070764977174723,
+      "test_auc": 0.8223082165109035,
+      "classification_report": {
+        "0": {
+          "precision": 0.8468085106382979,
+          "recall": 0.9299065420560748,
+          "f1-score": 0.8864142538975501,
+          "support": 428.0
+        },
+        "1": {
+          "precision": 0.4444444444444444,
+          "recall": 0.25,
+          "f1-score": 0.32,
+          "support": 96.0
+        },
+        "accuracy": 0.8053435114503816,
+        "macro avg": {
+          "precision": 0.6456264775413711,
+          "recall": 0.5899532710280374,
+          "f1-score": 0.6032071269487751,
+          "support": 524.0
+        },
+        "weighted avg": {
+          "precision": 0.7730929565264469,
+          "recall": 0.8053435114503816,
+          "f1-score": 0.7826437035651745,
+          "support": 524.0
+        }
+      }
+    },
+    "LogisticRegression": {
+      "cv_mean": 0.8025042239685094,
+      "cv_std": 0.006402725818478119,
+      "test_auc": 0.864291277258567,
+      "classification_report": {
+        "0": {
+          "precision": 0.9829931972789115,
+          "recall": 0.6752336448598131,
+          "f1-score": 0.8005540166204986,
+          "support": 428.0
+        },
+        "1": {
+          "precision": 0.39565217391304347,
+          "recall": 0.9479166666666666,
+          "f1-score": 0.558282208588957,
+          "support": 96.0
+        },
+        "accuracy": 0.7251908396946565,
+        "macro avg": {
+          "precision": 0.6893226855959775,
+          "recall": 0.8115751557632398,
+          "f1-score": 0.6794181126047278,
+          "support": 524.0
+        },
+        "weighted avg": {
+          "precision": 0.8753887349828747,
+          "recall": 0.7251908396946565,
+          "f1-score": 0.7561683418666285,
+          "support": 524.0
+        }
+      }
+    }
+  },
+  "feature_importance": {
+    "PAYMENT_MODE_ENCODED": 0.7762900099539982,
+    "IS_COD": 0.776290009953997,
+    "ADDRESS_WORD_COUNT": 0.4605483529763216,
+    "WEIGHT": 0.395282931535039,
+    "ADDRESS_LENGTH": 0.2942528719907007,
+    "QTY": 0.22356406043290727,
+    "VALUE_PER_ITEM": 0.15574297351588026,
+    "CUSTOMER_STATE_ENCODED": 0.11689585170322178,
+    "HIGH_VALUE_ORDER": 0.09431423833602776,
+    "ORDER_DAY_OF_WEEK": 0.08402184676689368,
+    "ADDRESS_RISK_KEYWORDS": 0.06849038866159698,
+    "COURIER_NAME_ENCODED": 0.0661383033689317,
+    "CUSTOMER_CITY_ENCODED": 0.06566166347201867,
+    "ZONE_RISK": 0.06056735676563513,
+    "INVOICE_VALUE": 0.05876289310912961,
+    "WEIGHT_PER_ITEM": 0.04564814285848157,
+    "ZONE_ENCODED": 0.02206097511591995,
+    "ORDER_MONTH": 0.018113110093912466,
+    "ORDER_HOUR": 0.0020074824770125233,
+    "PHONE_LENGTH": 0.0,
+    "PHONE_VALID": 0.0
+  },
+  "training_timestamp": "20250722",
+  "data_quality_score": null,
+  "training_data_source": "/Users/anilkumargupta/Documents/study/ttt/ai4u/rto_shipment/rto_predictor/data/to_train/training_data_2025_05_23.csv",
+  "system_info": {
+    "python_version": "3.11.13",
+    "memory_usage_mb": 194.140625,
+    "cpu_count": 11
+  }
+}

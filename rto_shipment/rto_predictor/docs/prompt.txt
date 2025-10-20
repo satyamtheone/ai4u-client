@@ -1,0 +1,48 @@
+create e2e machine learning / AI pipeline(in python) for Shipment RTO(Return to Origin) Predictor. Basically this pipeline will take input as Order/Shipment details and predict if this order will delivered or not to end customer. 
+
+Functionality/Task
+1. Simple function read csv of new orders.
+1.1 Feature Impact on prediction 
+CLIENT_NAME(Very Low), 
+CUSTOMER_NAME(Low), 
+CUSTOMER_PHONE(Very High), CUSTOMER_ADDRESS(Very High), 
+CUSTOMER_CITY(Low or based on previous history), 
+CUSTOMER_STATE(Low or based on previous history),
+PINCODE(Low or based on previous history),
+PAYMENT_MODE(High)
+COURIER_NAME(High)
+ITEM_DESCRIPTION(High or based on previous history)
+WEIGHT(Low)
+QTY	(Low)
+INVOICE_VALUE(Low)
+
+1.2 Predition based on CLIENT_NAME, CUSTOMER_NAME, CUSTOMER_PHONE, CUSTOMER_ADDRESS, CUSTOMER_CITY, CUSTOMER_STATE, PINCODE, PAYMENT_MODE, COURIER_NAME, ITEM_DESCRIPTION
+2. Feed to ML pipeline predict the outcome.
+3. Find the reason why it will delivered and why it will not delivered based on Step 2 outcome.
+4. Recommendation step
+5. Find the top 5 similar kind of orders/shipment details from the history data. 
+6. Retrain the base model with updated data once in day and upload ml/ai snapshot to disk with folder structure <yyyy_mm_dd>
+7. Use new retrained data for future prediction.
+8. Generate Summary of over all outcome Perfomance of COURIER_NAME in past, DELIVERY chances in this area of Pincode etc. 
+
+Sample CSV of order details 
+ORDER_NUMBER	ORDER_CREATION_DATE	LAST_UPDATED_DATE	CLIENT	COURIER_NAME	AIRWAYBILL	PICKUP_DATE	PICKUP_CITY	PICKUP_PINCODE	CUSTOMER_NAME	CUSTOMER_PHONE	CUSTOMER_ADDRESS	CUSTOMER_CITY	CUSTOMER_STATE	PINCODE	ZONE	PAYMENT_MODE	EDD	ITEM_DESCRIPTION	WEIGHT	QTY	INVOICE_VALUE	COLLECTABLE_AMOUNT	TAT
+391525	2025-05-23 19:16:33	2025-06-13 19:24:33	SASSAFRAS	Xpressbees	153179480557981	2025-06-02 14:35:00	Gurgaon	122001	Neha .	9149655611	Ward no.16 , near masjid purani poonch , poonch Near Masjid purani poonch	POONCH	Jammu & Kashmir	185101	Special Zone	COD	2025-06-10	"Red Poplin Shirt Dress
+Mint Green Button Placket Longline Shrug"	2.0	2	1564.0	1564.0	7
+GNG943	2025-05-26 10:30:59	2025-06-02 15:51:38	GN Gallery	AMAZON	360871525614	2025-06-01 09:21:53	RAYYA	143112	Amandeep kaur	9872387427	Village Takhtu chak  parcel drop Naman bakery ,, city near jnadiala guru	TARN TARAN	Punjab	143115	Within Zone	PREPAID	2025-06-04	bag 	500.0	1	300.0	0.0	2
+ZN2190230	2025-05-27 04:50:14	2025-06-04 18:26:16	Emami	AMAZON	360885382463	2025-06-02 16:46:26	New Delhi	110077	tarang jain	9560983243	kothi number 2, bhatia potteries road,near gurudwara ,ghaziabad,	Ghaziabad	Uttar Pradesh	201001	Within City	COD	2025-06-04	FGL-ZANDU COPPER BOTTLE 950ML-24 New SKU	1200.0	1	829.0	829.0	1
+GNG1023	2025-05-27 12:32:03	2025-06-06 12:18:17	GN Gallery	AMAZON	360894434313	2025-06-02 16:22:41	RAYYA	143112	Pooja shah	9898192070	25 Amrashirish bungalow  Opp rivera 20 nr prahladnagar auda garden Prahladnagar  Ahmedabad  Gujarat	Ahmedabad	Gujarat	380015	Rest Of India	PREPAID	2025-06-09	bag 	500.0	1	300.0	0.0	6
+
+Sample Data for Retraing Model. 
+ORDER_NUMBER	CURRENT_STATUS	ORDER_CREATION_DATE	LAST_UPDATED_DATE	DELIVERY_DATE	CLIENT	COURIER_NAME	AIRWAYBILL	PICKUP_DATE	PICKUP_CITY	PICKUP_PINCODE	CUSTOMER_NAME	CUSTOMER_PHONE	CUSTOMER_ADDRESS	CUSTOMER_CITY	CUSTOMER_STATE	PINCODE	ZONE	BLACKLIST_REASON	BLACKLIST_RISK	PAYMENT_MODE	EDD	ITEM_DESCRIPTION	WEIGHT	QTY	INVOICE_VALUE	COLLECTABLE_AMOUNT	TAT	RAD_DATE	FIRST_INTRANSIT_DATE	ATTEMPT_COUNT	FIRST_ATTEMPT_DATE	FIRST_ATTEMPT_REMARK	SECOND_ATTEMPT_DATE	SECOND_ATTEMPT_REMARK	THIRD_ATTEMPT_DATE	THIRD_ATTEMPT_REMARK	FIRST_ATTEMPT_DELIVERY	LAST_ATTEMPT_DATE	LAST_ATTEMPT_REMARK	HIGH_AGEING_DAYS	UNDEL_REASON	PICK_TO_DELIVERY_DAYS	PICK_TO_ATTEMPT_SLA	PICK_TO_DELIVERY_SLA	WHATSAPP_NOTIFICATION	RTO_STATUS	REMARKS
+391525	RTO-INTRANSIT	2025-05-23 19:16:33	2025-06-13 19:24:33		SASSAFRAS	Xpressbees	153179480557981	2025-06-02 14:35:00	Gurgaon	122001	Neha .	9149655611	Ward no.16 , near masjid purani poonch , poonch Near Masjid purani poonch	POONCH	Jammu & Kashmir	185101	Special Zone		NORISK	COD	2025-06-10	"Red Poplin Shirt Dress
+Mint Green Button Placket Longline Shrug"	2.0	2	1564.0	1564.0	7	-	2025-06-03 00:04:29	0	-		-		-		YES	-		NA		Pickup date - NA	NA	NA		YES	Return to Origin InTransit
+GNG1023	O-DELIVERED	2025-05-27 12:32:03	2025-06-06 12:18:17	2025-06-06 12:18:17	GN Gallery	AMAZON	360894434313	2025-06-02 16:22:41	RAYYA	143112	Pooja shah	9898192070	25 Amrashirish bungalow  Opp rivera 20 nr prahladnagar auda garden Prahladnagar  Ahmedabad  Gujarat	Ahmedabad	Gujarat	380015	Rest Of India		NORISK	PREPAID	2025-06-09	bag 	500.0	1	300.0	0.0	6	-	2025-06-02 17:38:56	0	2025-06-06 09:25:57	OutForDelivery	-		-		YES	2025-06-06 09:25:57	OutForDelivery	0		0D 23H	NA	IN-SLA		NO	Delivered
+393074	RTO	2025-05-27 17:39:57	2025-06-10 13:31:59		SASSAFRAS	AMAZON	360897609084	2025-06-02 15:44:21	Gurgaon	122001	Naina .	9205493863	C 265 lohiya nagar Ghaziabad	GHAZIABAD	Uttar Pradesh	201001	Within City		NORISK	COD	2025-06-04	Navy Tencel Strappy Midi Dress	1.0	1	1199.0	1199.0	1	-	2025-06-02 15:44:51	4	2025-06-04 10:26:58	OutForDelivery	2025-06-05 10:31:35	OutForDelivery	2025-06-06 10:20:26	OutForDelivery	NO	2025-06-06 10:20:26	OutForDelivery	NA	Undeliverable	Pickup date - NA	NA	NA		NO	ReturnInitiated
+393172	O-DELIVERED	2025-05-27 18:54:50	2025-06-06 17:30:51	2025-06-06 17:30:51	SASSAFRAS	AMAZON	360898605184	2025-06-02 15:44:21	Gurgaon	122001	Neha paswan Paswan	8448614032	H.No.60 sector 11  A block vijay nagar ghaziabad Single colony	GAUTAM BUDDHA NAGAR	Uttar Pradesh	201009	Within City		NORISK	COD	2025-06-04	Blue Denim Pants	1.0	1	778.0	778.0	1	-	2025-06-02 15:44:54	2	2025-06-04 10:12:06	OutForDelivery	2025-06-05 11:33:10	OutForDelivery	2025-06-06 09:53:40	OutForDelivery	NO	2025-06-06 09:53:40	OutForDelivery	0	DeliveryAttempted	0D 3H	NA	IN-SLA		NO	Delivered
+393168	RTO-DELIVERED	2025-05-28 04:45:45	2025-06-10 11:37:16	2025-06-10 11:37:16	SASSAFRAS	AMAZON	360906473699	2025-06-01 15:38:09	Gurugram	122413	Harshita Makhija	8058440079	A-25, Nehru Nagar III, Rakesh Marg	GHAZIABAD	Uttar Pradesh	201001	Within Zone		NORISK	PREPAID	2025-06-04	Black Front Dori Top	1.0	1	678.9	0.0	2	2025-05-29 09:09:05	2025-05-29 03:45:52	4	2025-05-29 09:48:20		2025-06-03 10:30:13	OutForDelivery	2025-06-04 11:06:51	OutForDelivery	NO	2025-06-05 10:14:56	OutForDelivery	NA	Undeliverable	Pickup date - NA	NA	NA		YES	RTO-Delivered
+GNG1065	O-DELIVERED	2025-05-28 10:40:19	2025-06-06 15:55:26	2025-06-06 15:55:26	GN Gallery	AMAZON	360914329858	2025-06-02 16:09:42	RAYYA	143112	Mohd fardeen	9690512786	House number 586 sector 11 near rto pull  Shastree nagar meerut up	MEERUT	Uttar Pradesh	250002	Within Zone		NORISK	PREPAID	2025-06-05	bag 	500.0	1	500.0	0.0	2	-	2025-06-02 17:38:40	0	2025-06-06 09:08:57	OutForDelivery	-		-		YES	2025-06-06 09:08:57	OutForDelivery	0		0D 3H	NA	IN-SLA		NO	Delivered
+393529	RTO-DELIVERED	2025-05-28 11:31:03	2025-06-10 11:24:29	2025-06-10 11:24:29	SASSAFRAS	AMAZON	360915102870	2025-06-02 11:20:03	Gurgaon	122001	Alka tyagi	8860765616	B305 vvip mangal rajnager extension Gzb	GHAZIABAD	Uttar Pradesh	201001	Within City		NORISK	COD	2025-06-04	Navy Denim Acid Wash A-Line Skirt	1.0	1	962.0	962.0	1	-	2025-06-02 12:10:12	1	2025-06-03 20:19:18	OutForDelivery	-		-		NO	2025-06-03 20:19:18	OutForDelivery	NA	Undeliverable	Pickup date - NA	NA	NA		YES	RTO-Delivered
+
+
+make it production ready and robust pipeline

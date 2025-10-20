@@ -72,6 +72,23 @@ class UserService:
                 auth_method=user_data.auth_method
             )
             
+            # Set optional fields 
+            if user_data.timezone:
+                user.timezone = user_data.timezone
+            if user_data.locale:
+                user.locale = user_data.locale
+            if user_data.accept_terms:
+                user.accept_terms = user_data.accept_terms
+            if user_data.subscribe_newsletter:
+                user.subscribe_newsletter = user_data.subscribe_newsletter
+            
+            # Create account type
+            account = AccountType(
+                user_id=user.id,
+                account_type=account_type,
+                organization_id=None if account_type == "INDIVIDUAL" else None
+            )
+            
             self.db.add(user)
             self.db.flush()
             

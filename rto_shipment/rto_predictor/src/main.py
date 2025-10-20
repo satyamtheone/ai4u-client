@@ -27,16 +27,16 @@ from pipeline.model_management_service import ModelManagementService
 from pipeline.prediction_orchestrator import PredictionOrchestrator 
 from pipeline.error_handling_manager import ErrorHandlingManager
 from pipeline.method_delegation_handler import MethodDelegationHandler
-from pipeline.configuration_manager import ConfigurationManager
+from config.configuration_manager import ConfigurationManager
 from pipeline.logging_manager import LoggingManager
-from pipeline.component_factory import ComponentFactory
+from core.component_factory import ComponentFactory
 from pipeline.fault_tolerance_manager import FaultToleranceDecorators, CircuitBreaker
 from pipeline.health_monitoring_service import HealthMonitoringService
-from pipeline.monitoring_metrics_manager import MonitoringDecorators
+from core.monitoring_metrics_manager import MonitoringDecorators
 from pipeline.backup_recovery_manager import BackupRecoveryManager
 from pipeline.transaction_manager import TransactionManager
 from pipeline.dataclass_configurations import ModelConfig, PreprocessingConfig, PipelineConfig
-from pipeline.monitoring_metrics_manager import MetricsCollector
+from core.monitoring_metrics_manager import MetricsCollector
 from core.exceptions import *
 
 warnings.filterwarnings('ignore')

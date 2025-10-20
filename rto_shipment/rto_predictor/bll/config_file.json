@@ -1,0 +1,52 @@
+{
+  "data_dir": "data",
+  "model_dir": "models",
+  "output_dir": "output",
+  "logs_dir": "logs",
+  "retrain_schedule": "daily",
+  "retrain_threshold": 0.1,
+  "min_training_samples": 100,
+  "max_model_age_days": 30,
+  "feature_selection": {
+    "method": "importance",
+    "top_k_features": 20,
+    "correlation_threshold": 0.95
+  },
+  "model_config": {
+    "random_forest": {
+      "n_estimators": 100,
+      "max_depth": 15,
+      "min_samples_split": 5,
+      "min_samples_leaf": 2,
+      "class_weight": "balanced"
+    },
+    "gradient_boosting": {
+      "n_estimators": 100,
+      "learning_rate": 0.1,
+      "max_depth": 6,
+      "min_samples_split": 5
+    },
+    "logistic_regression": {
+      "C": 1.0,
+      "max_iter": 1000,
+      "class_weight": "balanced"
+    }
+  },
+  "hyperparameter_tuning": {
+    "enabled": true,
+    "cv_folds": 5,
+    "n_trials": 50,
+    "scoring": "roc_auc"
+  },
+  "monitoring": {
+    "performance_threshold": 0.75,
+    "drift_detection": true,
+    "alert_email": "admin@company.com"
+  },
+  "api_config": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "reload": false,
+    "max_batch_size": 1000
+  }
+}
