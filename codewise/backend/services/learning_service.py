@@ -4,6 +4,8 @@ from typing import Optional, List, Dict, Any, Union
 import uuid
 import random
 import structlog
+from datetime import timedelta, datetime
+
 
 from models.learning import (
     QuizQuestion, UserProgress, QuizSubmission, 
@@ -118,7 +120,7 @@ class LearningService:
                 difficulties = list(difficulty_weights.keys())
                 weights = list(difficulty_weights.values())
                 selected_difficulty = random.choices(difficulties, weights=weights)[0]
-                query = query.filter(QuizQuestion.difficulty == selected_difficulty)
+                query = query.filter(QuizQuestion.difficulty == DifficultyEnum(selected_difficulty))
             else:
                 query = query.filter(QuizQuestion.difficulty == difficulty)
             
@@ -127,15 +129,15 @@ class LearningService:
                 query = query.filter(QuizQuestion.topic.in_(topics))
             
             # Get questions not recently answered
+            yesterday = datetime.utcnow() - timedelta(days=1)
             recent_submissions = self.db.query(QuizSubmission.question_id).filter(
                 and_(
                     QuizSubmission.user_id == user_id,
-                    QuizSubmission.submitted_at >= func.now() - func.interval('1 day')
+                    QuizSubmission.submitted_at >= yesterday
                 )
             ).subquery()
             
             query = query.filter(~QuizQuestion.id.in_(recent_submissions))
-            
             questions = query.all()
             
             if not questions:

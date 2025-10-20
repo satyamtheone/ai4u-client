@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from core.database import get_db
+from sqlalchemy import text
 from schemas.common import ResponseModel
+from core.database import get_db
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -12,7 +13,7 @@ async def health_check(db: Session = Depends(get_db)):
     """Health check endpoint with database connectivity test"""
     try:
         # Test database connection
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         
         logger.info("Health check passed")
         return ResponseModel(

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from typing import Optional, Dict, Any, List
 import uuid
 import httpx
@@ -43,9 +44,7 @@ class ChatService:
                 if self.learning_service.should_show_gate(
                     user_id, organization_id, gate_frequency
                 ):
-                    question = self.learning_service.get_quiz_question(
-                        user_id, organization_id
-                    )
+                    question = self.learning_service.get_quiz_question(user_id, organization_id)
                     
                     if question:
                         stats = self.learning_service.get_user_stats(user_id, organization_id)
@@ -169,7 +168,6 @@ class ChatService:
                 "role": "user",
                 "content": request.message
             })
-            
             # Call OpenAI API
             ai_response = await self._call_openai_api(openai_messages)
             
@@ -214,11 +212,13 @@ class ChatService:
             raise
     
     async def _call_openai_api(self, messages: List[Dict[str, str]]) -> str:
-        """Call OpenAI API for chat completion"""
+        """Call OpenAI API for chat completion or return default response"""
         try:
-            if not settings.OPENAI_API_KEY:
-                raise ValueError("OpenAI API key not configured")
-            
+            # Check if OpenAI API key is configured
+            if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY == "":
+                logger.warning("OpenAI API key not configured, returning default response")
+                return self._generate_default_response(messages)
+
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     "https://api.openai.com/v1/chat/completions",
@@ -234,20 +234,45 @@ class ChatService:
                     },
                     timeout=30.0
                 )
-                
+
                 if response.status_code != 200:
-                    raise httpx.HTTPStatusError(
-                        f"OpenAI API error: {response.status_code}",
-                        request=response.request,
-                        response=response
-                    )
-                
+                    logger.error(f"OpenAI API error: {response.status_code}, falling back to default response")
+                    return self._generate_default_response(messages)
+
                 result = response.json()
                 return result["choices"][0]["message"]["content"]
-                
+
         except httpx.TimeoutException:
-            logger.error("OpenAI API timeout")
-            raise
+            logger.error("OpenAI API timeout, returning default response")
+            return self._generate_default_response(messages)
         except Exception as e:
-            logger.error("OpenAI API call failed", error=str(e))
-            raise
+            logger.error(f"OpenAI API call failed: {str(e)}, returning default response")
+            return self._generate_default_response(messages)
+
+    def _generate_default_response(self, messages: List[Dict[str, str]]) -> str:
+        """Generate a default response when OpenAI API is not available"""
+        user_message = messages[-1]["content"] if messages else ""
+
+        # Smart default responses based on keywords
+        message_lower = user_message.lower()
+
+        if any(word in message_lower for word in ["hello", "hi", "hey", "greetings"]):
+            return "Hello! I'm here to help you learn. OpenAI integration is currently not configured, but I can still assist you with basic responses and learning quizzes."
+
+        elif any(word in message_lower for word in ["help", "assist", "support"]):
+            return "I can help you with:\n• Learning through interactive quizzes\n• Tracking your progress and stats\n• Providing educational content\n\nNote: Full AI capabilities require OpenAI API configuration. Please contact your administrator."
+
+        elif any(word in message_lower for word in ["what", "how", "why", "explain"]):
+            return f"Thank you for your question: '{user_message}'\n\nI'm currently running in demo mode without OpenAI integration. To get AI-powered answers, please configure the OpenAI API key in your environment settings.\n\nIn the meantime, you can:\n• Complete learning quizzes to earn points\n• Track your learning progress\n• Practice with educational content"
+
+        elif any(word in message_lower for word in ["quiz", "question", "test", "learn"]):
+            return "Great! You're interested in learning. Try accessing the quiz endpoints to get personalized questions and track your progress. Learning gates are active to help you learn effectively!"
+
+        elif any(word in message_lower for word in ["thank", "thanks"]):
+            return "You're welcome! Keep learning and improving your skills. Complete quizzes to unlock more responses!"
+
+        elif any(word in message_lower for word in ["bye", "goodbye", "see you"]):
+            return "Goodbye! Keep up the great learning progress. See you next time!"
+
+        else:
+            return f"I received your message: '{user_message}'\n\nI'm currently running in demo mode. Full AI-powered responses require OpenAI API configuration.\n\nWhat I can do:\n✓ Provide learning quizzes\n✓ Track your progress\n✓ Manage learning gates\n✓ Give you statistics\n\nTo unlock full AI capabilities, please configure the OPENAI_API_KEY in your environment."
