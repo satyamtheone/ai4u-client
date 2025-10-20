@@ -2,10 +2,10 @@
 Integration Tests for Individual User Registration
 
 These tests make REAL HTTP requests to the running API server.
-Ensure the API is running at http://localhost:8000 before executing.
+Ensure the API is running at http://localhost:8001 before executing.
 
 Run tests:
-    pytest tests/integration_test_individual.py -v -s
+    pytest tests/test_individual_integration.py -v -s
 """
 
 import pytest
@@ -170,7 +170,6 @@ class TestIndividualRegistrationIntegration:
 
         # Verify role in database
         user = db_session.query(User).filter(User.email == email).first()
-        import pdb;pdb.set_trace()
         role = db_session.query(Role).filter(Role.slug == "individual_user").first()
         user_role = db_session.query(UserRole).filter(
             UserRole.user_id == user.id
@@ -282,10 +281,13 @@ class TestIndividualRegistrationEdgeCasesIntegration:
         """Test email is stored in lowercase - REAL API CALL + DB CHECK"""
         print_test_info("Testing Email Case Insensitivity")
 
+        unique_suffix = generate_unique_email("case_test").split('@')[0]
+        email = f"{unique_suffix}@EXAMPLE.COM"
+
         payload = {
             "first_name": "Case",
             "last_name": "Test",
-            "email": "UPPERCASE@EXAMPLE.COM",
+            "email": email,
             "password": "Password123!",
             "accept_terms": True
         }
@@ -297,11 +299,11 @@ class TestIndividualRegistrationEdgeCasesIntegration:
 
         # Verify in database - email should be lowercase
         user = db_session.query(User).filter(
-            User.email == "uppercase@example.com"
+            User.email == email.lower()
         ).first()
 
         assert user is not None
-        assert user.email == "uppercase@example.com"
+        assert user.email == email.lower()
 
         print("✓ Email stored in lowercase")
 

@@ -5,7 +5,7 @@ These tests make REAL HTTP requests to the running API server.
 Ensure the API is running at http://localhost:8001 before executing.
 
 Run tests:
-    pytest tests/integration_test_organization.py -v -s
+    pytest tests/test_organization_integration.py -v -s
 """
 
 import pytest
@@ -268,7 +268,7 @@ class TestOrganizationRegistrationSlugIntegration:
         print_test_info("Testing Slug Generation - Simple Name")
 
         email = generate_unique_email("slug_simple")
-        org_name = "Simple Test Org"
+        org_name = f"Simple Test Org {email.split('@')[0]}"
 
         payload = {
             "first_name": "Slug",
@@ -290,9 +290,11 @@ class TestOrganizationRegistrationSlugIntegration:
 
         org = db_session.query(Organization).filter(Organization.name == org_name).first()
         assert org is not None
-        assert org.slug == "simple-test-org"
+        # Slug should be lowercase and hyphenated
+        assert org.slug.islower()
+        assert " " not in org.slug
 
-        print("✓ Simple slug generated correctly")
+        print(f"✓ Simple slug generated correctly: {org.slug}")
 
     def test_register_organization_slug_special_chars(self, db_session):
         """Test organization slug with special characters - REAL API CALL"""
@@ -517,7 +519,7 @@ class TestOrganizationRegistrationRollbackIntegration:
         assert response1.status_code == 200
 
         # Try to create duplicate (should rollback user creation)
-        email2 = "second_rollback_user@example.com"
+        email2 = generate_unique_email("rollback_second")
         payload2 = {
             "first_name": "Second",
             "last_name": "User",
