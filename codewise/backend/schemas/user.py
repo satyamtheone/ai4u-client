@@ -90,6 +90,31 @@ class UserUpdate(BaseModel):
     timezone: Optional[str] = Field(None, max_length=50)
     locale: Optional[str] = Field(None, max_length=10)
 
+class OrganizationMemberCreate(BaseModel):
+    """Schema for org admin to add members to their organization"""
+    first_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
+    phone: Optional[str] = Field(None, max_length=20)
+    password: str = Field(..., min_length=8, max_length=128)
+    role: Optional[str] = Field("org_member", description="Role: org_member or org_admin")
+    send_invitation_email: bool = Field(True, description="Send invitation email to member")
+    timezone: Optional[str] = Field("UTC", max_length=50)
+    locale: Optional[str] = Field("en", max_length=10)
+
+    @validator('password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters')
+        return v
+
+    @validator('role')
+    def validate_role(cls, v):
+        allowed_roles = ["org_member", "org_admin"]
+        if v not in allowed_roles:
+            raise ValueError(f'Role must be one of: {", ".join(allowed_roles)}')
+        return v
+
 class UserResponse(UserBase):
     id: uuid.UUID
     full_name: Optional[str]

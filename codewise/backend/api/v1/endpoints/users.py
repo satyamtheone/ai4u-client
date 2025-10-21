@@ -1,16 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from typing import List, Optional
-import uuid
+from typing import Optional
 
 from core.database import get_db
-from schemas.user import UserResponse, UserUpdate
+from schemas.user import UserResponse, UserUpdate, OrganizationMemberCreate
 from schemas.common import ResponseModel, PaginatedResponse, PaginationParams
 from api.dependencies import get_current_user
 from models.user import User
 from models.account_type import AccountType, AccountTypeEnum, UserRole
 from models.role import Role
+from services.auth_service import AuthService
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -46,18 +46,18 @@ async def update_current_user_profile(
         update_data = user_update.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(current_user, field, value)
-        
+
         db.commit()
         db.refresh(current_user)
-        
+
         logger.info("User profile updated", user_id=str(current_user.id))
-        
+
         return ResponseModel(
             success=True,
             message="Profile updated successfully",
             data=UserResponse.from_orm(current_user)
         )
-        
+
     except Exception as e:
         db.rollback()
         logger.error("Failed to update user profile", user_id=str(current_user.id), error=str(e))
@@ -172,4 +172,158 @@ async def list_users(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve users"
+        )
+
+@router.post("/members", response_model=ResponseModel[UserResponse])
+async def add_organization_member(
+    member_data: OrganizationMemberCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Add a new member to the organization (Org Admin only)
+
+    Only organization admins can add members to their organization.
+    The new member will be created with organization_member account type.
+    """
+    try:
+        # Get current user's account type and organization
+        account_type = db.query(AccountType).filter(
+            AccountType.user_id == current_user.id,
+            AccountType.is_primary == True
+        ).first()
+
+        if not account_type:
+            logger.error("User has no account type", user_id=str(current_user.id))
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User account type not found"
+            )
+
+        # Verify user is an organization member
+        if account_type.account_type != AccountTypeEnum.ORGANIZATION_MEMBER:
+            logger.warning("Non-org user tried to add member",
+                          user_id=str(current_user.id))
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only organization members can add members"
+            )
+
+        organization_id = account_type.organization_id
+
+        # Verify user has org_admin role
+        user_role = db.query(UserRole).join(Role).filter(
+            UserRole.user_id == current_user.id,
+            UserRole.organization_id == organization_id,
+            UserRole.is_active == True,
+            Role.slug == "org_admin"
+        ).first()
+
+        if not user_role:
+            logger.warning("Non-admin tried to add member",
+                          user_id=str(current_user.id),
+                          organization_id=str(organization_id))
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only organization admins can add members"
+            )
+
+        # Check if email already exists
+        existing_user = db.query(User).filter(User.email == member_data.email.lower()).first()
+        if existing_user:
+            logger.warning("Attempted to add existing email",
+                          email=member_data.email,
+                          admin_id=str(current_user.id))
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"User with email {member_data.email} already exists"
+            )
+
+        # Create new user
+        auth_service = AuthService(db)
+        hashed_password = auth_service.hash_password(member_data.password)
+
+        new_user = User(
+            first_name=member_data.first_name,
+            last_name=member_data.last_name,
+            full_name=f"{member_data.first_name} {member_data.last_name}",
+            email=member_data.email.lower(),
+            hashed_password=hashed_password,
+            phone=member_data.phone,
+            auth_method="email",
+            timezone=member_data.timezone,
+            locale=member_data.locale,
+            is_active=True,
+            is_email_verified=False,
+            accept_terms=True,
+            subscribe_newsletter=False
+        )
+
+        db.add(new_user)
+        db.flush()  # Get the user ID
+
+        # Create AccountType as organization_member
+        account = AccountType(
+            user_id=new_user.id,
+            account_type=AccountTypeEnum.ORGANIZATION_MEMBER,
+            organization_id=organization_id,
+            is_primary=True
+        )
+        db.add(account)
+
+        # Assign role (org_admin or org_member)
+        role_slug = member_data.role if member_data.role in ["org_admin", "org_member"] else "org_member"
+        role = db.query(Role).filter(Role.slug == role_slug).first()
+
+        if not role:
+            # Create the role if it doesn't exist
+            role = Role(
+                name="Organization Member" if role_slug == "org_member" else "Organization Admin",
+                slug=role_slug,
+                description=f"{'Member' if role_slug == 'org_member' else 'Administrator'} of an organization"
+            )
+            db.add(role)
+            db.flush()
+
+        user_role_entry = UserRole(
+            user_id=new_user.id,
+            role_id=role.id,
+            organization_id=organization_id,
+            is_active=True
+        )
+        db.add(user_role_entry)
+
+        db.commit()
+        db.refresh(new_user)
+
+        logger.info("Organization member added",
+                   admin_id=str(current_user.id),
+                   new_user_id=str(new_user.id),
+                   organization_id=str(organization_id),
+                   role=role_slug)
+
+        # TODO: Send invitation email if requested
+        if member_data.send_invitation_email:
+            logger.info("Invitation email should be sent",
+                       email=member_data.email,
+                       organization_id=str(organization_id))
+            # Implement email sending logic here
+
+        return ResponseModel(
+            success=True,
+            message=f"Member added successfully to organization",
+            data=UserResponse.from_orm(new_user)
+        )
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error("Failed to add organization member",
+                    admin_id=str(current_user.id),
+                    error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to add organization member"
         )
