@@ -139,8 +139,8 @@ class UserService:
             from core.role_init import get_role_for_account_type, init_system_roles
             from models.account_type import AccountTypeEnum
 
-            # Ensure system roles exist
-            init_system_roles(self.db)
+            # Ensure system roles exist (don't auto-commit, we're in a transaction)
+            init_system_roles(self.db, auto_commit=False)
 
             # Convert string to enum
             account_type_enum = AccountTypeEnum.INDIVIDUAL if account_type == "individual" else AccountTypeEnum.ORGANIZATION_MEMBER

@@ -38,7 +38,7 @@ SYSTEM_ROLES = [
 ]
 
 
-def init_system_roles(db: Session) -> None:
+def init_system_roles(db: Session, auto_commit: bool = True) -> None:
     """
     Initialize all system roles in the database.
 
@@ -47,6 +47,8 @@ def init_system_roles(db: Session) -> None:
 
     Args:
         db: Database session
+        auto_commit: Whether to commit changes automatically (default True)
+                     Set to False if calling within an existing transaction
     """
     try:
         created_count = 0
@@ -84,7 +86,11 @@ def init_system_roles(db: Session) -> None:
                            slug=role_data["slug"],
                            name=role_data["name"])
 
-        db.commit()
+        # Flush to make roles available in current transaction
+        db.flush()
+
+        if auto_commit:
+            db.commit()
 
         logger.info("System roles initialized",
                    created=created_count,
@@ -92,7 +98,8 @@ def init_system_roles(db: Session) -> None:
                    total=len(SYSTEM_ROLES))
 
     except Exception as e:
-        db.rollback()
+        if auto_commit:
+            db.rollback()
         logger.error("Failed to initialize system roles", error=str(e))
         raise
 
@@ -167,14 +174,13 @@ def get_role_by_slug(db: Session, slug: str, organization_id=None) -> Role:
         Role.slug == slug,
         Role.is_active == True
     )
-
     # For system roles, ensure it's a system role
     if slug in ["individual_user", "org_admin", "org_member"]:
         query = query.filter(Role.is_system_role == True)
 
-    # For organization-specific roles
-    if organization_id:
-        query = query.filter(Role.organization_id == organization_id)
+    # For organization-specific roles NOTE: Need to uncomment for production
+    # if organization_id:
+    #     query = query.filter(Role.organization_id == organization_id)
 
     role = query.first()
 

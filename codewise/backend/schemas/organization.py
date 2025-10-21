@@ -11,7 +11,8 @@ class OrganizationBase(BaseModel):
 
 class OrganizationCreate(OrganizationBase):
     slug: str = Field(..., min_length=1, max_length=100)
-    
+    company_size: Optional[str] = None
+
     @validator('slug')
     def validate_slug(cls, v):
         if not v.replace('-', '').replace('_', '').isalnum():

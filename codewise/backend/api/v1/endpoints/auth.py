@@ -55,16 +55,27 @@ async def register(
                 slug=slug,
                 description=user_data.organization_data.description,
                 industry=user_data.organization_data.industry,
-                website=user_data.organization_data.website
+                website=user_data.organization_data.website,
+                company_size=user_data.organization_data.company_size
             )
 
-            organization = org_service.create_organization(org_create, user.id)
-            if not organization:
-                # Rollback user creation if organization creation fails
+            try:
+                organization = org_service.create_organization(org_create, user.id)
+            except ValueError as e:
+                # Role-related error
                 db.rollback()
+                logger.error("Role system error during org creation", error=str(e))
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Role system error: {str(e)}"
+                )
+            except Exception as e:
+                # Other errors (e.g., duplicate slug)
+                db.rollback()
+                logger.error("Failed to create organization", error=str(e))
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Failed to create organization. Slug may already exist."
+                    detail=f"Failed to create organization: {str(e)}"
                 )
 
             logger.info("Organization and admin user created", user_id=str(user.id), org_id=str(organization.id))

@@ -272,7 +272,10 @@ async def add_organization_member(
         db.add(account)
 
         # Assign role (org_admin or org_member)
-        from core.role_init import get_role_by_slug
+        from core.role_init import get_role_by_slug, init_system_roles
+
+        # Ensure roles exist
+        init_system_roles(db, auto_commit=False)
 
         role_slug = member_data.role if member_data.role in ["org_admin", "org_member"] else "org_member"
 
