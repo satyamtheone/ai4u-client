@@ -7,10 +7,9 @@ from core.database import get_db
 from schemas.user import UserResponse, UserUpdate, OrganizationMemberCreate
 from schemas.common import ResponseModel, PaginatedResponse, PaginationParams
 from api.dependencies import get_current_user
-from models.user import User
+from models.user import User, AuthMethodEnum
 from models.account_type import AccountType, AccountTypeEnum, UserRole
 from models.role import Role
-from services.auth_service import AuthService
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -240,17 +239,18 @@ async def add_organization_member(
             )
 
         # Create new user
-        auth_service = AuthService(db)
-        hashed_password = auth_service.hash_password(member_data.password)
+        from core.security import SecurityService
+
+        hashed_password = SecurityService.get_password_hash(member_data.password)
 
         new_user = User(
             first_name=member_data.first_name,
             last_name=member_data.last_name,
             full_name=f"{member_data.first_name} {member_data.last_name}",
             email=member_data.email.lower(),
-            hashed_password=hashed_password,
+            password_hash=hashed_password,
             phone=member_data.phone,
-            auth_method="email",
+            auth_method=AuthMethodEnum.EMAIL,
             timezone=member_data.timezone,
             locale=member_data.locale,
             is_active=True,
