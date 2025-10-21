@@ -272,26 +272,25 @@ async def add_organization_member(
         db.add(account)
 
         # Assign role (org_admin or org_member)
+        from core.role_init import get_role_by_slug
+
         role_slug = member_data.role if member_data.role in ["org_admin", "org_member"] else "org_member"
-        role = db.query(Role).filter(Role.slug == role_slug).first()
 
-        if not role:
-            # Create the role if it doesn't exist
-            role = Role(
-                name="Organization Member" if role_slug == "org_member" else "Organization Admin",
-                slug=role_slug,
-                description=f"{'Member' if role_slug == 'org_member' else 'Administrator'} of an organization"
+        try:
+            role = get_role_by_slug(db, role_slug, organization_id)
+            user_role_entry = UserRole(
+                user_id=new_user.id,
+                role_id=role.id,
+                organization_id=organization_id,
+                is_active=True
             )
-            db.add(role)
-            db.flush()
-
-        user_role_entry = UserRole(
-            user_id=new_user.id,
-            role_id=role.id,
-            organization_id=organization_id,
-            is_active=True
-        )
-        db.add(user_role_entry)
+            db.add(user_role_entry)
+        except ValueError as e:
+            logger.error(f"Role not found: {str(e)}", role_slug=role_slug)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"System role '{role_slug}' not found. Please contact administrator."
+            )
 
         db.commit()
         db.refresh(new_user)

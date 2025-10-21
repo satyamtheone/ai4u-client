@@ -30,6 +30,8 @@ class Endpoints:
     LOGIN = f"{API_V1_PREFIX}/auth/login"
     LOGOUT = f"{API_V1_PREFIX}/auth/logout"
     ME = f"{API_V1_PREFIX}/users/me"
+    ADD_MEMBER = f"{API_V1_PREFIX}/users/members"
+    LIST_USERS = f"{API_V1_PREFIX}/users/"
     HEALTH = "/health"
 
 

@@ -136,22 +136,29 @@ class UserService:
     def _assign_default_role(self, user_id: uuid.UUID, account_type: str):
         """Assign default role to user based on account type"""
         try:
-            from models.role import Role
+            from core.role_init import get_role_for_account_type, init_system_roles
+            from models.account_type import AccountTypeEnum
 
-            # Map account type to role slug
-            # AccountTypeEnum: "individual" or "organization_member"
-            role_slug = "individual_user" if account_type == "individual" else "org_user"
-            role = self.db.query(Role).filter(Role.slug == role_slug).first()
+            # Ensure system roles exist
+            init_system_roles(self.db)
+
+            # Convert string to enum
+            account_type_enum = AccountTypeEnum.INDIVIDUAL if account_type == "individual" else AccountTypeEnum.ORGANIZATION_MEMBER
+
+            # Get the appropriate role
+            role = get_role_for_account_type(self.db, account_type_enum)
 
             if role:
                 user_role = UserRole(
                     user_id=user_id,
                     role_id=role.id,
-                    organization_id=None
+                    organization_id=None,
+                    is_active=True
                 )
                 self.db.add(user_role)
+                logger.info("Assigned default role", user_id=str(user_id), role=role.slug)
             else:
-                logger.warning("Role not found", role_slug=role_slug, user_id=str(user_id), account_type=account_type)
+                logger.warning("Role not found", user_id=str(user_id), account_type=account_type)
 
         except Exception as e:
             logger.error("Failed to assign default role", user_id=str(user_id), error=str(e))

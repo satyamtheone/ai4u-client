@@ -71,33 +71,48 @@ class OrganizationService:
             return None
     
     def _add_user_to_organization(
-        self, 
-        user_id: uuid.UUID, 
+        self,
+        user_id: uuid.UUID,
         organization_id: uuid.UUID,
-        role_slug: str = "org_user"
+        role_slug: str = "org_member"
     ):
         """Add user to organization with specified role"""
         try:
-            from models.role import Role
-            
+            from core.role_init import get_role_by_slug, init_system_roles
+
+            # Ensure system roles exist
+            init_system_roles(self.db)
+
             # Create account type using the enum member (not string)
             account = AccountType(
                 user_id=user_id,
                 organization_id=organization_id,
-                account_type=AccountTypeEnum.ORGANIZATION_MEMBER
+                account_type=AccountTypeEnum.ORGANIZATION_MEMBER,
+                is_primary=True
             )
             self.db.add(account)
-            
-            # Assign role
-            role = self.db.query(Role).filter(Role.slug == role_slug).first()
-            if role:
+
+            # Get role using the role initialization system
+            try:
+                role = get_role_by_slug(self.db, role_slug, organization_id)
                 user_role = UserRole(
                     user_id=user_id,
                     role_id=role.id,
-                    organization_id=organization_id
+                    organization_id=organization_id,
+                    is_active=True
                 )
                 self.db.add(user_role)
-                
+                logger.info("Assigned organization role",
+                           user_id=str(user_id),
+                           role=role_slug,
+                           organization_id=str(organization_id))
+            except ValueError as e:
+                logger.error(f"Role not found: {str(e)}",
+                           role_slug=role_slug,
+                           user_id=str(user_id))
+                raise
+
         except Exception as e:
-            logger.error("Failed to add user to organization", 
+            logger.error("Failed to add user to organization",
                         user_id=str(user_id), org_id=str(organization_id), error=str(e))
+            raise

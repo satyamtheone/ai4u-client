@@ -6,7 +6,8 @@ import structlog
 
 from core.config import settings
 from core.logging import setup_logging
-from core.database import engine
+from core.database import engine, SessionLocal
+from core.role_init import init_system_roles, ensure_roles_exist
 from api.v1.router import api_router
 from middleware.request_logging import RequestLoggingMiddleware
 from middleware.rate_limiting import RateLimitingMiddleware
@@ -19,6 +20,23 @@ logger = structlog.get_logger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan management"""
     logger.info("Starting application", environment=settings.ENVIRONMENT)
+
+    # Initialize system roles on startup
+    try:
+        db = SessionLocal()
+        logger.info("Initializing system roles...")
+        init_system_roles(db)
+
+        # Verify all roles exist
+        if ensure_roles_exist(db):
+            logger.info("System roles verified successfully")
+        else:
+            logger.warning("Some system roles may be missing")
+
+        db.close()
+    except Exception as e:
+        logger.error("Failed to initialize system roles", error=str(e))
+
     yield
     logger.info("Shutting down application")
 
