@@ -15,7 +15,7 @@ export interface FormRadioProps
 
 const BASE_STYLES = `mt-1 rounded-full radio radio-primary`;
 const CARD_LABEL_STYLES = `
-  flex items-center p-4 rounded-xl cursor-pointer border-2 transition-all duration-300
+  flex items-center p-3 rounded-xl cursor-pointer border-2 transition-all duration-300
   /* Light Theme */
   bg-gray-50 border-gray-200 hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]
   /* Dark Theme */
