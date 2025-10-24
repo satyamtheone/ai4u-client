@@ -1,7 +1,10 @@
 import {
   Book,
+  CircleQuestionMark,
   Code,
+  FileQuestion,
   Home,
+  Lock,
   MessageSquare,
   Target,
   Trophy,
@@ -54,29 +57,39 @@ export const companySizeOptions = [
 export const LearningBoxes = [
   {
     title: "Level",
-
+    value: "level",
     icon: (
       <Trophy className="w-5 h-5 flex-shrink-0" style={{ color: "#f59e0b" }} />
     ),
   },
   {
     title: "Streak",
-
+    value: "current_streak",
     icon: (
       <Zap className="w-5 h-5 flex-shrink-0" style={{ color: "#2563eb" }} />
     ),
   },
   {
     title: "Accuracy",
-
+    value: "accuracy",
     icon: (
       <Target className="w-5 h-5 flex-shrink-0" style={{ color: "#8b5cf6" }} />
     ),
   },
   {
     title: "Responses Left",
+    value: "unlocked_responses",
 
-    icon: <Unlock className="w-5 h-5 flex-shrink-0 text-emerald-500" />,
+    icon: <Lock className="w-5 h-5 flex-shrink-0 text-emerald-500" />,
+  },
+
+  {
+    title: "Total questions",
+    value: "total_questions",
+
+    icon: (
+      <CircleQuestionMark className="w-5 h-5 flex-shrink-0 text-emerald-500" />
+    ),
   },
 ];
 

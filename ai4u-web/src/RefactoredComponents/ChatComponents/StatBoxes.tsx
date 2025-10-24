@@ -1,4 +1,5 @@
 import { StatsBoxProps } from "../../commonComponents/Types";
+import { LearningActivity } from "../../services/api/LearningService";
 
 const StatBoxes = ({
   details,
@@ -6,7 +7,7 @@ const StatBoxes = ({
   isActive,
 }: {
   details: StatsBoxProps;
-  value: number | undefined;
+  value: any;
   isActive?: boolean;
 }) => {
   return (

@@ -1,8 +1,8 @@
-import { configureStore } from '@reduxjs/toolkit';
-import chatSlice from './chatSlice';
-import quizSlice from './quizSlice';
-import configSlice from './configSlice';
-import uiSlice from './uiSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import chatSlice from "./chatSlice";
+import quizSlice from "./quizSlice";
+import configSlice from "./configSlice";
+import uiSlice from "./uiSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,15 +15,21 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [
-          'config/setBackendService',
-          'config/setLearningGateService',
-          'quiz/startQuiz',
+          "config/setBackendService",
+          "config/setLearningGateService",
+          "quiz/startQuiz",
+          "config/setLearningService",
         ],
-        ignoredActionsPaths: ['payload.backendService', 'payload.learningGateService'],
+        ignoredActionsPaths: [
+          "payload.backendService",
+          "payload.learningGateService",
+          "payload.learningService",
+        ],
         ignoredPaths: [
-          'config.backendService',
-          'config.learningGateService',
-          'quiz.currentQuestions',
+          "config.backendService",
+          "config.learningGateService",
+          "config.learningService",
+          "quiz.currentQuestions",
         ],
       },
     }),
