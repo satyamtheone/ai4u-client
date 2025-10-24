@@ -10,24 +10,21 @@ import {
 } from "../store/quizSlice";
 import { sendMessage } from "../store/chatSlice";
 import { addNotification } from "../store/uiSlice";
-import {
-  Lock,
-  ChevronLeft,
-  ChevronRight,
-  Send,
-  SkipForward,
-  X,
-} from "lucide-react";
+import QuizResults from "./QuizResults";
+import ModalProvider from "../commonComponents/Dialog/ModalProvider";
+import QuizFormModal from "../RefactoredComponents/QuizComponents/QuizFormModal";
+import { toAnswerType } from "../RefactoredComponents/Constants";
 
 const QuizOverlay: React.FC = () => {
   const dispatch = useAppDispatch();
   const {
+    isActive,
     currentQuestions,
     currentQuestionIndex,
     selectedAnswers,
-    isSubmitting,
     stats,
     pendingUserMessage,
+    isSubmitting,
   } = useAppSelector((state) => state.quiz);
 
   const [showResults, setShowResults] = useState(false);
@@ -75,20 +72,7 @@ const QuizOverlay: React.FC = () => {
       const detectedType = detectQuestionType(question);
 
       // Map to expected answer_type format
-      let answerType: string;
-      switch (detectedType) {
-        case "single_choice":
-          answerType = "single_choice";
-          break;
-        case "multiple_choice":
-          answerType = "multi_choice"; // Note: backend expects 'multi_choice' not 'multiple_choice'
-          break;
-        case "short_answer":
-          answerType = "short_answer";
-          break;
-        default:
-          answerType = "single_choice";
-      }
+      const answerType = toAnswerType(detectedType);
 
       // Get the selected answer value
       let selectedAnswer;
@@ -218,263 +202,32 @@ const QuizOverlay: React.FC = () => {
   }
 
   return (
-    <div className="quiz-overlay-backdrop">
-      <div className="quiz-overlay-container">
-        <div className="quiz-header">
-          <div className="quiz-lock-icon">
-            <Lock size={48} />
-          </div>
-          <h2 className="quiz-title">Answer Quiz to Unlock AI Responses</h2>
-          <p className="quiz-subtitle">Learn while you code with AI4U</p>
-
-          <div className="quiz-question-counter">
-            Question {currentQuestionIndex + 1} of {currentQuestions.length}
-          </div>
-
-          <div className="quiz-stats-row">
-            <div className="quiz-stat">Level {stats.level}</div>
-            <div className="quiz-stat">Streak: {stats.streak}</div>
-            <div className="quiz-stat">Accuracy: {stats.accuracy}%</div>
-          </div>
-        </div>
-
-        <div className="quiz-content">
-          <div className="quiz-question-section">
-            <div className="question-text">{currentQuestion.question}</div>
-            <div className="question-meta">
-              <span className="question-topic">{currentQuestion.topic}</span>
-              <span className="question-difficulty">
-                {currentQuestion.difficulty.toUpperCase()}
-              </span>
-              <span className="question-type-badge">
-                {questionType === "multiple_choice"
-                  ? "Multiple Choice"
-                  : questionType === "short_answer"
-                  ? "Short Answer"
-                  : "Single Choice"}
-              </span>
-            </div>
-          </div>
-
-          <div className="quiz-options-section">
-            {questionType === "single_choice" && (
-              <div className="single-choice-options">
-                {currentQuestion.options?.map(
-                  (option: string, index: number) => (
-                    <label key={index} className="quiz-option-label">
-                      <input
-                        type="radio"
-                        name={`question-${currentQuestion.id}`}
-                        value={index}
-                        checked={
-                          selectedAnswers[currentQuestion.id]?.answer === index
-                        }
-                        onChange={() => handleSingleChoice(index)}
-                        className="quiz-option-input"
-                      />
-                      <div className="quiz-option-content">
-                        <span className="option-letter">
-                          {String.fromCharCode(65 + index)}
-                        </span>
-                        <span className="option-text">{option}</span>
-                      </div>
-                    </label>
-                  )
-                )}
-              </div>
-            )}
-
-            {questionType === "multiple_choice" && (
-              <div className="multiple-choice-options">
-                <div className="instruction">Select all that apply:</div>
-                {currentQuestion.options?.map(
-                  (option: string, index: number) => (
-                    <label key={index} className="quiz-option-label">
-                      <input
-                        type="checkbox"
-                        value={index}
-                        checked={
-                          selectedAnswers[
-                            currentQuestion.id
-                          ]?.answers?.includes(index) || false
-                        }
-                        onChange={() => handleMultipleChoice(index)}
-                        className="quiz-option-input"
-                      />
-                      <div className="quiz-option-content">
-                        <span className="option-letter">
-                          {String.fromCharCode(65 + index)}
-                        </span>
-                        <span className="option-text">{option}</span>
-                      </div>
-                    </label>
-                  )
-                )}
-              </div>
-            )}
-
-            {questionType === "short_answer" && (
-              <div className="short-answer-section">
-                <div className="instruction">Type your answer below:</div>
-                <textarea
-                  value={selectedAnswers[currentQuestion.id]?.answer || ""}
-                  onChange={(e) => handleShortAnswer(e.target.value)}
-                  placeholder="Enter your answer here..."
-                  maxLength={currentQuestion.max_length}
-                  className="short-answer-input"
-                  rows={4}
-                />
-                {currentQuestion.max_length && (
-                  <div className="char-counter">
-                    {(selectedAnswers[currentQuestion.id]?.answer || "").length}{" "}
-                    / {currentQuestion.max_length}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="quiz-navigation">
-            <button
-              onClick={handlePrevious}
-              disabled={isFirstQuestion}
-              className="nav-button"
-            >
-              <ChevronLeft size={16} />
-              Previous
-            </button>
-
-            <button
-              onClick={() => {
-                // Skip current question
-                const newAnswers = { ...selectedAnswers };
-                delete newAnswers[currentQuestion.id];
-                if (!isLastQuestion) {
-                  handleNext();
-                }
-              }}
-              className="nav-button skip"
-            >
-              Skip This
-            </button>
-
-            <button
-              onClick={handleNext}
-              disabled={isLastQuestion}
-              className="nav-button"
-            >
-              Next
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          <div className="quiz-actions">
-            <button
-              onClick={handleSubmitAll}
-              disabled={!canSubmit || isSubmitting}
-              className="submit-button primary"
-            >
-              <Send size={16} />
-              {isSubmitting
-                ? "Submitting..."
-                : `Submit (${answeredCount}/${currentQuestions.length})`}
-            </button>
-
-            <button
-              onClick={handleSkipAll}
-              disabled={isSubmitting}
-              className="submit-button secondary"
-            >
-              <SkipForward size={16} />
-              Skip All Questions
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Quiz Results Component
-interface QuizResultsProps {
-  results: any;
-  onClose: () => void;
-}
-
-const QuizResults: React.FC<QuizResultsProps> = ({ results, onClose }) => {
-  const { results: questionResults, updated_stats } = results;
-
-  const correctCount =
-    questionResults?.filter((r: any) => r.correct).length || 0;
-  const totalQuestions = questionResults?.length || 0;
-  const totalPoints =
-    questionResults?.reduce(
-      (sum: number, r: any) => sum + (r.points_earned || 0),
-      0
-    ) || 0;
-
-  return (
-    <div className="quiz-overlay-backdrop">
-      <div className="quiz-results-container">
-        <div className="results-header">
-          <div className="results-icon">
-            {correctCount > totalQuestions / 2 ? "🎉" : "💪"}
-          </div>
-          <h2 className="results-title">Quiz Complete!</h2>
-          <div className="results-summary">
-            <div className="summary-item">
-              <span className="summary-label">Score:</span>
-              <span className="summary-value">
-                {correctCount}/{totalQuestions}
-              </span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Points:</span>
-              <span className="summary-value">{totalPoints}</span>
-            </div>
-            <div className="summary-item highlight">
-              <span className="summary-label">Unlocked:</span>
-              <span className="summary-value">
-                {updated_stats?.unlockedResponses || 1} responses
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="results-breakdown">
-          <h3>Question Breakdown:</h3>
-          <div className="breakdown-list">
-            {questionResults?.map((result: any, index: number) => (
-              <div
-                key={index}
-                className={`breakdown-item ${
-                  result.correct ? "correct" : "incorrect"
-                }`}
-              >
-                <div className="breakdown-icon">
-                  {result.correct ? "✅" : "❌"}
-                </div>
-                <div className="breakdown-content">
-                  <span className="breakdown-number">Q{index + 1}</span>
-                  <span className="breakdown-status">
-                    {result.correct ? "Correct" : "Incorrect"}
-                  </span>
-                  {result.points_earned && (
-                    <span className="breakdown-points">
-                      +{result.points_earned} pts
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button onClick={onClose} className="continue-button">
-          Continue Coding
-        </button>
-      </div>
-    </div>
+    <ModalProvider
+      onClose={() => {}}
+      sizes="lg"
+      children={
+        <QuizFormModal
+          stats={stats}
+          currentQuestionIndex={currentQuestionIndex}
+          currentQuestions={currentQuestions}
+          currentQuestion={currentQuestion}
+          selectedAnswers={selectedAnswers}
+          handleSkipAll={handleSkipAll}
+          handleSubmitAll={handleSubmitAll}
+          answeredCount={answeredCount}
+          canSubmit={canSubmit}
+          handleMultipleChoice={handleMultipleChoice}
+          handleNext={handleNext}
+          handlePrevious={handlePrevious}
+          handleShortAnswer={handleShortAnswer}
+          handleSingleChoice={handleSingleChoice}
+          isFirstQuestion={isFirstQuestion}
+          isLastQuestion={isLastQuestion}
+          isSubmitting={isSubmitting}
+          questionType={questionType}
+        />
+      }
+    />
   );
 };
 

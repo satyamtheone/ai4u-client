@@ -13,6 +13,14 @@ module.exports = {
           "0%": { opacity: "0", transform: "translateY(30px) scale(0.95)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
+        chatInBot: {
+          "0%": { opacity: "0", transform: "translateX(-20px) scale(0.98)" },
+          "100%": { opacity: "1", transform: "translateX(0) scale(1)" },
+        },
+        chatInUser: {
+          "0%": { opacity: "0", transform: "translateX(20px) scale(0.98)" },
+          "100%": { opacity: "1", transform: "translateX(0) scale(1)" },
+        },
       },
       fontFamily: {
         sans: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
@@ -42,6 +50,8 @@ module.exports = {
       animation: {
         fadeInBackdrop: "fadeInBackdrop 0.3s ease-out",
         slideInQuiz: "slideInQuiz 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+        chatInBot: "chatInBot 0.35s ease-out both",
+        chatInUser: "chatInUser 0.35s ease-out both",
       },
     },
   },

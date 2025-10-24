@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  TrendingUp, 
-  Target, 
-  Award, 
+import React, { useState, useEffect } from "react";
+import {
+  Users,
+  TrendingUp,
+  Target,
+  Award,
   Calendar,
   ArrowUpRight,
   ArrowDownRight,
   Plus,
   MoreVertical,
-  Download
-} from 'lucide-react';
-import { useAuth } from '../auth/AuthProvider';
-import { Card } from '../shared/Card';
-import { Button } from '../shared/Button';
+  Download,
+} from "lucide-react";
+import { useAuth } from "../auth/AuthProvider";
+import { Card } from "../shared/Card";
+import { Button } from "../shared/Button";
 
 interface DashboardStats {
   totalMembers: number;
@@ -31,12 +31,12 @@ interface TeamMember {
   role: string;
   progress: number;
   lastActive: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: "active" | "inactive" | "pending";
 }
 
 interface RecentActivity {
   id: number;
-  type: 'completion' | 'enrollment' | 'achievement';
+  type: "completion" | "enrollment" | "achievement";
   user: string;
   description: string;
   timestamp: string;
@@ -75,83 +75,83 @@ export const AdminDashboard: React.FC = () => {
       setTeamMembers([
         {
           id: 1,
-          name: 'Sarah Wilson',
-          email: 'sarah@company.com',
-          role: 'Developer',
+          name: "Sarah Wilson",
+          email: "sarah@company.com",
+          role: "Developer",
           progress: 85,
-          lastActive: '2 hours ago',
-          status: 'active',
+          lastActive: "2 hours ago",
+          status: "active",
         },
         {
           id: 2,
-          name: 'Mike Johnson',
-          email: 'mike@company.com',
-          role: 'Designer',
+          name: "Mike Johnson",
+          email: "mike@company.com",
+          role: "Designer",
           progress: 92,
-          lastActive: '1 day ago',
-          status: 'active',
+          lastActive: "1 day ago",
+          status: "active",
         },
         {
           id: 3,
-          name: 'Emily Chen',
-          email: 'emily@company.com',
-          role: 'Product Manager',
+          name: "Emily Chen",
+          email: "emily@company.com",
+          role: "Product Manager",
           progress: 56,
-          lastActive: '3 days ago',
-          status: 'inactive',
+          lastActive: "3 days ago",
+          status: "inactive",
         },
         {
           id: 4,
-          name: 'David Brown',
-          email: 'david@company.com',
-          role: 'Developer',
+          name: "David Brown",
+          email: "david@company.com",
+          role: "Developer",
           progress: 0,
-          lastActive: 'Never',
-          status: 'pending',
+          lastActive: "Never",
+          status: "pending",
         },
         {
           id: 5,
-          name: 'Lisa Garcia',
-          email: 'lisa@company.com',
-          role: 'QA Engineer',
+          name: "Lisa Garcia",
+          email: "lisa@company.com",
+          role: "QA Engineer",
           progress: 73,
-          lastActive: '5 hours ago',
-          status: 'active',
+          lastActive: "5 hours ago",
+          status: "active",
         },
       ]);
 
       setRecentActivity([
         {
           id: 1,
-          type: 'completion',
-          user: 'Sarah Wilson',
+          type: "completion",
+          user: "Sarah Wilson",
           description: 'completed "JavaScript Fundamentals"',
-          timestamp: '2 hours ago',
+          timestamp: "2 hours ago",
         },
         {
           id: 2,
-          type: 'achievement',
-          user: 'Mike Johnson',
+          type: "achievement",
+          user: "Mike Johnson",
           description: 'earned "Design Expert" badge',
-          timestamp: '1 day ago',
+          timestamp: "1 day ago",
         },
         {
           id: 3,
-          type: 'enrollment',
-          user: 'Emily Chen',
+          type: "enrollment",
+          user: "Emily Chen",
           description: 'enrolled in "Product Strategy"',
-          timestamp: '2 days ago',
+          timestamp: "2 days ago",
         },
         {
           id: 4,
-          type: 'completion',
-          user: 'Lisa Garcia',
+          type: "completion",
+          user: "Lisa Garcia",
           description: 'completed "Testing Best Practices"',
-          timestamp: '3 days ago',
+          timestamp: "3 days ago",
         },
       ]);
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      console.error("Failed to fetch dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -159,24 +159,24 @@ export const AdminDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'pending':
-        return 'bg-gray-100 text-gray-800';
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "inactive":
+        return "bg-yellow-100 text-yellow-800";
+      case "pending":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'completion':
+      case "completion":
         return <Target className="w-4 h-4 text-green-600" />;
-      case 'achievement':
+      case "achievement":
         return <Award className="w-4 h-4 text-yellow-600" />;
-      case 'enrollment':
+      case "enrollment":
         return <Plus className="w-4 h-4 text-blue-600" />;
       default:
         return <Calendar className="w-4 h-4 text-gray-600" />;
@@ -228,10 +228,14 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Members</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.totalMembers}</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.totalMembers}
+              </p>
               <div className="flex items-center mt-2">
                 <ArrowUpRight className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-green-600">+{stats.monthlyGrowth}% this month</span>
+                <span className="text-sm text-green-600">
+                  +{stats.monthlyGrowth}% this month
+                </span>
               </div>
             </div>
             <Users className="w-8 h-8 text-blue-600" />
@@ -241,10 +245,15 @@ export const AdminDashboard: React.FC = () => {
         <Card padding="lg" className="border-l-4 border-l-green-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Members</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.activeMembers}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Active Members
+              </p>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.activeMembers}
+              </p>
               <p className="text-sm text-gray-500 mt-2">
-                {Math.round((stats.activeMembers / stats.totalMembers) * 100)}% engagement rate
+                {Math.round((stats.activeMembers / stats.totalMembers) * 100)}%
+                engagement rate
               </p>
             </div>
             <TrendingUp className="w-8 h-8 text-green-600" />
@@ -254,8 +263,12 @@ export const AdminDashboard: React.FC = () => {
         <Card padding="lg" className="border-l-4 border-l-yellow-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Completion Rate</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.completionRate}%</p>
+              <p className="text-sm font-medium text-gray-600">
+                Completion Rate
+              </p>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.completionRate}%
+              </p>
               <p className="text-sm text-gray-500 mt-2">
                 Avg. progress: {stats.avgProgress}%
               </p>
@@ -267,8 +280,12 @@ export const AdminDashboard: React.FC = () => {
         <Card padding="lg" className="border-l-4 border-l-purple-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Courses</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.totalCourses}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Active Courses
+              </p>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.totalCourses}
+              </p>
               <p className="text-sm text-gray-500 mt-2">
                 Learning paths available
               </p>
@@ -285,7 +302,9 @@ export const AdminDashboard: React.FC = () => {
           <Card>
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Team Progress</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Team Progress
+                </h3>
                 <Button variant="ghost" size="sm">
                   View All
                 </Button>
@@ -320,13 +339,15 @@ export const AdminDashboard: React.FC = () => {
                           <div className="text-sm font-medium text-gray-900">
                             {member.name}
                           </div>
-                          <div className="text-sm text-gray-500">{member.role}</div>
+                          <div className="text-sm text-gray-500">
+                            {member.role}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="w-full bg-gray-200 rounded-full h-2 mr-3">
-                            <div 
+                            <div
                               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${member.progress}%` }}
                             ></div>
@@ -337,7 +358,11 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(member.status)}`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                            member.status
+                          )}`}
+                        >
                           {member.status}
                         </span>
                       </td>
@@ -361,7 +386,9 @@ export const AdminDashboard: React.FC = () => {
         <div>
           <Card>
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Recent Activity
+              </h3>
             </div>
             <div className="p-6">
               <div className="space-y-4">
@@ -372,10 +399,12 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-900">
-                        <span className="font-medium">{activity.user}</span>{' '}
+                        <span className="font-medium">{activity.user}</span>{" "}
                         {activity.description}
                       </p>
-                      <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                      <p className="text-xs text-gray-500">
+                        {activity.timestamp}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -392,9 +421,11 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => {/* Navigate to team management */}}
+          onClick={() => {
+            /* Navigate to team management */
+          }}
         >
           <div className="p-6 text-center">
             <Users className="w-8 h-8 text-blue-600 mx-auto mb-3" />
@@ -405,9 +436,11 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => {/* Navigate to learning paths */}}
+          onClick={() => {
+            /* Navigate to learning paths */
+          }}
         >
           <div className="p-6 text-center">
             <Award className="w-8 h-8 text-green-600 mx-auto mb-3" />
@@ -418,9 +451,11 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => {/* Navigate to analytics */}}
+          onClick={() => {
+            /* Navigate to analytics */
+          }}
         >
           <div className="p-6 text-center">
             <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-3" />

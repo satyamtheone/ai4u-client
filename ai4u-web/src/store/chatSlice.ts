@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { ChatMessage, ChatResponse } from '../types';
-import { BackendService } from '../services/BackendService';
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { ChatMessage, ChatResponse } from "../types";
+import { BackendService } from "../services/BackendService";
 
 interface ChatState {
   messages: ChatMessage[];
@@ -20,22 +20,23 @@ export const sendMessage = createAsyncThunk<
   string,
   { rejectValue: string }
 >(
-  'chat/sendMessage',
+  "chat/sendMessage",
   async (message: string, { getState, rejectWithValue }) => {
     try {
       const state = getState() as any;
+
       const backendService = state.config.backendService as BackendService;
-      
+
       if (!backendService) {
-        throw new Error('Backend service not initialized');
+        throw new Error("Backend service not initialized");
       }
-      
+
       const response = await backendService.sendMessage(message);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -44,7 +45,7 @@ export const sendMessage = createAsyncThunk<
 );
 
 const chatSlice = createSlice({
-  name: 'chat',
+  name: "chat",
   initialState,
   reducers: {
     addMessage: (state, action: PayloadAction<ChatMessage>) => {
@@ -68,14 +69,17 @@ const chatSlice = createSlice({
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.isLoading = false;
-        
+
         if (action.payload.session_id) {
           state.sessionId = action.payload.session_id;
         }
-        
-        if (action.payload.type === 'chat_response' && action.payload.response) {
+
+        if (
+          action.payload.type === "chat_response" &&
+          action.payload.response
+        ) {
           state.messages.push({
-            type: 'bot',
+            type: "bot",
             response: action.payload.response,
             timestamp: action.payload.timestamp || new Date().toISOString(),
             source: action.payload.source,
@@ -89,5 +93,6 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessage, clearMessages, setSessionId, setError } = chatSlice.actions;
+export const { addMessage, clearMessages, setSessionId, setError } =
+  chatSlice.actions;
 export default chatSlice.reducer;

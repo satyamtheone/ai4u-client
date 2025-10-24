@@ -163,6 +163,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
 
     try {
       const organizationData: OrganizationRegistrationData = {
+        organizationName: formData.organizationName.trim(),
         first_name: formData.adminFirstName.trim(),
         last_name: formData.adminLastName.trim(),
         description: formData.organizationDescription.trim(),

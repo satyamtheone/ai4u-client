@@ -48,7 +48,7 @@ const DynamicButton: React.FC<ButtonProps> = ({
 
     case "pill":
       variantStyles =
-        "dark:bg-darkBackGround-300 bg-gray-300 rounded-[20px] dark:text-darkBackGround-400 text-black border border-darkBackGround-900 rounded-full text-[13px] font-medium py-2 px-4 transition-all duration-200 ease-in-out dark:hover:bg-darkBackGround-900 hover:bg-gray-400 hover:text-white hover:border-darkBackGround-100";
+        "dark:bg-darkBackGround-300 bg-gray-300 rounded-[20px] dark:text-darkBackGround-400  text-black border dark:border-darkBackGround-900 border-gray-400 rounded-full text-[13px] font-medium py-2 px-4 transition-all duration-200 ease-in-out dark:hover:bg-darkBackGround-900 hover:bg-gray-400 hover:text-white hover:border-darkBackGround-100 disabled:opacity-50 disabled:cursor-not-allowed";
       break;
 
     default:

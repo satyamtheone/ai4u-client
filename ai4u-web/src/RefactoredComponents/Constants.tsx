@@ -9,6 +9,7 @@ import {
   Zap,
 } from "lucide-react";
 import { ChatMessage } from "../types";
+import { Info, AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
 
 export const suggestedTopics = [
   "🧠 Explain React hooks",
@@ -149,3 +150,66 @@ export const GoogleIcon: React.FC<{ className?: string }> = ({
     />
   </svg>
 );
+
+export const getIcon = (type: string) => {
+  switch (type) {
+    case "success":
+      return <CheckCircle size={20} />;
+    case "warning":
+      return <AlertTriangle size={20} />;
+    case "error":
+      return <AlertCircle size={20} />;
+    default:
+      return <Info size={20} />;
+  }
+};
+
+export const typeStyles = (type: string) => {
+  switch (type) {
+    case "success":
+      return {
+        wrap: "border-emerald-600/40 bg-emerald-600/40",
+        bar: "bg-emerald-500",
+        icon: "text-emerald-400",
+        message: "text-emerald-100",
+        highlight: "emerald-500",
+      };
+    case "warning":
+      return {
+        wrap: "border-amber-600/40 bg-amber-600/40",
+        bar: "bg-amber-500",
+        icon: "text-amber-400",
+        message: "text-amber-100",
+        highlight: "amber-500",
+      };
+    case "error":
+      return {
+        wrap: "border-red-600/40 bg-red-600/40",
+        bar: "bg-red-500",
+        icon: "text-red-400",
+        message: "text-red-100",
+        highlight: "red-300",
+      };
+    default:
+      return {
+        wrap: "border-blue-600/40 bg-blue-600/40",
+        bar: "bg-blue-500",
+        icon: "text-blue-400",
+        message: "text-blue-100",
+        highlight: "blue-500",
+      };
+  }
+};
+
+export const toAnswerType = (question_type?: string) => {
+  switch (question_type) {
+    case "single_choice":
+      return "single_choice";
+    case "multiple_choice": // ✅ correct value
+      return "multiple_choice";
+    case "short_answer":
+      return "short_answer";
+    default:
+      return "single_choice";
+  }
+};

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { ConfigManager } from "../services/ConfigManager";
-import { BackendService } from "../services/BackendService";
+
 import { LearningGateService } from "../services/LearningGateService";
 import {
   setConfig,
@@ -31,6 +31,7 @@ import { useDialog } from "../commonComponents/Dialog/DialogProvider";
 import ModalProvider from "../commonComponents/Dialog/ModalProvider";
 import DynamicButton from "../commonComponents/DynamicButton";
 import { LogOut } from "lucide-react";
+import { BackendService } from "../services/BackendService";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -55,6 +56,7 @@ const App: React.FC = () => {
   const backendService = useAppSelector(
     (state) => (state.config as any).backendService
   );
+
   const learningGateService = useAppSelector(
     (state) => (state.config as any).learningGateService
   );
@@ -312,7 +314,7 @@ const App: React.FC = () => {
           />
 
           {/* Input Area */}
-          <div className="absolute w-full bottom-0">
+          <div className="w-full bottom-0">
             <ChatInput
               handleKeyPress={handleKeyPress}
               handleSendMessage={handleSendMessage}
@@ -325,7 +327,7 @@ const App: React.FC = () => {
         </div>
       </div>
       {/* Only show quiz overlay for authenticated users */}
-      {quizActive && isAuthenticated && <QuizOverlay />}
+      {quizActive && (isAuthenticated || bypassAuth) && <QuizOverlay />}
       <NotificationContainer />
     </div>
   );

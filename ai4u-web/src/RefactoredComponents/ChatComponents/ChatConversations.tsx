@@ -1,14 +1,24 @@
 import { Brain, User } from "lucide-react";
 import { ChatMessage } from "../../types";
+import { useEffect, useRef } from "react";
 
 const ChatConversations = ({ messages }: { messages: ChatMessage[] }) => {
+  const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (endOfMessagesRef.current) {
+      endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
   return (
     <>
       {messages.map((message, index) => (
         <div
           key={index}
           className={`flex md:gap-3 gap-1 items-end ${
-            message.type === "user" ? "justify-end" : ""
+            message.type === "user"
+              ? "justify-end animate-chatInUser"
+              : "animate-chatInBot"
           }`}
         >
           {/* Bot Avatar */}
@@ -20,10 +30,10 @@ const ChatConversations = ({ messages }: { messages: ChatMessage[] }) => {
 
           {/* Message Bubble */}
           <div
-            className={`md:max-w-[70%] max-w-[85%] md:px-5 px-2 md:py-4 py-2 rounded-2xl text-sm leading-relaxed ${
+            className={`md:max-w-[70%] max-w-[85%] md:px-5 px-2 md:py-4 py-2 border rounded-2xl text-sm leading-relaxed ${
               message.type === "user"
-                ? "dark:bg-blue-600 bg-blue-500 text-white rounded-br-sm"
-                : "dark:bg-[#2a2a2a] bg-gray-300 dark:text-white text-black border border-[#404040] rounded-bl-sm"
+                ? "dark:bg-blue-600 bg-blue-500 text-white rounded-br-sm dark:border-blue-300 border-blue-800  "
+                : "dark:bg-[#2a2a2a] bg-gray-300 dark:text-white text-black border border-[#404040] rounded-bl-sm "
             }`}
           >
             <div>{message.message || message.response}</div>
@@ -47,6 +57,8 @@ const ChatConversations = ({ messages }: { messages: ChatMessage[] }) => {
               <User size={16} />
             </div>
           )}
+
+          <div ref={endOfMessagesRef} />
         </div>
       ))}
     </>

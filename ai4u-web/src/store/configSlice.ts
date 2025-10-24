@@ -14,7 +14,7 @@ interface ConfigState {
 
 const initialState: ConfigState = {
   config: {
-    backendUrl: "http://15.207.0.129:8000",
+    backendUrl: "http://15.207.0.129:8000/",
     timeout: 30000,
   },
   isConnected: false,

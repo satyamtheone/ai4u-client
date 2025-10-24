@@ -7,21 +7,27 @@ interface FormLabelHeaderProps {
   title: string;
   subtitle?: string;
   className?: string;
+  iconClass?: string;
 }
 
 export const FormLabelHeader: React.FC<FormLabelHeaderProps> = ({
   icon: Icon,
-  iconBg = "bg-blue-600",
+  iconBg = "dark:bg-blue-600 bg-blue-400",
   title,
   subtitle,
   className = "",
+  iconClass = "",
 }) => {
   return (
     <div className={`text-center dark:text-white text-white ${className}`}>
       <div
         className={`mx-auto h-12 w-12 ${iconBg} rounded-lg flex items-center justify-center mb-4`}
       >
-        <Icon className="h-6 w-6 ark:text-white dtext-black " />
+        <Icon
+          className={` ${
+            iconClass ? iconClass : "h-6 w-6 dark:text-white text-black"
+          } `}
+        />
       </div>
       <h2 className="text-2xl font-bold text-black dark:text-white ">
         {title}
