@@ -12,6 +12,12 @@ import App from "./components/App";
 import ErrorBoundary from "./RefactoredComponents/ErrorBoundary";
 import LandingPage from "./RefactoredComponents/LandingPage";
 import DialogProvider from "./commonComponents/Dialog/DialogProvider";
+import { debugEnvVars } from "./utils/envDebug";
+
+// Debug environment variables on startup
+if (process.env.NODE_ENV === 'development') {
+  debugEnvVars();
+}
 
 // Create React Query client
 const queryClient = new QueryClient({

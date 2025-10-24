@@ -14,12 +14,12 @@ interface ConfigState {
 
 const initialState: ConfigState = {
   config: {
-    backendUrl: "http://15.207.0.129:8000/",
-    timeout: 30000,
+    backendUrl: process.env.REACT_APP_BACKEND_URL || "http://localhost:8000",
+    timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || "30000"),
   },
   isConnected: false,
   connectionMessage: "Not connected",
-  learningGatesEnabled: true,
+  learningGatesEnabled: process.env.REACT_APP_FEATURE_LEARNING_GATES === 'true',
 };
 
 const configSlice = createSlice({

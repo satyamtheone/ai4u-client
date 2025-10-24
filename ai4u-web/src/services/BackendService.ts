@@ -25,8 +25,8 @@ export class BackendService {
   }
 
   constructor(backendUrl?: string) {
-    this.backendUrl = "http://15.207.0.129:8000";
-    console.log("Backend Service initialized with URL:", backendUrl);
+    this.backendUrl = backendUrl || process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+    console.log("Backend Service initialized with URL:", this.backendUrl);
     this.token = this.storage.getToken();
   }
 
