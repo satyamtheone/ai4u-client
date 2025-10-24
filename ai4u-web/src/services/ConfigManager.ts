@@ -1,16 +1,21 @@
 import { AI4UConfig } from "../types";
+import { getBackendUrl } from "../utils/apiConfig";
+
 export class ConfigManager {
   private static readonly CONFIG_KEY = "ai4u_config";
 
   public static getConfig(): AI4UConfig {
     const stored = localStorage.getItem(this.CONFIG_KEY);
+
+    // Use API config helper (handles proxy mode)
     const defaultConfig: AI4UConfig = {
-      backendUrl: "http://localhost:8000",
-      timeout: 30000,
+      backendUrl: getBackendUrl(),
+      timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || "30000"),
     };
 
     if (stored) {
       try {
+        // Merge stored config with defaults (stored config takes precedence)
         return { ...defaultConfig, ...JSON.parse(stored) };
       } catch (error) {
         console.error("Failed to parse stored config:", error);

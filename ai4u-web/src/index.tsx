@@ -13,10 +13,28 @@ import ErrorBoundary from "./RefactoredComponents/ErrorBoundary";
 import LandingPage from "./RefactoredComponents/LandingPage";
 import DialogProvider from "./commonComponents/Dialog/DialogProvider";
 import { debugEnvVars } from "./utils/envDebug";
+import { testBackendConnection } from "./utils/connectionDebug";
 
 // Debug environment variables on startup
 if (process.env.NODE_ENV === 'development') {
   debugEnvVars();
+
+  // Add helper function to clear cached config
+  (window as any).clearConfig = () => {
+    localStorage.removeItem('ai4u_config');
+    console.log('✅ Cached config cleared. Reloading...');
+    window.location.reload();
+  };
+
+  // Add helper function to test backend connection
+  (window as any).testBackend = () => {
+    const url = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+    testBackendConnection(url);
+  };
+
+  console.log('💡 Debug helpers available:');
+  console.log('  - clearConfig() - Clear cached backend URL');
+  console.log('  - testBackend() - Test backend connection');
 }
 
 // Create React Query client
