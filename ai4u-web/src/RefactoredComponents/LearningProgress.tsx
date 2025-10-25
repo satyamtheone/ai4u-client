@@ -62,8 +62,6 @@ const LearningProgress = ({
               ? currentStats[key as keyof QuizStats]
               : 0;
 
-          console.log("Rendering stat:", details.title, "Value:", statValue);
-
           return (
             <StatBoxes
               details={details}

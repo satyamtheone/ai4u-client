@@ -104,9 +104,9 @@ const QuizOverlay: React.FC = () => {
         setShowResults(true);
 
         // Process pending message after successful quiz submission
-        setTimeout(() => {
-          processPendingMessage();
-        }, 3000);
+        // setTimeout(() => {
+        //   processPendingMessage();
+        // }, 3000);
       }
     } catch (error) {
       console.error("Quiz submission failed:", error);
@@ -127,10 +127,10 @@ const QuizOverlay: React.FC = () => {
         setResults(result.payload);
         setShowResults(true);
 
-        // Process pending message after skip
-        setTimeout(() => {
-          processPendingMessage();
-        }, 2000);
+        //Process pending message after skip
+        // setTimeout(() => {
+        //   processPendingMessage();
+        // }, 2000);
       }
     } catch (error) {
       console.error("Quiz skip failed:", error);
@@ -203,7 +203,9 @@ const QuizOverlay: React.FC = () => {
 
   return (
     <ModalProvider
-      onClose={() => {}}
+      onClose={() => {
+        handleCloseResults();
+      }}
       sizes="lg"
       children={
         <QuizFormModal

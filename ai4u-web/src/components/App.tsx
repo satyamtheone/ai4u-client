@@ -42,7 +42,7 @@ const App: React.FC = () => {
   );
   const { openDialog, closeDialog } = useDialog();
   const { messages, isLoading, error } = useAppSelector((state) => state.chat);
-  const { isActive: quizActive } = useAppSelector((state) => state.quiz);
+  const { isActive: quizActive, stats } = useAppSelector((state) => state.quiz);
 
   const [showSidebar, setShowSidebar] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
