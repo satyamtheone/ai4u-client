@@ -2,16 +2,42 @@ import { QuizStats } from "../store/quizSlice";
 import { LearningBoxes } from "./Constants";
 import StatBoxes from "./ChatComponents/StatBoxes";
 import DynamicDropDown from "../commonComponents/DynamicDropDown";
+import { useAppSelector } from "../hooks/redux";
+import { useEffect, useState } from "react";
 
 const LearningProgress = ({
   handleToggleLearningGates,
   learningGatesEnabled,
-  stats,
 }: {
   handleToggleLearningGates: () => void;
   learningGatesEnabled: boolean;
-  stats: QuizStats;
 }) => {
+  const [currentStats, setCurrentStats] = useState<Partial<QuizStats>>({});
+  const learningService = useAppSelector(
+    (state) => (state.config as any).learningService
+  );
+
+  useEffect(() => {
+    // Guard: don’t call before the service exists
+    if (
+      !learningService ||
+      typeof learningService.getLearningStats !== "function"
+    ) {
+      console.warn("LearningService not initialized yet");
+      return;
+    }
+    const fetchLearningStats = async () => {
+      try {
+        console.log("Fetching learning stats...");
+        const stats = await learningService.getLearningStats();
+        setCurrentStats(stats as QuizStats);
+      } catch (err) {
+        console.error("❌ Failed to fetch learning stats:", err);
+      }
+    };
+
+    fetchLearningStats();
+  }, [learningService]);
   return (
     <DynamicDropDown
       title="🎓 Learning Progress"
@@ -30,16 +56,18 @@ const LearningProgress = ({
     >
       <div className="grid md:grid-cols-4 grid-cols-2 gap-4 ">
         {LearningBoxes.map((details, i) => {
-          const key = details.title?.toLowerCase().trim();
+          const key = details.value?.toLowerCase().trim();
           const statValue =
-            key && key in stats ? stats[key as keyof QuizStats] : 0;
+            key && key in currentStats
+              ? currentStats[key as keyof QuizStats]
+              : 0;
 
           return (
             <StatBoxes
               details={details}
               value={statValue}
               key={i}
-              isActive={details.title === "Responses Left"}
+              // isActive={details.title === "Responses Left"}
             />
           );
         })}

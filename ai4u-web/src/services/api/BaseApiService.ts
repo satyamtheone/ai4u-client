@@ -1,11 +1,22 @@
 import { apiConfig } from "../../config/apiConfig";
 
+function readTokenFromStorage(): string | null {
+  try {
+    // mirror your StorageService key
+    const t = localStorage.getItem("authToken");
+    return t ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export class BaseApiService {
   protected baseURL: string;
   protected token: string | null = null;
 
   constructor() {
     this.baseURL = apiConfig.baseURL;
+    this.token = readTokenFromStorage();
   }
 
   protected async request<T>(

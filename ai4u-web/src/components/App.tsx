@@ -9,6 +9,7 @@ import {
   setBackendService,
   setLearningGateService,
   setConnectionStatus,
+  setLearningService,
   setLearningGatesEnabled,
 } from "../store/configSlice";
 import { addNotification } from "../store/uiSlice";
@@ -32,6 +33,7 @@ import ModalProvider from "../commonComponents/Dialog/ModalProvider";
 import DynamicButton from "../commonComponents/DynamicButton";
 import { LogOut } from "lucide-react";
 import { BackendService } from "../services/BackendService";
+import { LearningService } from "../services/api/LearningService";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -46,8 +48,6 @@ const App: React.FC = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [bypassAuth, setBypassAuth] = useState(false);
   const navigate = useNavigate();
-
-  const storageService = new StorageService();
 
   // V2 Authentication - ALL HOOKS MUST BE AT THE TOP
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
@@ -74,6 +74,8 @@ const App: React.FC = () => {
 
         const backendService = new BackendService(initialConfig.backendUrl);
         dispatch(setBackendService(backendService));
+        const learning = new LearningService();
+        dispatch(setLearningService(learning));
 
         const learningGateService = new LearningGateService({
           enabled: true,
@@ -299,7 +301,6 @@ const App: React.FC = () => {
         <LearningProgress
           handleToggleLearningGates={handleToggleLearningGates}
           learningGatesEnabled={learningGatesEnabled}
-          stats={stats}
         />
 
         {/* Chat Area */}
