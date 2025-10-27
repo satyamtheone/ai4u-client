@@ -4,7 +4,7 @@ import DynamicButton from "../commonComponents/DynamicButton";
 import { StepProgressBar } from "../commonComponents/StepProgressBar";
 import { FormTextArea } from "../commonComponents/FormTextArea";
 import { FormSelect } from "../commonComponents/FormSelect";
-import ComponentShowcase from "../RefactoredComponents/RefactoredShowcase/ComponentShowCase";
+import ComponentShowcase from "../components/RefactoredComponents/RefactoredShowcase/ComponentShowCase";
 
 // ✅ Define all showcase components in one place
 const showcaseComponents = {
