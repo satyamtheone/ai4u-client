@@ -7,8 +7,11 @@ export type UserStatus = "active" | "pending" | "suspended" | "inactive";
 
 export interface User {
   id: number;
+  first_name: string;
+  last_name: string;
   name: string;
   email: string;
+  account_type: UserType;
   userType: UserType;
   status: UserStatus;
   emailVerified: boolean;

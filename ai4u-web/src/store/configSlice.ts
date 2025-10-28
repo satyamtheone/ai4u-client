@@ -3,6 +3,7 @@ import { AI4UConfig } from "../types";
 import { BackendService } from "../services/BackendService";
 import { LearningGateService } from "../services/LearningGateService";
 import { LearningService } from "../services/api/LearningService";
+import { OrganizationService } from "../services/api/OrganizationService";
 
 interface ConfigState {
   config: AI4UConfig;
@@ -12,6 +13,7 @@ interface ConfigState {
   connectionMessage: string;
   learningGatesEnabled: boolean;
   learningService?: LearningService;
+  organizationService?: OrganizationService;
 }
 
 const initialState: ConfigState = {
@@ -21,7 +23,7 @@ const initialState: ConfigState = {
   },
   isConnected: false,
   connectionMessage: "Not connected",
-  learningGatesEnabled: process.env.REACT_APP_FEATURE_LEARNING_GATES === 'true',
+  learningGatesEnabled: process.env.REACT_APP_FEATURE_LEARNING_GATES === "true",
 };
 
 const configSlice = createSlice({
@@ -36,6 +38,12 @@ const configSlice = createSlice({
       if (learningService && (learningService as any).setBaseURL) {
         (learningService as any).setBaseURL(action.payload.backendUrl);
       }
+      const organizationService = (state as any).organizationService as
+        | OrganizationService
+        | undefined;
+      if (organizationService && (organizationService as any).setBaseURL) {
+        (organizationService as any).setBaseURL(action.payload.backendUrl);
+      }
     },
     setBackendService: (state, action: PayloadAction<BackendService>) => {
       // Store reference for access (Redux Toolkit handles this safely)
@@ -47,6 +55,13 @@ const configSlice = createSlice({
     ) => {
       // Store reference for access (Redux Toolkit handles this safely)
       (state as any).learningGateService = action.payload;
+    },
+
+    setOrganizationService: (
+      state,
+      action: PayloadAction<OrganizationService>
+    ) => {
+      (state as any).organizationService = action.payload;
     },
     setConnectionStatus: (
       state,
@@ -99,5 +114,6 @@ export const {
   setConnectionStatus,
   setLearningGatesEnabled,
   setLearningService,
+  setOrganizationService,
 } = configSlice.actions;
 export default configSlice.reducer;

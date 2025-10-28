@@ -4,17 +4,15 @@ import { Provider } from "react-redux";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { store } from "./store";
-import { AuthProvider } from "./components/auth/AuthProvider";
+import { AuthProvider, useAuth } from "./components/auth/AuthProvider";
 import "./index.css";
-import ShowcasePage from "./pages/ShowcasePage";
 import ThemeToggleButton from "./commonComponents/ThemeToggleButton";
-import App from "./components/App";
 import ErrorBoundary from "./components/RefactoredComponents/ErrorBoundary";
-import LandingPage from "./components/RefactoredComponents/LandingPage";
 import DialogProvider from "./commonComponents/Dialog/DialogProvider";
 import { debugEnvVars } from "./utils/envDebug";
 import { testBackendConnection } from "./utils/connectionDebug";
-import UserDashboard from "./pages/UserDashboard";
+import AppInitializer from "./components/AppInitializer";
+import AppRoutes from "./AppRoutes";
 
 // Debug environment variables on startup
 if (process.env.NODE_ENV === "development") {
@@ -63,15 +61,8 @@ root.render(
             <DialogProvider>
               <Router>
                 <ThemeToggleButton />
-                <Routes>
-                  <Route
-                    path="/showcase/:component"
-                    element={<ShowcasePage />}
-                  />
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/dashboard" element={<App />} />
-                  <Route path="/userProfile" element={<UserDashboard />} />
-                </Routes>
+                <AppInitializer />
+                <AppRoutes />
               </Router>
             </DialogProvider>
           </AuthProvider>

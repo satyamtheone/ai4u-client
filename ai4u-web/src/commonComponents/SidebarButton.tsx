@@ -18,10 +18,10 @@ const SidebarButton = ({
   return (
     <button
       onClick={onToggle}
-      className={`p-2 rounded-lg transition-all duration-300 
-        text-black dark:text-gray-400 
-        hover:bg-gray-300 dark:hover:bg-darkBackGround-300 
-        hover:text-white ${className}`}
+      className={`p-1 rounded-full transition-all dark:bg-black bg-white  shadow-2xl duration-300 
+        text-black hover:text-black dark:text-gray-400 
+        hover:bg-gray-100 dark:hover:bg-darkBackGround-300 
+        dark:hover:text-white ${className}`}
     >
       {isOpen
         ? closeIcon || <XIcon size={20} />

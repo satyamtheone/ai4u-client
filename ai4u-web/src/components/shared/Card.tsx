@@ -40,7 +40,8 @@ export const Card: React.FC<CardProps> = ({
   const isClickable = Boolean(onClick);
 
   const cardClasses = `
-    dark:bg-darkBackGround-300 rounded-lg
+    dark:bg-darkBackGround-950 rounded-lg dark:text-text-gray-300
+    transition-all duration-100
     ${shadowClasses[shadow]}
     ${border ? "border border-gray-200" : ""}
     ${hover ? "hover:shadow-md transition-shadow duration-200" : ""}
@@ -57,7 +58,7 @@ export const Card: React.FC<CardProps> = ({
       {...(isClickable && { type: "button" })}
     >
       {header && (
-        <div className="px-6 py-4 border-b border-gray-200">{header}</div>
+        <div className="px-6 py-4  border-b border-gray-200">{header}</div>
       )}
 
       <div className={paddingClasses[padding]}>{children}</div>

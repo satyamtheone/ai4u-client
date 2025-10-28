@@ -1,11 +1,13 @@
 import {
   Book,
+  Building2Icon,
   CircleQuestionMark,
   Code,
   FileQuestion,
   Home,
   Lock,
   MessageSquare,
+  MessagesSquare,
   Target,
   Trophy,
   Unlock,
@@ -137,7 +139,18 @@ export const chatMessages: ChatMessage[] = [
 
 export const SideBarHeaders = [
   { icon: <Home size={20} />, label: "Home", navigateTo: "/" },
+  {
+    icon: <MessagesSquare size={20} />,
+    label: "Conversations",
+    navigateTo: "/dashboard",
+  },
   { icon: <User size={20} />, label: "Profile", navigateTo: "/userProfile" },
+
+  {
+    icon: <Building2Icon size={20} />,
+    label: "My Organization",
+    navigateTo: "/organization",
+  },
 ];
 
 export const GoogleIcon: React.FC<{ className?: string }> = ({

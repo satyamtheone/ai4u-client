@@ -17,8 +17,9 @@ import { Button } from "../components/shared/Button";
 import { UserLearningAnalyticsResponse } from "../services/api/LearningService";
 import { useAppSelector } from "../hooks/redux";
 import { User } from "../components/auth";
+import UserDashboardStats from "../components/RefactoredComponents/UserDashboard/UserDashboardStats";
 
-interface LearningStats {
+export interface LearningStats {
   totalCourses: number;
   completedCourses: number;
   currentStreak: number;
@@ -56,12 +57,6 @@ const UserDashboard: React.FC = () => {
     weeklyGoal: 0,
     weeklyProgress: 0,
   });
-  // types
-  interface LearningService {
-    getCurrentUserAnalytics: (
-      userId: string
-    ) => Promise<UserLearningAnalyticsResponse>;
-  }
 
   const learningService = useAppSelector(
     (state) => (state.config as any).learningService
@@ -78,7 +73,6 @@ const UserDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Guard: don’t call before the service exists
     if (
       !learningService ||
       typeof learningService.getCurrentUserAnalytics !== "function"
@@ -88,7 +82,6 @@ const UserDashboard: React.FC = () => {
     }
     const fetchUSerAnalytics = async () => {
       try {
-        console.log("Fetching learning stats...");
         const stats = await learningService.getCurrentUserAnalytics(user?.id);
         setCurrentAnalytics(stats as UserLearningAnalyticsResponse);
       } catch (err) {
@@ -98,6 +91,10 @@ const UserDashboard: React.FC = () => {
 
     fetchUSerAnalytics();
   }, [learningService, isAuthenticated]);
+
+  console.log("====================================");
+  console.log(currentAnalytics);
+  console.log("====================================");
 
   useEffect(() => {
     fetchDashboardData?.();
@@ -208,7 +205,7 @@ const UserDashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 overflow-scroll h-screen">
+    <div className="md:p-6 p-2 space-y-6 overflow-scroll h-screen w-full">
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -232,76 +229,18 @@ const UserDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card padding="lg" className="border-l-4 border-l-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium ">Courses in Progress</p>
-              <p className="text-3xl font-bold ">
-                {stats.totalCourses - stats.completedCourses}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats.completedCourses} completed
-              </p>
-            </div>
-            <BookOpen className="w-8 h-8 text-blue-600" />
-          </div>
-        </Card>
 
-        <Card padding="lg" className="border-l-4 border-l-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium ">Learning Streak</p>
-              <p className="text-3xl font-bold ">{stats.currentStreak}</p>
-              <p className="text-sm text-gray-500 mt-1">days in a row</p>
-            </div>
-            <Target className="w-8 h-8 text-green-600" />
-          </div>
-        </Card>
-
-        <Card padding="lg" className="border-l-4 border-l-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium ">Total Hours</p>
-              <p className="text-3xl font-bold ">{stats.totalHours}</p>
-              <p className="text-sm text-gray-500 mt-1">hours learned</p>
-            </div>
-            <Clock className="w-8 h-8 text-yellow-600" />
-          </div>
-        </Card>
-
-        <Card padding="lg" className="border-l-4 border-l-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium ">Weekly Goal</p>
-              <p className="text-3xl font-bold ">
-                {stats.weeklyProgress}/{stats.weeklyGoal}
-              </p>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                <div
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${
-                      (stats.weeklyProgress / stats.weeklyGoal) * 100
-                    }%`,
-                  }}
-                ></div>
-              </div>
-            </div>
-            <TrendingUp className="w-8 h-8 text-purple-600" />
-          </div>
-        </Card>
-      </div>
+      <UserDashboardStats stats={stats} />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Continue Learning */}
         <div className="lg:col-span-2">
           <Card>
-            <div className="p-6 border-b border-gray-200">
+            <div className="md:p-6 p-2 border-b max-md:mb-4 border-gray-200">
               <h3 className="text-lg font-semibold ">Continue Learning</h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="md:p-6 p-2 space-y-4">
               {currentCourses.map((course) => (
                 <div
                   key={course.id}
@@ -361,10 +300,10 @@ const UserDashboard: React.FC = () => {
         <div className="space-y-6">
           {/* Recent Achievements */}
           <Card>
-            <div className="p-6 border-b border-gray-200">
+            <div className="md:p-6 p-2 border-b border-gray-200">
               <h3 className="text-lg font-semibold ">Recent Achievements</h3>
             </div>
-            <div className="p-6">
+            <div className="md:p-6 p-2">
               <div className="space-y-4">
                 {recentAchievements.map((achievement) => (
                   <div key={achievement.id} className="flex items-start gap-3">

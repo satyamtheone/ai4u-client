@@ -11,11 +11,12 @@ import {
   MoreVertical,
   Download,
 } from "lucide-react";
-import { useAuth } from "../auth/AuthProvider";
-import { Card } from "../shared/Card";
-import { Button } from "../shared/Button";
+import { Button } from "../components/shared/Button";
+import { Card } from "../components/shared/Card";
+import { useAuth } from "../components/auth";
+import OrganizationDashboardStats from "../components/RefactoredComponents/OrganizationDashboard/OrganizationDashboardStats";
 
-interface DashboardStats {
+export interface DashboardStats {
   totalMembers: number;
   activeMembers: number;
   completionRate: number;
@@ -42,7 +43,7 @@ interface RecentActivity {
   timestamp: string;
 }
 
-export const AdminDashboard: React.FC = () => {
+export const OrganizationDashboard: React.FC = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalMembers: 0,
@@ -199,13 +200,11 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="md:p-6 p-2 space-y-6 overflow-scroll h-screen">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user?.name}!
-          </h1>
+          <h1 className="text-2xl font-bold ">Welcome back, {user?.name}!</h1>
           <p className="text-gray-600">
             Here's what's happening with your team's learning progress.
           </p>
@@ -223,77 +222,8 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card padding="lg" className="border-l-4 border-l-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Members</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.totalMembers}
-              </p>
-              <div className="flex items-center mt-2">
-                <ArrowUpRight className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-green-600">
-                  +{stats.monthlyGrowth}% this month
-                </span>
-              </div>
-            </div>
-            <Users className="w-8 h-8 text-blue-600" />
-          </div>
-        </Card>
 
-        <Card padding="lg" className="border-l-4 border-l-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Active Members
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.activeMembers}
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                {Math.round((stats.activeMembers / stats.totalMembers) * 100)}%
-                engagement rate
-              </p>
-            </div>
-            <TrendingUp className="w-8 h-8 text-green-600" />
-          </div>
-        </Card>
-
-        <Card padding="lg" className="border-l-4 border-l-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Completion Rate
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.completionRate}%
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Avg. progress: {stats.avgProgress}%
-              </p>
-            </div>
-            <Target className="w-8 h-8 text-yellow-600" />
-          </div>
-        </Card>
-
-        <Card padding="lg" className="border-l-4 border-l-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Active Courses
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.totalCourses}
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Learning paths available
-              </p>
-            </div>
-            <Award className="w-8 h-8 text-purple-600" />
-          </div>
-        </Card>
-      </div>
+      <OrganizationDashboardStats stats={stats} />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -302,9 +232,7 @@ export const AdminDashboard: React.FC = () => {
           <Card>
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Team Progress
-                </h3>
+                <h3 className="text-lg font-semibold ">Team Progress</h3>
                 <Button variant="ghost" size="sm">
                   View All
                 </Button>
@@ -312,7 +240,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Member
@@ -331,12 +259,12 @@ export const AdminDashboard: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className=" divide-y divide-gray-200">
                   {teamMembers.map((member) => (
                     <tr key={member.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium ">
                             {member.name}
                           </div>
                           <div className="text-sm text-gray-500">
@@ -352,7 +280,7 @@ export const AdminDashboard: React.FC = () => {
                               style={{ width: `${member.progress}%` }}
                             ></div>
                           </div>
-                          <span className="text-sm font-medium text-gray-900 min-w-0">
+                          <span className="text-sm font-medium  min-w-0">
                             {member.progress}%
                           </span>
                         </div>
@@ -386,9 +314,7 @@ export const AdminDashboard: React.FC = () => {
         <div>
           <Card>
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Recent Activity
-              </h3>
+              <h3 className="text-lg font-semibold ">Recent Activity</h3>
             </div>
             <div className="p-6">
               <div className="space-y-4">
@@ -398,7 +324,7 @@ export const AdminDashboard: React.FC = () => {
                       {getActivityIcon(activity.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm ">
                         <span className="font-medium">{activity.user}</span>{" "}
                         {activity.description}
                       </p>
@@ -429,7 +355,7 @@ export const AdminDashboard: React.FC = () => {
         >
           <div className="p-6 text-center">
             <Users className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-            <h4 className="font-medium text-gray-900 mb-2">Manage Team</h4>
+            <h4 className="font-medium  mb-2">Manage Team</h4>
             <p className="text-sm text-gray-600">
               Add members, assign roles, and manage permissions
             </p>
@@ -444,7 +370,7 @@ export const AdminDashboard: React.FC = () => {
         >
           <div className="p-6 text-center">
             <Award className="w-8 h-8 text-green-600 mx-auto mb-3" />
-            <h4 className="font-medium text-gray-900 mb-2">Learning Paths</h4>
+            <h4 className="font-medium  mb-2">Learning Paths</h4>
             <p className="text-sm text-gray-600">
               Create and manage custom learning experiences
             </p>
@@ -459,7 +385,7 @@ export const AdminDashboard: React.FC = () => {
         >
           <div className="p-6 text-center">
             <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-            <h4 className="font-medium text-gray-900 mb-2">Analytics</h4>
+            <h4 className="font-medium  mb-2">Analytics</h4>
             <p className="text-sm text-gray-600">
               View detailed reports and insights
             </p>

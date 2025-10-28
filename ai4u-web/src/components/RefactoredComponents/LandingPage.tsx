@@ -34,9 +34,6 @@ const LandingPage = () => {
       children: (
         <ModalProvider
           onClose={() => handleCloseAuthModal()}
-          headerIcon="🔐"
-          HeadingText="Sign in to AI4U"
-          HeadingDescription="Access your personalized learning experience"
           children={<AuthMain defaultView="login" redirectTo="/dashboard" />}
         />
       ),

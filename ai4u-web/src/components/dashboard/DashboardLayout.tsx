@@ -16,13 +16,14 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useAuth, usePermissions } from "../auth/AuthProvider";
-import { AdminDashboard } from "./AdminDashboard";
+
 import { TeamMemberDashboard } from "./TeamMemberDashboard";
 import { OrganizationSettings } from "../organization/OrganizationSettings";
 import { TeamManagement } from "../organization/TeamManagement";
 import { PermissionMatrix } from "../organization/PermissionMatrix";
 import { Button } from "../shared/Button";
 import UserDashboard from "../../pages/UserDashboard";
+import { OrganizationDashboard } from "../../pages/OrganizationDashboard";
 
 interface SidebarItem {
   id: string;
@@ -299,7 +300,7 @@ const DashboardOverview: React.FC = () => {
   const { user } = useAuth();
 
   if (user?.userType === "organization_admin") {
-    return <AdminDashboard />;
+    return <OrganizationDashboard />;
   } else if (user?.userType === "organization_user") {
     return <TeamMemberDashboard />;
   } else {

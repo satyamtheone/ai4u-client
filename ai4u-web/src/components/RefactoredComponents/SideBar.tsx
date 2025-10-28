@@ -1,4 +1,13 @@
-import { ArrowBigLeft, ArrowBigRight, Brain, Plus, User } from "lucide-react";
+import {
+  ArrowBigLeft,
+  ArrowBigRight,
+  Brain,
+  LogOut,
+  Plus,
+  SidebarClose,
+  SidebarOpen,
+  User,
+} from "lucide-react";
 import { AuthMain, useAuth } from "../auth";
 import { useState } from "react";
 import DynamicButton from "../../commonComponents/DynamicButton";
@@ -9,21 +18,50 @@ import { useDialog } from "../../commonComponents/Dialog/DialogProvider";
 import ModalProvider from "../../commonComponents/Dialog/ModalProvider";
 import { SideBarHeaders } from "./Constants";
 
-const SideBar = ({
-  showSidebar,
-  handleLogout,
-  setShowSidebar,
-}: {
-  showSidebar: boolean;
-  handleLogout: () => void;
-  setShowSidebar: (value: React.SetStateAction<boolean>) => void;
-}) => {
+const SideBar = () => {
   const { openDialog, closeDialog } = useDialog();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
+  const [showSidebar, setShowSidebar] = useState(false);
   const navigate = useNavigate();
   const userDisplayName = isAuthenticated
-    ? user?.email || "User"
+    ? user?.first_name || "User"
     : "Guest User";
+
+  const handleLogout = () => {
+    openDialog({
+      children: (
+        <ModalProvider
+          onClose={closeDialog}
+          headerIcon={<LogOut size={24} />}
+          HeadingText="Do you want to Leave?"
+          HeadingDescription="After logout you will be redirected to guest mode."
+          children={
+            <div className="flex justify-between  max-md:flex-col gap-3">
+              <div>
+                <DynamicButton
+                  label="Close"
+                  onClick={closeDialog}
+                  variant="submit"
+                />
+              </div>
+              <div>
+                <DynamicButton
+                  label="Logout & Return to Guest Mode"
+                  variant="submit"
+                  onClick={() => {
+                    logout();
+                    navigate("/", { replace: true });
+                    closeDialog();
+                  }}
+                  submitColor="bg-red-500 hover:bg-red-600"
+                />
+              </div>
+            </div>
+          }
+        />
+      ),
+    });
+  };
 
   const handleLogin = () => {
     openDialog({
@@ -46,23 +84,21 @@ const SideBar = ({
 
   return (
     <div
-      className={` flex flex-col flex-shrink-0 transition-[width] duration-200 ease-in-out border-r
+      className={` flex flex-col flex-shrink-0 absolute h-full transition-[width] duration-200 ease-in-out border-r
          dark:bg-darkBackGround-950 dark:border-darkBackGround-700 bg-gray-100 border-gray-300 text-black dark:text-white ${
-           showSidebar ? "w-64 max-md:absolute h-full z-50" : "w-16"
+           showSidebar ? "w-64   z-50" : "w-16"
          }`}
     >
-      {showSidebar && (
-        <div className={` md:hidden  absolute top-3 right-2`}>
-          <SidebarButton
-            isOpen={showSidebar}
-            onToggle={() => setShowSidebar(!showSidebar)}
-            closeIcon={<ArrowBigLeft size={20} />}
-            openIcon={<ArrowBigRight size={20} />}
-          />
-        </div>
-      )}
+      <div className="absolute z-50 -right-4 top-5">
+        <SidebarButton
+          isOpen={showSidebar}
+          onToggle={() => setShowSidebar(!showSidebar)}
+          closeIcon={<SidebarClose size={20} />}
+          openIcon={<SidebarOpen size={20} />}
+        />
+      </div>
       {/* Logo */}
-      <div className="flex items-center gap-3 p-4 pb-7 border-b border-[#333] cursor-pointer">
+      <div className="flex items-center gap-3 p-4 pb-5 border-b border-[#333] cursor-pointer">
         <div
           className="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white
          bg-gradient-to-br from-blue-600 to-violet-500"
@@ -82,11 +118,11 @@ const SideBar = ({
           <SidebarNavigationButton
             item={item}
             showSidebar={showSidebar}
+            isActive={window.location.pathname
+              .toLocaleLowerCase()
+              .endsWith(item.label.toLocaleLowerCase())}
             key={item.label}
             navigateTo={item.navigateTo && item.navigateTo}
-            // onClick={() => {
-            //   item.label === "profile" && navigate(`dashboard:${user?.id}`);
-            // }}
           />
         ))}
         {showSidebar && (
@@ -107,7 +143,7 @@ const SideBar = ({
           {showSidebar && (
             <div className="flex items-center gap-2 px-4 text-xs text-gray-400">
               <User size={16} />
-              <span>{userDisplayName}</span>
+              <span className="capitalize">{userDisplayName}</span>
             </div>
           )}
 
