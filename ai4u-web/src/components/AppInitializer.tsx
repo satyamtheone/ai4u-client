@@ -33,7 +33,7 @@ export default function AppInitializer() {
         const learningService = new LearningService();
         dispatch(setLearningService(learningService));
 
-        const organizationService = new OrganizationService(); // <-- new
+        const organizationService = new OrganizationService();
         dispatch(setOrganizationService(organizationService));
 
         const learningGateService = new LearningGateService({

@@ -184,7 +184,6 @@ const App: React.FC = () => {
       </div>
       {/* Only show quiz overlay for authenticated users */}
       {quizActive && (isAuthenticated || bypassAuth) && <QuizOverlay />}
-      <NotificationContainer />
     </div>
   );
 };

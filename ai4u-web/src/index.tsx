@@ -13,6 +13,7 @@ import { debugEnvVars } from "./utils/envDebug";
 import { testBackendConnection } from "./utils/connectionDebug";
 import AppInitializer from "./components/AppInitializer";
 import AppRoutes from "./AppRoutes";
+import NotificationContainer from "./components/NotificationContainer";
 
 // Debug environment variables on startup
 if (process.env.NODE_ENV === "development") {
@@ -63,6 +64,7 @@ root.render(
                 <ThemeToggleButton />
                 <AppInitializer />
                 <AppRoutes />
+                <NotificationContainer />
               </Router>
             </DialogProvider>
           </AuthProvider>

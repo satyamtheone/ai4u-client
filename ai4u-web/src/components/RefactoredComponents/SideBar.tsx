@@ -120,7 +120,7 @@ const SideBar = () => {
             showSidebar={showSidebar}
             isActive={window.location.pathname
               .toLocaleLowerCase()
-              .endsWith(item.label.toLocaleLowerCase())}
+              .endsWith(item.navigateTo.toLocaleLowerCase())}
             key={item.label}
             navigateTo={item.navigateTo && item.navigateTo}
           />

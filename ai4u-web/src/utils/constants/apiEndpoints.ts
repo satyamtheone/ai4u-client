@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
     UPDATE_PROFILE: "/users/me",
     DELETE_ACCOUNT: "/users/me",
     UPLOAD_AVATAR: "/users/me/avatar",
+    ADD_MEMBER: "/users/members",
     SESSIONS: "/users/me/sessions",
     TWO_FACTOR: "/users/me/two-factor",
   },

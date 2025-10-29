@@ -54,6 +54,7 @@ const OrganizationDashboardStats = ({ stats }: { stats: DashboardStats }) => {
         title="Your Organization Stats"
         defaultOpen
         children={children}
+        className="rounded-lg"
       />
     </div>
   );

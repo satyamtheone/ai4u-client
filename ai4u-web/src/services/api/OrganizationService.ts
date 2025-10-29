@@ -128,6 +128,70 @@ export interface BulkInviteRequest {
     message?: string;
   }>;
 }
+// User list types
+export interface UserItem {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  auth_method: string;
+  account_type: "INDIVIDUAL" | "ORGANIZATION" | string;
+  accept_terms: boolean;
+  subscribe_newsletter: boolean;
+  timezone: string;
+  locale: string;
+  id: string;
+  full_name: string;
+  avatar_url: string;
+  is_active: boolean;
+  is_email_verified: boolean;
+  login_count: number;
+  last_login_at: string;
+  created_at: string;
+}
+
+export interface UserListResponse {
+  success: boolean;
+  message: string;
+  data: {
+    items: UserItem[];
+    total: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+  };
+}
+// === Organization Member Creation ===
+
+export interface CreateMemberRequest {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: "org_member" | "admin" | string;
+  send_invitation_email: boolean;
+  timezone: string;
+  locale: string;
+}
+
+export interface CreateMemberResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    role: string;
+    timezone: string;
+    locale: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+}
 
 export class OrganizationService extends BaseApiService {
   constructor(baseURL?: string, token?: string | null) {
@@ -177,6 +241,42 @@ export class OrganizationService extends BaseApiService {
     } catch (error) {
       throw new Error(
         error instanceof Error ? error.message : "Failed to fetch organizations"
+      );
+    }
+  }
+
+  async getAllMembers(
+    page: number = 1,
+    pageSize: number = 50
+  ): Promise<UserListResponse> {
+    try {
+      const query = `?page=${page}&page_size=${pageSize}`;
+      return await this.get<UserListResponse>(
+        `${API_ENDPOINTS.USERS.LIST}${query}`
+      );
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to fetch users"
+      );
+    }
+  }
+  /**
+   * Create a new organization member
+   * Endpoint: POST /api/v1/users/members
+   */
+  async createOrganizationMember(
+    payload: CreateMemberRequest
+  ): Promise<CreateMemberResponse> {
+    try {
+      return await this.post<CreateMemberResponse>(
+        API_ENDPOINTS.USERS.ADD_MEMBER,
+        payload
+      );
+    } catch (error) {
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : "Failed to create organization member"
       );
     }
   }

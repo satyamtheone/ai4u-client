@@ -42,6 +42,7 @@ export const Card: React.FC<CardProps> = ({
   const cardClasses = `
     dark:bg-darkBackGround-950 rounded-lg dark:text-text-gray-300
     transition-all duration-100
+    border-gray-300 dark:border-darkBackGround-700
     ${shadowClasses[shadow]}
     ${border ? "border border-gray-200" : ""}
     ${hover ? "hover:shadow-md transition-shadow duration-200" : ""}

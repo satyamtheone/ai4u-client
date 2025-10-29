@@ -5,16 +5,20 @@ import {
   Target,
   Award,
   Calendar,
-  ArrowUpRight,
-  ArrowDownRight,
   Plus,
-  MoreVertical,
   Download,
 } from "lucide-react";
 import { Button } from "../components/shared/Button";
 import { Card } from "../components/shared/Card";
 import { useAuth } from "../components/auth";
 import OrganizationDashboardStats from "../components/RefactoredComponents/OrganizationDashboard/OrganizationDashboardStats";
+import { useAppSelector } from "../hooks/redux";
+import { UserItem } from "../services/api/OrganizationService";
+import ModalProvider from "../commonComponents/Dialog/ModalProvider";
+import CreateMemberForm from "../components/RefactoredComponents/OrganizationDashboard/CreateMemberForm";
+import { useDialog } from "../commonComponents/Dialog/DialogProvider";
+import { DynamicTable } from "../commonComponents/DynamicTable";
+import Chip from "../commonComponents/Chip";
 
 export interface DashboardStats {
   totalMembers: number;
@@ -56,6 +60,53 @@ export const OrganizationDashboard: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const { openDialog, closeDialog } = useDialog();
+  const organizationService = useAppSelector(
+    (state) => (state.config as any).organizationService
+  );
+
+  // State for users and pagination
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    page_size: 50,
+    total_pages: 0,
+  });
+
+  // Effect: fetch paginated users
+  useEffect(() => {
+    if (
+      !organizationService ||
+      typeof organizationService.getAllMembers !== "function"
+    ) {
+      console.warn("OrganizationService not initialized yet");
+      return;
+    }
+
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await organizationService.getAllMembers();
+        if (response) {
+          setUsers(response.items);
+          setPagination((prev) => ({
+            ...prev,
+            total: response.total,
+            total_pages: response.total_pages,
+          }));
+        } else {
+          console.error("❌ Failed to fetch users:", response.message);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -158,17 +209,15 @@ export const OrganizationDashboard: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
-        return "bg-yellow-100 text-yellow-800";
-      case "pending":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const handleAddMember = () => {
+    openDialog({
+      children: (
+        <ModalProvider
+          onClose={() => closeDialog()}
+          children={<CreateMemberForm />}
+        />
+      ),
+    });
   };
 
   const getActivityIcon = (type: string) => {
@@ -183,6 +232,57 @@ export const OrganizationDashboard: React.FC = () => {
         return <Calendar className="w-4 h-4 text-gray-600" />;
     }
   };
+
+  const columns = [
+    {
+      key: "name",
+      header: "Member Name",
+      render: (row: any) => (
+        <div>
+          <div className="text-sm font-medium">
+            {`${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || "N/A"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "email",
+      header: "Email",
+      render: (row: any) => (
+        <span className="text-sm ">{row.email || "—"}</span>
+      ),
+    },
+    {
+      key: "activeness",
+      header: "Activeness",
+      render: (row: any) => (
+        <span className="text-sm   flex justify-center">{row.login_count}</span>
+      ),
+    },
+    {
+      key: "phone",
+      header: "Phone",
+      render: (row: any) => (
+        <span className="text-sm ">{row.phone || "No phone"}</span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row: any) => {
+        const status = row.is_active ? "active" : "inactive";
+        return (
+          <div className=" flex justify-start">
+            <Chip
+              label={status}
+              variant={`${status === "active" ? "success" : "default"}`}
+              className="py-0 text-xs"
+            />
+          </div>
+        );
+      },
+    },
+  ];
 
   if (loading) {
     return (
@@ -204,7 +304,9 @@ export const OrganizationDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold ">Welcome back, {user?.name}!</h1>
+          <h1 className="text-2xl font-bold ">
+            Welcome back, {user?.first_name}!
+          </h1>
           <p className="text-gray-600">
             Here's what's happening with your team's learning progress.
           </p>
@@ -214,7 +316,7 @@ export const OrganizationDashboard: React.FC = () => {
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" onClick={() => handleAddMember()}>
             <Plus className="w-4 h-4 mr-2" />
             Invite Member
           </Button>
@@ -227,87 +329,14 @@ export const OrganizationDashboard: React.FC = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Team Members Overview */}
         <div className="lg:col-span-2">
-          <Card>
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold ">Team Progress</h3>
-                <Button variant="ghost" size="sm">
-                  View All
-                </Button>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Member
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Progress
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Active
-                    </th>
-                    <th className="relative px-6 py-3">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className=" divide-y divide-gray-200">
-                  {teamMembers.map((member) => (
-                    <tr key={member.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium ">
-                            {member.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {member.role}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2 mr-3">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${member.progress}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-medium  min-w-0">
-                            {member.progress}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                            member.status
-                          )}`}
-                        >
-                          {member.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {member.lastActive}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+          <DynamicTable
+            title="Organization Members"
+            columns={columns}
+            data={users}
+            loading={loading}
+            className="h-[435px] overflow-auto"
+          />
         </div>
 
         {/* Recent Activity */}

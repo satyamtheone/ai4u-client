@@ -61,6 +61,7 @@ const UserDashboard: React.FC = () => {
   const learningService = useAppSelector(
     (state) => (state.config as any).learningService
   );
+
   const { user, isAuthenticated } = useAuth();
 
   const [currentAnalytics, setCurrentAnalytics] = useState<
@@ -91,10 +92,6 @@ const UserDashboard: React.FC = () => {
 
     fetchUSerAnalytics();
   }, [learningService, isAuthenticated]);
-
-  console.log("====================================");
-  console.log(currentAnalytics);
-  console.log("====================================");
 
   useEffect(() => {
     fetchDashboardData?.();
@@ -193,10 +190,13 @@ const UserDashboard: React.FC = () => {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-64"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-900 rounded w-64"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+              <div
+                key={i}
+                className="h-32 bg-gray-200 dark:bg-gray-900 rounded-lg"
+              ></div>
             ))}
           </div>
         </div>
@@ -210,7 +210,7 @@ const UserDashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold ">
-            Welcome back, {user?.name}! 👋
+            Welcome back, {user?.first_name}! 👋
           </h1>
           <p className="">
             Ready to continue your learning journey? You're doing great!
