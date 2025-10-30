@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "../shared/Button";
 import { AuthService } from "../../services/api/AuthService";
-import { GoogleIcon } from "../../RefactoredComponents/Constants";
+import { GoogleIcon } from "../RefactoredComponents/Constants";
 
 interface GoogleAuthButtonProps {
   onSuccess?: () => void;

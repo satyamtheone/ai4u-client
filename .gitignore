@@ -47,4 +47,8 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
+*.venv
 
+node_modules
+out
+*.vsix

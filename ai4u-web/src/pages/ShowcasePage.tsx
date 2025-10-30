@@ -4,7 +4,7 @@ import DynamicButton from "../commonComponents/DynamicButton";
 import { StepProgressBar } from "../commonComponents/StepProgressBar";
 import { FormTextArea } from "../commonComponents/FormTextArea";
 import { FormSelect } from "../commonComponents/FormSelect";
-import ComponentShowcase from "../RefactoredComponents/RefactoredShowcase/ComponentShowCase";
+import ComponentShowcase from "../components/RefactoredComponents/RefactoredShowcase/ComponentShowCase";
 
 // ✅ Define all showcase components in one place
 const showcaseComponents = {
@@ -77,7 +77,7 @@ const ShowcasePage: React.FC = () => {
 
   return (
     <>
-      <div className=" py-6 flex flex-wrap justify-center gap-4">
+      <div className=" py-6 flex flex-wrap justify-center gap-4 h">
         {Object.keys(showcaseComponents).map((key) => (
           <Link
             key={key}

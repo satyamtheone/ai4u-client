@@ -75,7 +75,7 @@ export const AuthMain: React.FC<AuthMainProps> = ({
 
   return (
     <div className="w-full">
-      <div className="dark:bg-darkBackGround-1150 bg-zinc-100 rounded-3xl shadow-lg p-8">
+      <div className="px-2">
         {currentView === "login" && (
           <LoginForm
             onSwitchToIndividualSignup={() =>

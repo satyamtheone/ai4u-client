@@ -1,3 +1,5 @@
+import { Organization } from "../../services/api/OrganizationService";
+
 // User types
 export type UserType =
   | "individual"
@@ -7,17 +9,24 @@ export type UserStatus = "active" | "pending" | "suspended" | "inactive";
 
 export interface User {
   id: number;
+  first_name: string;
+  last_name: string;
   name: string;
+  phone?: string;
   email: string;
+  account_type: UserType;
   userType: UserType;
   status: UserStatus;
+  is_active?: boolean;
   emailVerified: boolean;
+  login_count?: number;
   avatar?: string;
   organization?: OrganizationMember;
   preferences?: UserPreferences;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
-  lastLoginAt?: string;
+  last_login_at: string;
+  auth_method?: string;
 }
 
 export interface OrganizationMember {
@@ -84,6 +93,7 @@ export interface GoogleAuthResponse {
 // Auth state
 export interface AuthState {
   user: User | null;
+  organization?: Organization;
   access_token: string | null;
   refreshToken?: string | null;
   isAuthenticated: boolean;

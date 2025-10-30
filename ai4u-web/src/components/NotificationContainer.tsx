@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { removeNotification } from "../store/uiSlice";
 import { X } from "lucide-react";
-import { getIcon, typeStyles } from "../RefactoredComponents/Constants";
+import { getIcon, typeStyles } from "./RefactoredComponents/Constants";
 
 const NotificationContainer: React.FC = () => {
   const dispatch = useDispatch();

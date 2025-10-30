@@ -59,7 +59,7 @@ export class BaseApiService {
 
   private async handleErrorResponse(response: Response): Promise<never> {
     let errorMessage = "Request failed";
-    let errorCode: string | undefined;
+    let errorCode: number | null = null;
 
     try {
       const errorData = await response.json();

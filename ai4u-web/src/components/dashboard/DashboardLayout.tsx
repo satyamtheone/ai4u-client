@@ -1,28 +1,29 @@
-import React, { useState } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Users, 
-  Settings, 
-  Building, 
-  User, 
-  BookOpen, 
-  BarChart3, 
-  Bell, 
-  Menu, 
+import React, { useState } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import {
+  Home,
+  Users,
+  Settings,
+  Building,
+  User,
+  BookOpen,
+  BarChart3,
+  Bell,
+  Menu,
   X,
   LogOut,
   Shield,
-  MessageSquare
-} from 'lucide-react';
-import { useAuth, usePermissions } from '../auth/AuthProvider';
-import { AdminDashboard } from './AdminDashboard';
-import { UserDashboard } from './UserDashboard';
-import { TeamMemberDashboard } from './TeamMemberDashboard';
-import { OrganizationSettings } from '../organization/OrganizationSettings';
-import { TeamManagement } from '../organization/TeamManagement';
-import { PermissionMatrix } from '../organization/PermissionMatrix';
-import { Button } from '../shared/Button';
+  MessageSquare,
+} from "lucide-react";
+import { useAuth, usePermissions } from "../auth/AuthProvider";
+
+import { TeamMemberDashboard } from "./TeamMemberDashboard";
+import { OrganizationSettings } from "../organization/OrganizationSettings";
+import { TeamManagement } from "../organization/TeamManagement";
+import { PermissionMatrix } from "../organization/PermissionMatrix";
+import { Button } from "../shared/Button";
+import UserDashboard from "../../pages/UserDashboard";
+import { OrganizationDashboard } from "../../pages/OrganizationDashboard";
 
 interface SidebarItem {
   id: string;
@@ -42,55 +43,58 @@ export const DashboardLayout: React.FC = () => {
   const getSidebarItems = (): SidebarItem[] => {
     const baseItems: SidebarItem[] = [
       {
-        id: 'overview',
-        label: 'Overview',
+        id: "overview",
+        label: "Overview",
         icon: <Home className="w-5 h-5" />,
-        path: '/dashboard',
+        path: "/dashboard",
       },
       {
-        id: 'learning',
-        label: 'Learning',
+        id: "learning",
+        label: "Learning",
         icon: <BookOpen className="w-5 h-5" />,
-        path: '/dashboard/learning',
+        path: "/dashboard/learning",
       },
       {
-        id: 'chat',
-        label: 'AI Chat',
+        id: "chat",
+        label: "AI Chat",
         icon: <MessageSquare className="w-5 h-5" />,
-        path: '/dashboard/chat',
+        path: "/dashboard/chat",
       },
       {
-        id: 'progress',
-        label: 'Progress',
+        id: "progress",
+        label: "Progress",
         icon: <BarChart3 className="w-5 h-5" />,
-        path: '/dashboard/progress',
+        path: "/dashboard/progress",
       },
     ];
 
     // Add organization-specific items
-    if (user?.userType === 'organization_admin' || user?.userType === 'organization_user') {
+    if (
+      user?.userType === "organization_admin" ||
+      user?.userType === "organization_user"
+    ) {
       if (canManageTeam()) {
         baseItems.push({
-          id: 'team',
-          label: 'Team Management',
+          id: "team",
+          label: "Team Management",
           icon: <Users className="w-5 h-5" />,
-          path: '/dashboard/team',
+          path: "/dashboard/team",
         });
       }
 
       if (canManageOrganization()) {
         baseItems.push(
           {
-            id: 'permissions',
-            label: 'Permissions',
+            id: "permissions",
+            label: "Permissions",
             icon: <Shield className="w-5 h-5" />,
-            path: '/dashboard/permissions',
+            path: "/dashboard/permissions",
           },
           {
-            id: 'org-settings',
-            label: 'Organization',
+            id: "org-settings",
+            label: "Organization",
             icon: <Building className="w-5 h-5" />,
-            path: '/dashboard/organization',
+            path: "/dashboard/organization",
           }
         );
       }
@@ -98,10 +102,10 @@ export const DashboardLayout: React.FC = () => {
 
     // Add personal settings
     baseItems.push({
-      id: 'settings',
-      label: 'Settings',
+      id: "settings",
+      label: "Settings",
       icon: <Settings className="w-5 h-5" />,
-      path: '/dashboard/settings',
+      path: "/dashboard/settings",
     });
 
     return baseItems;
@@ -116,12 +120,12 @@ export const DashboardLayout: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/auth');
+    navigate("/auth");
   };
 
   const isActivePath = (path: string) => {
-    if (path === '/dashboard') {
-      return location.pathname === '/dashboard';
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
     }
     return location.pathname.startsWith(path);
   };
@@ -130,17 +134,19 @@ export const DashboardLayout: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
+      >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -171,18 +177,20 @@ export const DashboardLayout: React.FC = () => {
                 {user?.name}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user?.organization?.organizationName || 'Individual Account'}
+                {user?.organization?.organizationName || "Individual Account"}
               </p>
-              <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${
-                user?.userType === 'organization_admin' 
-                  ? 'bg-purple-100 text-purple-700'
-                  : user?.userType === 'organization_user'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                {user?.userType === 'organization_admin' && 'Admin'}
-                {user?.userType === 'organization_user' && 'Member'}
-                {user?.userType === 'individual' && 'Individual'}
+              <span
+                className={`inline-block px-2 py-0.5 text-xs rounded-full ${
+                  user?.userType === "organization_admin"
+                    ? "bg-purple-100 text-purple-700"
+                    : user?.userType === "organization_user"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-green-100 text-green-700"
+                }`}
+              >
+                {user?.userType === "organization_admin" && "Admin"}
+                {user?.userType === "organization_user" && "Member"}
+                {user?.userType === "individual" && "Individual"}
               </span>
             </div>
           </div>
@@ -196,9 +204,10 @@ export const DashboardLayout: React.FC = () => {
               onClick={() => handleNavigation(item.path)}
               className={`
                 w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-medium rounded-lg transition-colors
-                ${isActivePath(item.path)
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                  : 'text-gray-700 hover:bg-gray-100'
+                ${
+                  isActivePath(item.path)
+                    ? "bg-blue-100 text-blue-700 border border-blue-200"
+                    : "text-gray-700 hover:bg-gray-100"
                 }
               `}
             >
@@ -233,17 +242,18 @@ export const DashboardLayout: React.FC = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            
+
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                {location.pathname === '/dashboard' && 'Dashboard'}
-                {location.pathname.includes('/team') && 'Team Management'}
-                {location.pathname.includes('/organization') && 'Organization Settings'}
-                {location.pathname.includes('/permissions') && 'Permissions'}
-                {location.pathname.includes('/learning') && 'Learning'}
-                {location.pathname.includes('/chat') && 'AI Chat'}
-                {location.pathname.includes('/progress') && 'Progress'}
-                {location.pathname.includes('/settings') && 'Settings'}
+                {location.pathname === "/dashboard" && "Dashboard"}
+                {location.pathname.includes("/team") && "Team Management"}
+                {location.pathname.includes("/organization") &&
+                  "Organization Settings"}
+                {location.pathname.includes("/permissions") && "Permissions"}
+                {location.pathname.includes("/learning") && "Learning"}
+                {location.pathname.includes("/chat") && "AI Chat"}
+                {location.pathname.includes("/progress") && "Progress"}
+                {location.pathname.includes("/settings") && "Settings"}
               </h2>
             </div>
           </div>
@@ -289,9 +299,9 @@ export const DashboardLayout: React.FC = () => {
 const DashboardOverview: React.FC = () => {
   const { user } = useAuth();
 
-  if (user?.userType === 'organization_admin') {
-    return <AdminDashboard />;
-  } else if (user?.userType === 'organization_user') {
+  if (user?.userType === "organization_admin") {
+    return <OrganizationDashboard />;
+  } else if (user?.userType === "organization_user") {
     return <TeamMemberDashboard />;
   } else {
     return <UserDashboard />;
@@ -302,14 +312,19 @@ const DashboardOverview: React.FC = () => {
 const LearningPage: React.FC = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold mb-4">Learning Center</h1>
-    <p>Learning content will be integrated here with your existing learning components.</p>
+    <p>
+      Learning content will be integrated here with your existing learning
+      components.
+    </p>
   </div>
 );
 
 const ChatPage: React.FC = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold mb-4">AI Chat</h1>
-    <p>Your existing EnhancedChatInterface component will be integrated here.</p>
+    <p>
+      Your existing EnhancedChatInterface component will be integrated here.
+    </p>
   </div>
 );
 

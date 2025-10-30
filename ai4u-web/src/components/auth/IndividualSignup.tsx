@@ -13,9 +13,9 @@ import {
   IndividualFormData,
   IndividualSignupProps,
 } from "../../commonComponents/Types";
-import IndividualInputs from "../../RefactoredComponents/IndividualFormComponents/IndividualInputs";
-import IndividualSuccess from "../../RefactoredComponents/IndividualFormComponents/IndividualSuccess";
-import IndividualFormFooter from "../../RefactoredComponents/IndividualFormComponents/IndividualFormFooter";
+import IndividualInputs from "../RefactoredComponents/IndividualFormComponents/IndividualInputs";
+import IndividualSuccess from "../RefactoredComponents/IndividualFormComponents/IndividualSuccess";
+import IndividualFormFooter from "../RefactoredComponents/IndividualFormComponents/IndividualFormFooter";
 
 export const IndividualSignup: React.FC<IndividualSignupProps> = ({
   onSwitchToLogin,

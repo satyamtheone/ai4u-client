@@ -9,8 +9,8 @@ import {
 } from "../../utils/validation/authValidation";
 import { LoginCredentials } from "../../types/auth/Auth";
 import { FormLabelHeader } from "../../commonComponents/FormLabelHeader";
-import LoginFormInputs from "../../RefactoredComponents/LoginFormComponents/LoginFormInputs";
-import LoginFormFooter from "../../RefactoredComponents/LoginFormComponents/LoginFormFooter";
+import LoginFormInputs from "../RefactoredComponents/LoginFormComponents/LoginFormInputs";
+import LoginFormFooter from "../RefactoredComponents/LoginFormComponents/LoginFormFooter";
 
 interface LoginFormProps {
   onSwitchToIndividualSignup: () => void;

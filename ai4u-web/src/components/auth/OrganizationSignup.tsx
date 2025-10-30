@@ -18,13 +18,13 @@ import {
 import { FormLabelHeader } from "../../commonComponents/FormLabelHeader";
 import { StepProgressBar } from "../../commonComponents/StepProgressBar";
 
-import StepOne from "../../RefactoredComponents/OrganizationSteps/StepOne";
-import StepTwo from "../../RefactoredComponents/OrganizationSteps/StepTwo";
+import StepOne from "../RefactoredComponents/OrganizationSteps/StepOne";
+import StepTwo from "../RefactoredComponents/OrganizationSteps/StepTwo";
 import {
   FormData,
   OrganizationSignupProps,
 } from "../../commonComponents/Types";
-import FormFooter from "../../RefactoredComponents/OrganizationSteps/FormFooter";
+import FormFooter from "../RefactoredComponents/OrganizationSteps/FormFooter";
 
 export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
   onSwitchToLogin,

@@ -12,8 +12,8 @@ import { sendMessage } from "../store/chatSlice";
 import { addNotification } from "../store/uiSlice";
 import QuizResults from "./QuizResults";
 import ModalProvider from "../commonComponents/Dialog/ModalProvider";
-import QuizFormModal from "../RefactoredComponents/QuizComponents/QuizFormModal";
-import { toAnswerType } from "../RefactoredComponents/Constants";
+import QuizFormModal from "./RefactoredComponents/QuizComponents/QuizFormModal";
+import { toAnswerType } from "./RefactoredComponents/Constants";
 
 const QuizOverlay: React.FC = () => {
   const dispatch = useAppDispatch();
