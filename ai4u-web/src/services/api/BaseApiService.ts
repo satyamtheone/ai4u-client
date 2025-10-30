@@ -3,7 +3,8 @@ import { apiConfig } from "../../config/apiConfig";
 function readTokenFromStorage(): string | null {
   try {
     // mirror your StorageService key
-    const t = localStorage.getItem("authToken");
+    const tokenKey = process.env.REACT_APP_AUTH_TOKEN_KEY || "authToken";
+    const t = localStorage.getItem(tokenKey);
     return t ?? null;
   } catch {
     return null;

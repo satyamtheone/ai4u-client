@@ -4,13 +4,13 @@ export const apiConfig = {
   baseURL: process.env.REACT_APP_API_BASE_URL || '/api/v1',
   
   // Request timeout in milliseconds
-  timeout: 30000,
-  
+  timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || '30000'),
+
   // Number of retry attempts for failed requests
-  retries: 3,
-  
+  retries: parseInt(process.env.REACT_APP_API_RETRIES || '3'),
+
   // Retry delay in milliseconds
-  retryDelay: 1000,
+  retryDelay: parseInt(process.env.REACT_APP_RETRY_DELAY || '1000'),
   
   // Enable request/response logging in development
   enableLogging: process.env.NODE_ENV === 'development',
@@ -23,8 +23,8 @@ export const apiConfig = {
   
   // Authentication configuration
   auth: {
-    tokenKey: 'authToken',
-    refreshTokenKey: 'refreshToken',
+    tokenKey: process.env.REACT_APP_AUTH_TOKEN_KEY || 'authToken',
+    refreshTokenKey: process.env.REACT_APP_REFRESH_TOKEN_KEY || 'refreshToken',
     tokenPrefix: 'Bearer',
     autoRefresh: true,
     refreshThreshold: 300000, // 5 minutes before expiry
@@ -43,51 +43,46 @@ export const apiConfig = {
   
   // File upload configuration
   upload: {
-    maxFileSize: 10 * 1024 * 1024, // 10MB
-    allowedTypes: [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'application/pdf',
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ],
-    chunkSize: 1024 * 1024, // 1MB chunks for large files
+    maxFileSize: parseInt(process.env.REACT_APP_MAX_FILE_SIZE || String(10 * 1024 * 1024)), // 10MB
+    allowedTypes: (process.env.REACT_APP_ALLOWED_FILE_TYPES ||
+      'image/jpeg,image/png,image/gif,image/webp,application/pdf,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ).split(','),
+    chunkSize: parseInt(process.env.REACT_APP_UPLOAD_CHUNK_SIZE || String(1024 * 1024)), // 1MB chunks for large files
   },
   
   // Cache configuration
   cache: {
-    enabled: true,
-    defaultTTL: 300000, // 5 minutes
-    maxEntries: 100,
+    enabled: process.env.REACT_APP_CACHE_ENABLED !== 'false',
+    defaultTTL: parseInt(process.env.REACT_APP_CACHE_TTL || '300000'), // 5 minutes
+    maxEntries: parseInt(process.env.REACT_APP_CACHE_MAX_ENTRIES || '100'),
   },
   
   // Error configuration
   errors: {
     showErrorDetails: process.env.NODE_ENV === 'development',
-    retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+    retryableStatusCodes: (process.env.REACT_APP_RETRYABLE_STATUS_CODES || '408,429,500,502,503,504')
+      .split(',')
+      .map(code => parseInt(code.trim())),
   },
   
   // Rate limiting configuration
   rateLimit: {
-    enabled: true,
-    maxRequests: 100,
-    windowMs: 60000, // 1 minute
+    enabled: process.env.REACT_APP_RATE_LIMIT_ENABLED !== 'false',
+    maxRequests: parseInt(process.env.REACT_APP_RATE_LIMIT_MAX_REQUESTS || '100'),
+    windowMs: parseInt(process.env.REACT_APP_RATE_LIMIT_WINDOW || '60000'), // 1 minute
   },
   
   // Pagination defaults
   pagination: {
-    defaultLimit: 20,
-    maxLimit: 100,
+    defaultLimit: parseInt(process.env.REACT_APP_PAGINATION_DEFAULT || '20'),
+    maxLimit: parseInt(process.env.REACT_APP_PAGINATION_MAX || '100'),
   },
   
   // WebSocket configuration (for real-time features)
   websocket: {
     url: process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws',
-    reconnectInterval: 5000,
-    maxReconnectAttempts: 5,
+    reconnectInterval: parseInt(process.env.REACT_APP_WS_RECONNECT_INTERVAL || '5000'),
+    maxReconnectAttempts: parseInt(process.env.REACT_APP_WS_MAX_RECONNECT_ATTEMPTS || '5'),
   },
   
   // Environment-specific settings

@@ -1,7 +1,7 @@
 // Storage Service for managing local/session storage
 export class StorageService {
-  private tokenKey = "authToken";
-  private refreshTokenKey = "refreshToken";
+  private tokenKey = process.env.REACT_APP_AUTH_TOKEN_KEY || "authToken";
+  private refreshTokenKey = process.env.REACT_APP_REFRESH_TOKEN_KEY || "refreshToken";
   private userKey = "userData";
   private preferencesKey = "userPreferences";
   private cachePrefix = "api_cache_";

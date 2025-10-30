@@ -3,7 +3,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 module.exports = function(app) {
   // Check if proxy should be enabled via environment variable
   const useProxy = process.env.REACT_APP_USE_PROXY === 'true';
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://15.207.0.129:8000';
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
   if (useProxy) {
     console.log('🔀 Proxy enabled - Bypassing CORS');

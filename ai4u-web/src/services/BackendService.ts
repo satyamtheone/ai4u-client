@@ -59,9 +59,10 @@ export class BackendService {
     }
 
     try {
+      const timeout = parseInt(process.env.REACT_APP_CONNECTION_TIMEOUT || '5000');
       const response = await fetch(`${this.backendUrl}/api/v1/health`, {
         method: "GET",
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(timeout),
       });
 
       if (response.ok) {
@@ -116,6 +117,7 @@ export class BackendService {
         ? `${this.backendUrl}/api/v1/learning/chat?learning_gates=true`
         : `${this.backendUrl}/api/v1/learning/chat`;
 
+      const timeout = parseInt(process.env.REACT_APP_CHAT_TIMEOUT || '30000');
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -123,7 +125,7 @@ export class BackendService {
           ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
         },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(timeout),
       });
 
       if (!response.ok) {
@@ -188,6 +190,7 @@ export class BackendService {
         user_id: this.userId,
       };
 
+      const timeout = parseInt(process.env.REACT_APP_QUIZ_TIMEOUT || '10000');
       const response = await fetch(
         `${this.backendUrl}/api/v1/learning/submit`,
         {
@@ -198,7 +201,7 @@ export class BackendService {
           },
 
           body: JSON.stringify(submission),
-          signal: AbortSignal.timeout(10000),
+          signal: AbortSignal.timeout(timeout),
         }
       );
 
@@ -224,11 +227,12 @@ export class BackendService {
     }
 
     try {
+      const timeout = parseInt(process.env.REACT_APP_QUIZ_TIMEOUT || '10000');
       const response = await fetch(
         `${this.backendUrl}/api/v1/learning/quiz/skip?user_id=${this.userId}`,
         {
           method: "POST",
-          signal: AbortSignal.timeout(10000),
+          signal: AbortSignal.timeout(timeout),
           headers: {
             "Content-Type": "application/json",
             ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
@@ -264,13 +268,14 @@ export class BackendService {
         userId || this.userId
       }`;
 
+      const timeout = parseInt(process.env.REACT_APP_QUIZ_TIMEOUT || '10000');
       const response = await fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
         },
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(timeout),
       });
       if (!response.ok) {
         console.error(
@@ -323,6 +328,7 @@ export class BackendService {
         user_id: user_id || this.userId,
       };
 
+      const timeout = parseInt(process.env.REACT_APP_BATCH_TIMEOUT || '15000');
       const response = await fetch(
         `${this.backendUrl}/api/v1/learning/quiz/submit-batch`,
         {
@@ -333,7 +339,7 @@ export class BackendService {
           },
 
           body: JSON.stringify(submission),
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.timeout(timeout),
         }
       );
 

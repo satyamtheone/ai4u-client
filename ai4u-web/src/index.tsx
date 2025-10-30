@@ -20,7 +20,8 @@ if (process.env.NODE_ENV === "development") {
 
   // Add helper function to clear cached config
   (window as any).clearConfig = () => {
-    localStorage.removeItem("ai4u_config");
+    const configKey = process.env.REACT_APP_CONFIG_KEY || "ai4u_config";
+    localStorage.removeItem(configKey);
     console.log("✅ Cached config cleared. Reloading...");
     window.location.reload();
   };
@@ -40,9 +41,9 @@ if (process.env.NODE_ENV === "development") {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: parseInt(process.env.REACT_APP_QUERY_STALE_TIME || String(5 * 60 * 1000)), // 5 minutes
       // cacheTime: 10 * 60 * 1000, // 10 minutes
-      retry: 1,
+      retry: parseInt(process.env.REACT_APP_QUERY_RETRY || '1'),
       refetchOnWindowFocus: false,
     },
   },

@@ -2,7 +2,7 @@ import { AI4UConfig } from "../types";
 import { getBackendUrl } from "../utils/apiConfig";
 
 export class ConfigManager {
-  private static readonly CONFIG_KEY = "ai4u_config";
+  private static readonly CONFIG_KEY = process.env.REACT_APP_CONFIG_KEY || "ai4u_config";
 
   public static getConfig(): AI4UConfig {
     const stored = localStorage.getItem(this.CONFIG_KEY);

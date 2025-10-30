@@ -30,7 +30,7 @@ export const debugEnvVars = () => {
 export const ENV = {
   BACKEND_URL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000',
   API_BASE_URL: process.env.REACT_APP_API_BASE_URL || '/api/v1',
-  WS_URL: process.env.REACT_APP_WS_URL || 'ws://localhost:8001/ws',
+  WS_URL: process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws',
   FEATURE_LEARNING_GATES: process.env.REACT_APP_FEATURE_LEARNING_GATES === 'true',
   API_TIMEOUT: parseInt(process.env.REACT_APP_API_TIMEOUT || '30000'),
 };
