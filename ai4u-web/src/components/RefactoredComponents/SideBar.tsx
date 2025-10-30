@@ -17,6 +17,7 @@ import SidebarButton from "../../commonComponents/SidebarButton";
 import { useDialog } from "../../commonComponents/Dialog/DialogProvider";
 import ModalProvider from "../../commonComponents/Dialog/ModalProvider";
 import { SideBarHeaders } from "./Constants";
+import ThemeToggleButton from "../../commonComponents/ThemeToggleButton";
 
 const SideBar = () => {
   const { openDialog, closeDialog } = useDialog();
@@ -36,23 +37,25 @@ const SideBar = () => {
           HeadingText="Do you want to Leave?"
           HeadingDescription="After logout you will be redirected to guest mode."
           children={
-            <div className="flex justify-between  max-md:flex-col gap-3">
-              <div>
+            <div className="flex justify-between w-full gap-4 p-2 ">
+              <div className="w-1/2">
                 <DynamicButton
                   label="Close"
                   onClick={closeDialog}
-                  variant="submit"
+                  variant="primary"
+                  className="w-full"
                 />
               </div>
-              <div>
+              <div className="w-1/2">
                 <DynamicButton
-                  label="Logout & Return to Guest Mode"
-                  variant="submit"
+                  label="Logout"
+                  variant="secondary"
                   onClick={() => {
                     logout();
                     navigate("/", { replace: true });
                     closeDialog();
                   }}
+                  className="w-full"
                   submitColor="bg-red-500 hover:bg-red-600"
                 />
               </div>
@@ -84,8 +87,8 @@ const SideBar = () => {
 
   return (
     <div
-      className={` flex flex-col flex-shrink-0 absolute h-full transition-[width] duration-200 ease-in-out border-r
-         dark:bg-darkBackGround-950 dark:border-darkBackGround-700 bg-gray-100 border-gray-300 text-black dark:text-white ${
+      className={` flex flex-col flex-shrink-0 absolute h-full transition-[width] duration-300 ease-in-out  border-r
+         dark:bg-darkBackGround-950 dark:border-darkBackGround-700 bg-white border-gray-300 text-black dark:text-white ${
            showSidebar ? "w-64   z-50" : "w-16"
          }`}
     >
@@ -135,6 +138,10 @@ const SideBar = () => {
             />
           </div>
         )}
+      </div>
+
+      <div className={` p-4  ${showSidebar && "flex justify-end"}`}>
+        <ThemeToggleButton />
       </div>
 
       {/* User Section */}

@@ -1,6 +1,6 @@
 import { ArrowUpRight, Award, Target, TrendingUp, Users } from "lucide-react";
 
-import DashboardStatsCard from "../../../commonComponents/DashbordStatsCard";
+import DashboardStatsCard from "../../../commonComponents/DashboardStatsCard";
 import DynamicDropDown from "../../../commonComponents/DynamicDropDown";
 
 import { DashboardStats } from "../../../pages/OrganizationDashboard";

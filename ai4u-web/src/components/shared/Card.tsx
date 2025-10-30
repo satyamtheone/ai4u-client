@@ -41,7 +41,7 @@ export const Card: React.FC<CardProps> = ({
 
   const cardClasses = `
     dark:bg-darkBackGround-950 rounded-lg dark:text-text-gray-300
-    transition-all duration-100
+    transition-all duration-100 
     border-gray-300 dark:border-darkBackGround-700
     ${shadowClasses[shadow]}
     ${border ? "border border-gray-200" : ""}
@@ -54,7 +54,7 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <CardElement
-      className={cardClasses}
+      className={`${cardClasses} `}
       onClick={onClick}
       {...(isClickable && { type: "button" })}
     >

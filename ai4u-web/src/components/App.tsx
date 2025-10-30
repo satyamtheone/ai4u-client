@@ -28,10 +28,8 @@ const App: React.FC = () => {
   const [bypassAuth, setBypassAuth] = useState(false);
   const navigate = useNavigate();
 
-  // V2 Authentication - ALL HOOKS MUST BE AT THE TOP
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
 
-  // Get services from Redux store
   const backendService = useAppSelector(
     (state) => (state.config as any).backendService
   );
@@ -135,8 +133,6 @@ const App: React.FC = () => {
     setInputMessage(topic);
   };
 
-  // NOW CONDITIONAL RETURNS AFTER ALL HOOKS
-  // Show loading screen while initializing
   if (authLoading) {
     return (
       <LoadingScreen icon={"🤖"} message="Initializing AI4U..." title="AI4U" />
@@ -144,11 +140,11 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="app">
+    <div className="app animate-chatInBot">
       {/* Sidebar */}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col dark:bg-[#0a0a0a] bg-slate-200 overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <ChatHeader isConnected={isConnected} />
 

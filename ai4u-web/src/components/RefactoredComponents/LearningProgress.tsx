@@ -41,6 +41,7 @@ const LearningProgress = ({
   return (
     <DynamicDropDown
       title="🎓 Learning Progress"
+      className="border-l-0"
       rightElement={
         <button
           onClick={handleToggleLearningGates}

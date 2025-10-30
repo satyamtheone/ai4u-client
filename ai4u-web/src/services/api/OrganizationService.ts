@@ -7,16 +7,18 @@ export interface Organization {
   name: string;
   description: string;
   industry: string;
-  size?: string;
+  company_size?: string;
   website?: string;
-  logo?: string;
-  plan: "basic" | "pro" | "enterprise";
-  status: "active" | "suspended" | "trial";
+  logo_url?: string;
+  subscription_plan: "basic" | "pro" | "enterprise";
+  subscription_status: "active" | "suspended" | "trial";
   adminId: number;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
-  memberCount: number;
-  maxMembers: number;
+  slug: string;
+  current_user_count: number;
+  max_users: number;
+  is_active: boolean;
   address?: {
     street?: string;
     city?: string;
@@ -30,6 +32,11 @@ export interface Organization {
     enableSso: boolean;
     defaultUserRole: "user" | "admin";
   };
+}
+
+export interface OrganizationResponse {
+  message: string;
+  data: Organization[];
 }
 
 export interface OrganizationMember {
@@ -95,8 +102,9 @@ export interface CreateOrganizationRequest {
   name: string;
   description: string;
   industry: string;
-  size?: string;
+  company_size: string;
   website?: string;
+  slug: string;
 }
 
 export interface UpdateOrganizationRequest {
@@ -193,6 +201,12 @@ export interface CreateMemberResponse {
   };
 }
 
+export interface CreateOrganizationResponse {
+  success: boolean;
+  message: string;
+  data: Organization;
+}
+
 export class OrganizationService extends BaseApiService {
   constructor(baseURL?: string, token?: string | null) {
     super();
@@ -235,9 +249,11 @@ export class OrganizationService extends BaseApiService {
     }
   }
 
-  async getMyOrganizations(): Promise<Organization[]> {
+  async getMyOrganizations(): Promise<OrganizationResponse> {
     try {
-      return await this.get<Organization[]>(API_ENDPOINTS.ORGANIZATIONS.MY);
+      return await this.get<OrganizationResponse>(
+        API_ENDPOINTS.ORGANIZATIONS.MY
+      );
     } catch (error) {
       throw new Error(
         error instanceof Error ? error.message : "Failed to fetch organizations"

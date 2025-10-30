@@ -77,7 +77,7 @@ const ShowcasePage: React.FC = () => {
 
   return (
     <>
-      <div className=" py-6 flex flex-wrap justify-center gap-4">
+      <div className=" py-6 flex flex-wrap justify-center gap-4 h">
         {Object.keys(showcaseComponents).map((key) => (
           <Link
             key={key}

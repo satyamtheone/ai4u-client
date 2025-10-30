@@ -7,6 +7,7 @@ import AppLayout from "./AppLayout";
 import App from "./components/App";
 import UserDashboard from "./pages/UserDashboard";
 import { OrganizationDashboard } from "./pages/OrganizationDashboard";
+import NonLoginLayout from "./NonLoginLayout";
 
 function NotFound() {
   return (
@@ -18,8 +19,11 @@ export default function AppRoutes() {
   return (
     <Routes>
       {/* ---------- Public (non-authenticated) ---------- */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/showcase/:component" element={<ShowcasePage />} />
+      <Route element={<NonLoginLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/showcase/:component" element={<ShowcasePage />} />
+        <Route path="/nonLoginDashboard" element={<App />} />
+      </Route>
 
       {/* ---------- Authenticated area with persistent sidebar ---------- */}
       <Route

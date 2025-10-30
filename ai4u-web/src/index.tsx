@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { store } from "./store";
 import { AuthProvider, useAuth } from "./components/auth/AuthProvider";
 import "./index.css";
-import ThemeToggleButton from "./commonComponents/ThemeToggleButton";
 import ErrorBoundary from "./components/RefactoredComponents/ErrorBoundary";
 import DialogProvider from "./commonComponents/Dialog/DialogProvider";
 import { debugEnvVars } from "./utils/envDebug";
@@ -61,7 +60,6 @@ root.render(
           <AuthProvider>
             <DialogProvider>
               <Router>
-                <ThemeToggleButton />
                 <AppInitializer />
                 <AppRoutes />
                 <NotificationContainer />

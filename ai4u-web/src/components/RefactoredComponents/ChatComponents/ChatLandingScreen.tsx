@@ -28,6 +28,7 @@ const ChatLandingScreen = ({
             variant="pill"
             key={index}
             onClick={() => handleSuggestedTopic(topic)}
+            className="bg-white"
           />
         ))}
       </div>

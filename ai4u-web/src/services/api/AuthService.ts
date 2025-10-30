@@ -7,6 +7,7 @@ import {
   GoogleAuthResponse,
 } from "../../types/auth/Auth";
 import { API_ENDPOINTS } from "../../utils/constants/apiEndpoints";
+import { OrganizationResponse } from "./OrganizationService";
 
 export class AuthService extends BaseApiService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -52,6 +53,17 @@ export class AuthService extends BaseApiService {
     } catch (error) {
       throw new Error(
         error instanceof Error ? error.message : "Failed to get user profile"
+      );
+    }
+  }
+  async getMyOrganizations(): Promise<OrganizationResponse> {
+    try {
+      return await this.get<OrganizationResponse>(
+        API_ENDPOINTS.ORGANIZATIONS.MY
+      );
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to fetch organizations"
       );
     }
   }

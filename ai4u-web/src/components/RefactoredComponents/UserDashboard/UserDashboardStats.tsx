@@ -1,7 +1,7 @@
 import { BookOpen, Clock, Target, TrendingUp } from "lucide-react";
-import { LearningStats } from "../../../pages/UserDashboard";
-import DashboardStatsCard from "../../../commonComponents/DashbordStatsCard";
+import DashboardStatsCard from "../../../commonComponents/DashboardStatsCard";
 import DynamicDropDown from "../../../commonComponents/DynamicDropDown";
+import { LearningStats } from "./UserCourseDetails";
 
 const UserDashboardStats = ({ stats }: { stats: LearningStats }) => {
   const children = (
@@ -47,7 +47,12 @@ const UserDashboardStats = ({ stats }: { stats: LearningStats }) => {
   );
   return (
     <div className="w-full">
-      <DynamicDropDown title="Your Stats" defaultOpen children={children} />
+      <DynamicDropDown
+        title="Your Stats"
+        defaultOpen
+        children={children}
+        className="rounded-lg"
+      />
     </div>
   );
 };

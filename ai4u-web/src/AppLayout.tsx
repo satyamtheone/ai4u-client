@@ -4,7 +4,7 @@ import SideBar from "./components/RefactoredComponents/SideBar";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen transition-all duration-300 ">
+    <div className="min-h-screen transition-all duration-100 ">
       {/* Fixed left sidebar */}
       <aside className=" inset-y-0 left-0 ">
         <SideBar />

@@ -35,6 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: false,
     isLoading: true,
     error: null,
+    organization: undefined,
   });
 
   const authService = new AuthService();
@@ -72,6 +73,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       authService.setToken(access_token);
       storageService.setToken(access_token);
       const user = await authService.getCurrentUser();
+      const orgRes = await authService.getMyOrganizations();
+
+      const organization = orgRes?.data?.[0];
 
       setState({
         user,
@@ -79,6 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        organization,
       });
     } catch (error) {
       setState((prev) => ({
@@ -133,9 +138,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshUser = async () => {
     try {
       const user = await authService.getCurrentUser();
+      const orgRes = await authService.getMyOrganizations();
+      const organization = orgRes?.data?.[0];
       setState((prev) => ({
         ...prev,
         user,
+        organization,
         isAuthenticated: true,
         isLoading: false,
       }));
@@ -168,10 +176,13 @@ export const useAuth = (): AuthContextType => {
 
 // Single centralized permissions hook - no duplication
 export const usePermissions = () => {
-  const { user } = useAuth();
+  const { user, organization } = useAuth();
 
   const hasRole = (role: UserType): boolean => {
     return user?.userType === role;
+  };
+  const hasOrgName = (): boolean => {
+    return Boolean(organization?.name);
   };
 
   const hasAnyRole = (roles: UserType[]): boolean => {
@@ -226,6 +237,8 @@ export const usePermissions = () => {
 
   return {
     user,
+    organization,
+    hasOrgName,
     hasRole,
     hasAnyRole,
     canManageOrganization,

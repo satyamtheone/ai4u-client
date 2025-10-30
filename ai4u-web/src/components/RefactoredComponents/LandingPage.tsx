@@ -25,7 +25,7 @@ const LandingPage = () => {
 
   const handleBypassAuth = () => {
     if (!isAuthenticated) {
-      navigate("/dashboard", { replace: true });
+      navigate("/nonLoginDashboard", { replace: true });
     }
   };
 
@@ -41,7 +41,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="app bg-white text-black ">
+    <div className="app bg-white dark:bg-black text-black ">
       <div className="flex justify-center w-full">
         <div className="flex  flex-col items-center justify-center">
           <div className="welcome-icon">🤖</div>

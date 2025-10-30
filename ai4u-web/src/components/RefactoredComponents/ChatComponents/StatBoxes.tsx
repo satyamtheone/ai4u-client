@@ -12,7 +12,7 @@ const StatBoxes = ({
 }) => {
   return (
     <div
-      className={`flex items-center gap-3 cursor-pointer md:p-5 p-2 rounded-xl border border-darkBackGround-900   dark:bg-darkBackGround-300 bg-gray-50 shadow-md transition-all hover:-translate-y-0.5 hover:border-emerald-500 ${
+      className={`flex items-center gap-3 cursor-pointer md:p-5 p-2 rounded-xl border border-gray-100 dark:border-gray-600    shadow-md transition-all hover:-translate-y-0.5 hover:border-emerald-500 ${
         isActive &&
         " border-emerald-500 bg-gradient-to-br dark:from-emerald-500/10  dark:to-emerald-700/10 "
       } `}

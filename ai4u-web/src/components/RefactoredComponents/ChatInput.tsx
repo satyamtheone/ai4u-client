@@ -16,8 +16,8 @@ const ChatInput = ({
   handleSendMessage: () => Promise<void>;
 }) => {
   return (
-    <div className="md:p-5 p-2 border-t border-darkBackGround-700 dark:bg-darkBackGround-950 bg-gray-100 ">
-      <div className="flex items-end md:gap-3 gap-1 md:p-2 p-0.5 max-md:px-1 dark:bg-darkBackGround-300 bg-gray-200 border-2 border-darkBackGround-900 rounded-2xl  focus-within:border-blue-600">
+    <div className="md:p-5 p-2 border-t border-darkBackGround-700 dark:bg-darkBackGround-950 ">
+      <div className="flex items-end md:gap-3 gap-1 md:p-2 p-0.5 max-md:px-1 dark:bg-darkBackGround-300 border-2 border-darkBackGround-900 rounded-2xl  focus-within:border-blue-600">
         <Search className="text-gray-400 m-3 w-5 h-5" size={20} />
 
         <textarea

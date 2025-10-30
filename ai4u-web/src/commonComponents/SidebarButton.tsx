@@ -18,7 +18,7 @@ const SidebarButton = ({
   return (
     <button
       onClick={onToggle}
-      className={`p-1 rounded-full transition-all dark:bg-black bg-white  shadow-2xl duration-300 
+      className={`p-1 rounded-full transition-all dark:bg-black bg-white border-r-0.5  shadow-2xl duration-300 
         text-black hover:text-black dark:text-gray-400 
         hover:bg-gray-100 dark:hover:bg-darkBackGround-300 
         dark:hover:text-white ${className}`}
