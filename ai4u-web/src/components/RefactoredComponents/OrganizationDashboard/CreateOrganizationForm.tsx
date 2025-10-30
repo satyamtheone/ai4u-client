@@ -111,15 +111,6 @@ const CreateOrganizationForm: React.FC<{
       if (res.success) {
         setIsSuccess(true);
         onSuccess?.(res);
-
-        dispatch(
-          addNotification({
-            type: "success",
-            message: `${formData.name} organization created successfully`,
-          })
-        );
-
-        closeDialog();
       } else {
         setErrors({ submit: res.message || "Failed to create organization" });
       }
@@ -132,6 +123,14 @@ const CreateOrganizationForm: React.FC<{
       });
     } finally {
       setIsLoading(false);
+      dispatch(
+        addNotification({
+          type: "success",
+          message: `${formData.name} organization created successfully`,
+        })
+      );
+
+      closeDialog();
     }
   };
 
