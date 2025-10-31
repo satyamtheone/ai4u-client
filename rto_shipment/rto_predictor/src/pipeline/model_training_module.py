@@ -208,11 +208,11 @@ class ModelTrainer:
             with open(snapshot_dir / "config.json", 'w') as f:
                 json.dump(config_data, f, indent=2)
             
-            # Create symlink to latest
+            # Create symlink to latest (relative path)
             latest_link = Path(self.pipeline_config.model_dir) / "latest"
-            if latest_link.exists():
+            if latest_link.exists() or latest_link.is_symlink():
                 latest_link.unlink()
-            latest_link.symlink_to(snapshot_dir)
+            latest_link.symlink_to(timestamp)
             
             # Store model version
             self.model_version = timestamp

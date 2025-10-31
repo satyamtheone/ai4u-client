@@ -5,8 +5,8 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { AuthService } from "../../services/api/AuthService";
-import { StorageService } from "../../services/utils/StorageService";
+import { ServiceFactory } from "../../services/ServiceFactory";
+import { tokenManager } from "../../services/auth/TokenManager";
 import {
   User,
   LoginCredentials,
@@ -38,22 +38,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     organization: undefined,
   });
 
-  const authService = new AuthService();
-  const storageService = new StorageService();
+  // Use singleton service instances
+  const authService = ServiceFactory.getAuthService();
 
   useEffect(() => {
     initializeAuth();
-    console.log("AuthProvider mounted and initialized", authService);
+    console.log("AuthProvider mounted and initialized");
+
+    // Set up event listeners for auth events
+    const handleUnauthorized = () => {
+      console.log("Auth: Unauthorized - logging out");
+      logout();
+    };
+
+    const handleForbidden = (event: CustomEvent) => {
+      console.error("Auth: Forbidden access", event.detail);
+      setState(prev => ({
+        ...prev,
+        error: "Access forbidden"
+      }));
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized as EventListener);
+    window.addEventListener("auth:forbidden", handleForbidden as EventListener);
+
+    // Cleanup listeners
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized as EventListener);
+      window.removeEventListener("auth:forbidden", handleForbidden as EventListener);
+    };
   }, []);
 
   const initializeAuth = async () => {
     try {
-      const token = storageService.getToken();
+      // Get token from TokenManager (centralized)
+      const token = tokenManager.getToken();
       if (token) {
-        authService.setToken(token);
-        storageService.setToken(token); // Ensure token is
-
-        await refreshUser();
+        // Token exists, validate and refresh user
+        const validToken = await tokenManager.getValidToken();
+        if (validToken) {
+          await refreshUser();
+        } else {
+          // Token expired and couldn't be refreshed
+          logout();
+        }
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
@@ -70,8 +98,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response = await authService.login(credentials);
       const access_token = response.access_token;
-      authService.setToken(access_token);
-      storageService.setToken(access_token);
+      const refresh_token = response.refreshToken;
+
+      // Store tokens using TokenManager (centralized)
+      tokenManager.setTokens(access_token, refresh_token);
+
       const user = await authService.getCurrentUser();
       const orgRes = await authService.getMyOrganizations();
 
@@ -100,10 +131,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       const response = await authService.register(userData);
-      const { access_token, user } = response;
+      const { access_token, refreshToken, user } = response;
 
-      authService.setToken(access_token);
-      storageService.setToken(access_token);
+      // Store tokens using TokenManager (centralized)
+      tokenManager.setTokens(access_token, refreshToken);
 
       setState({
         user,
@@ -123,8 +154,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    authService.setToken(null);
-    storageService.clearTokens();
+    // Clear tokens using TokenManager (centralized)
+    tokenManager.clearTokens();
+
+    // Call server logout if needed
+    authService.logout().catch(err => {
+      console.error("Server logout failed:", err);
+    });
 
     setState({
       user: null,

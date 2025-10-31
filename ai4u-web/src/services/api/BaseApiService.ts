@@ -1,4 +1,7 @@
 import { apiConfig } from "../../config/apiConfig";
+import { apiClient } from "../auth/apiClient";
+import { tokenManager } from "../auth/TokenManager";
+import { AxiosRequestConfig } from "axios";
 
 function readTokenFromStorage(): string | null {
   try {
@@ -11,16 +14,68 @@ function readTokenFromStorage(): string | null {
   }
 }
 
+/**
+ * BaseApiService - Unified API service base class
+ *
+ * Now supports both fetch and axios with automatic token management.
+ * Uses axios by default for better interceptor support and automatic token refresh.
+ * Falls back to fetch for backward compatibility.
+ */
 export class BaseApiService {
   protected baseURL: string;
   protected token: string | null = null;
+  protected useAxios: boolean = true; // Use axios by default
 
-  constructor() {
+  constructor(useAxios: boolean = true) {
     this.baseURL = apiConfig.baseURL;
     this.token = readTokenFromStorage();
+    this.useAxios = useAxios;
   }
 
+  /**
+   * Make API request using axios or fetch
+   */
   protected async request<T>(
+    endpoint: string,
+    options: RequestInit | AxiosRequestConfig = {}
+  ): Promise<T> {
+    // Use axios if enabled (recommended)
+    if (this.useAxios) {
+      return this.requestWithAxios<T>(endpoint, options as AxiosRequestConfig);
+    }
+
+    // Fallback to fetch for backward compatibility
+    return this.requestWithFetch<T>(endpoint, options as RequestInit);
+  }
+
+  /**
+   * Make request using axios (with automatic token refresh)
+   */
+  private async requestWithAxios<T>(
+    endpoint: string,
+    options: AxiosRequestConfig = {}
+  ): Promise<T> {
+    try {
+      const response = await apiClient.request<T>({
+        ...options,
+        url: endpoint,
+        baseURL: this.baseURL,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      // Axios errors are already handled by interceptors
+      if (error.response) {
+        throw new Error(error.response.data?.message || error.response.data?.error || error.message);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Make request using fetch (legacy support)
+   */
+  private async requestWithFetch<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
@@ -101,8 +156,9 @@ export class BaseApiService {
   }
 
   private handleUnauthorized(): void {
-    // Clear token and redirect to login
-    this.setToken(null);
+    // Clear token using TokenManager for consistency
+    tokenManager.clearTokens();
+    this.token = null;
 
     // Dispatch custom event for auth state change
     if (typeof window !== "undefined") {
@@ -112,6 +168,14 @@ export class BaseApiService {
 
   public setToken(token: string | null): void {
     this.token = token;
+    // Sync with TokenManager if using fetch
+    if (!this.useAxios) {
+      if (token) {
+        tokenManager.setToken(token);
+      } else {
+        tokenManager.clearTokens();
+      }
+    }
   }
 
   public getToken(): string | null {

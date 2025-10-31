@@ -38,8 +38,12 @@ from pipeline.transaction_manager import TransactionManager
 from pipeline.dataclass_configurations import ModelConfig, PreprocessingConfig, PipelineConfig
 from core.monitoring_metrics_manager import MetricsCollector
 from core.exceptions import *
+from pipeline.enhanced_logging_service import EnhancedLoggingService
 
 warnings.filterwarnings('ignore')
+
+# Initialize module-level logger
+logger = logging.getLogger(__name__)
 
 # Enhanced RTOPredictor with production features
 class ProductionRTOPredictor:
@@ -348,7 +352,6 @@ class ProductionRTOPredictor:
     
     def get_health_status(self) -> Dict[str, Any]:
         """Get system health status"""
-        import psutil
         return {
             **self.health_status,
             'circuit_breaker_state': self.circuit_breaker.state if self.circuit_breaker else 'disabled',
@@ -829,6 +832,6 @@ if __name__ == "__main__":
     # Setup logging first
     from pipeline.enhanced_logging_service import EnhancedLoggingService
     logging_service = EnhancedLoggingService()
-    logger = logging_service.setup_production_logging()
-    
+    logger = logging_service.setup_production_logging('logs')
+
     main()
