@@ -3,11 +3,17 @@ FastAPI Application for RTO Prediction Service
 Production-ready REST API with comprehensive endpoints
 """
 
+# Add project root to path first, before any other imports
+import sys
+from pathlib import Path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Query, Path as PathParam
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import List, Dict, Any, Optional, Union
 from enum import Enum
 import pandas as pd
@@ -22,7 +28,7 @@ import traceback
 import asyncio
 
 # Import the production pipeline
-from main import ProductionRTOPipelineManager, ProductionRTOPredictor
+from src.main import ProductionRTOPipelineManager, ProductionRTOPredictor
 
 # Configure logging
 logging.basicConfig(
@@ -60,7 +66,7 @@ class OrderInput(BaseModel):
     CUSTOMER_ADDRESS: str = Field(..., description="Customer delivery address", min_length=10)
     CUSTOMER_CITY: str = Field(..., description="City name")
     CUSTOMER_STATE: str = Field(..., description="State name")
-    PINCODE: str = Field(..., description="6-digit pincode", regex=r"^\d{6}$")
+    PINCODE: str = Field(..., description="6-digit pincode", pattern=r"^\d{6}$")
     PAYMENT_MODE: str = Field(..., description="Payment mode (COD/PREPAID)")
     COURIER_NAME: str = Field(..., description="Courier partner name")
     ITEM_DESCRIPTION: Optional[str] = Field(None, description="Product description")
@@ -73,8 +79,8 @@ class OrderInput(BaseModel):
     ZONE: Optional[str] = Field(None, description="Delivery zone")
     CURRENT_STATUS: Optional[str] = Field(None, description="Current order status (for training)")
 
-    class Config:
-        schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "ORDER_NUMBER": "ORD123456",
                 "CLIENT_NAME": "ABC Corp",
@@ -95,6 +101,7 @@ class OrderInput(BaseModel):
                 "ZONE": "North"
             }
         }
+    )
 
 
 class BatchPredictionRequest(BaseModel):
@@ -103,7 +110,8 @@ class BatchPredictionRequest(BaseModel):
     batch_size: Optional[int] = Field(None, description="Batch processing size", ge=100, le=10000)
     validate_predictions: bool = Field(False, description="Validate predictions if actual outcomes available")
 
-    @validator('orders')
+    @field_validator('orders')
+    @classmethod
     def validate_unique_orders(cls, v):
         order_numbers = [order.ORDER_NUMBER for order in v]
         if len(order_numbers) != len(set(order_numbers)):
@@ -182,7 +190,7 @@ class CourierPerformanceResponse(BaseModel):
 
 class PincodeAnalysisRequest(BaseModel):
     """Pincode analysis request"""
-    pincode: Optional[str] = Field(None, description="Specific pincode (6 digits)", regex=r"^\d{6}$")
+    pincode: Optional[str] = Field(None, description="Specific pincode (6 digits)", pattern=r"^\d{6}$")
     top_k: int = Field(10, description="Number of top pincodes to return", ge=1, le=100)
 
 
@@ -1076,14 +1084,14 @@ if __name__ == "__main__":
     Run the API server
 
     Usage:
-        python src/apis.py
+        python src/apis/api_main.py
 
     Or with uvicorn directly:
-        uvicorn src.apis:app --host 0.0.0.0 --port 8000 --reload
+        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --reload
     """
 
     uvicorn.run(
-        "apis:app",
+        "src.apis.api_main:app",
         host="0.0.0.0",
         port=8000,
         reload=True,

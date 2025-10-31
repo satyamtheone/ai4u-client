@@ -20,16 +20,15 @@ __version__ = "2.0.0"
 __author__ = "RTO Prediction Team"
 __email__ = "team@rtoprediction.com"
 
-from src.pipeline.pipeline_manager import ProductionRTOPipelineManager, EnhancedRTOPredictor
-from src.config.config import ConfigManager, PreprocessingConfig, ModelConfig, PipelineConfig
+from src.main import ProductionRTOPipelineManager, ProductionRTOPredictor
+from src.pipeline.dataclass_configurations import PreprocessingConfig, ModelConfig, PipelineConfig
 from src.core.exceptions import *
 
 # Make key classes easily accessible
 __all__ = [
     'ProductionRTOPipelineManager',
-    'EnhancedRTOPredictor', 
-    'ConfigManager',
+    'ProductionRTOPredictor',
     'PreprocessingConfig',
-    'ModelConfig', 
+    'ModelConfig',
     'PipelineConfig'
 ]

@@ -34,21 +34,21 @@ python3 -c "from src.main import ProductionRTOPipelineManager; print('✓ Instal
 
 ### Option 1: Direct Python Execution
 ```bash
-python3 src/apis.py
+python3 src/apis/api_main.py
 ```
 
 ### Option 2: Using Uvicorn (Recommended)
 ```bash
 # Development mode with auto-reload
-uvicorn src.apis:app --reload --host 0.0.0.0 --port 8000
+uvicorn src.apis.api_main:app --reload --host 0.0.0.0 --port 8000
 
 # Production mode with multiple workers
-uvicorn src.apis:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 ### Option 3: Using Gunicorn (Production)
 ```bash
-gunicorn src.apis:app \
+gunicorn src.apis.api_main:app \
   --workers 4 \
   --worker-class uvicorn.workers.UvicornWorker \
   --bind 0.0.0.0:8000 \
@@ -388,7 +388,7 @@ curl http://localhost:8000/health
 **Solution:**
 ```bash
 # Option 1: Use a different port
-uvicorn src.apis:app --port 8001
+uvicorn src.apis.api_main:app --port 8001
 
 # Option 2: Kill existing process
 lsof -ti:8000 | xargs kill -9
@@ -416,7 +416,7 @@ python3 --version
 # Instead of individual requests, use batch endpoint
 
 # Or increase workers
-uvicorn src.apis:app --workers 4
+uvicorn src.apis.api_main:app --workers 4
 ```
 
 ---

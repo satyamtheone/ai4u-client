@@ -8,8 +8,9 @@ echo "========================================"
 echo ""
 
 # Check if we're in the correct directory
-if [ ! -f "src/apis.py" ]; then
+if [ ! -f "src/apis/api_main.py" ]; then
     echo "Error: Please run this script from the rto_predictor directory"
+    echo "Current directory: $(pwd)"
     exit 1
 fi
 
@@ -42,5 +43,5 @@ echo "Press Ctrl+C to stop the server"
 echo ""
 
 # Start with auto-reload for development
-uvicorn src.apis:app --reload --host 0.0.0.0 --port 8000
+uvicorn src.apis.api_main:app --reload --host 0.0.0.0 --port 8000
 

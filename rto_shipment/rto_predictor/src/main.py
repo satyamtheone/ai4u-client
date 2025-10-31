@@ -18,27 +18,27 @@ import traceback
 from scipy.spatial.distance import cosine
 import re
 from collections import defaultdict
-from pipeline.data_preprocessing_module import DataPreprocessor
-from pipeline.model_training_module import ModelTrainer
-from pipeline.prediction_module import PredictionAnalyzer
-from pipeline.performance_analytics_module import PerformanceAnalytics
-from pipeline.data_validation_module import DataValidator
-from pipeline.model_management_service import ModelManagementService
-from pipeline.prediction_orchestrator import PredictionOrchestrator 
-from pipeline.error_handling_manager import ErrorHandlingManager
-from pipeline.method_delegation_handler import MethodDelegationHandler
-from config.configuration_manager import ConfigurationManager
-from pipeline.logging_manager import LoggingManager
-from core.component_factory import ComponentFactory
-from pipeline.fault_tolerance_manager import FaultToleranceDecorators, CircuitBreaker
-from pipeline.health_monitoring_service import HealthMonitoringService
-from core.monitoring_metrics_manager import MonitoringDecorators
-from pipeline.backup_recovery_manager import BackupRecoveryManager
-from pipeline.transaction_manager import TransactionManager
-from pipeline.dataclass_configurations import ModelConfig, PreprocessingConfig, PipelineConfig
-from core.monitoring_metrics_manager import MetricsCollector
-from core.exceptions import *
-from pipeline.enhanced_logging_service import EnhancedLoggingService
+from src.pipeline.data_preprocessing_module import DataPreprocessor
+from src.pipeline.model_training_module import ModelTrainer
+from src.pipeline.prediction_module import PredictionAnalyzer
+from src.pipeline.performance_analytics_module import PerformanceAnalytics
+from src.pipeline.data_validation_module import DataValidator
+from src.pipeline.model_management_service import ModelManagementService
+from src.pipeline.prediction_orchestrator import PredictionOrchestrator
+from src.pipeline.error_handling_manager import ErrorHandlingManager
+from src.pipeline.method_delegation_handler import MethodDelegationHandler
+from src.config.configuration_manager import ConfigurationManager
+from src.pipeline.logging_manager import LoggingManager
+from src.core.component_factory import ComponentFactory
+from src.pipeline.fault_tolerance_manager import FaultToleranceDecorators, CircuitBreaker
+from src.pipeline.health_monitoring_service import HealthMonitoringService
+from src.core.monitoring_metrics_manager import MonitoringDecorators
+from src.pipeline.backup_recovery_manager import BackupRecoveryManager
+from src.pipeline.transaction_manager import TransactionManager
+from src.pipeline.dataclass_configurations import ModelConfig, PreprocessingConfig, PipelineConfig
+from src.core.monitoring_metrics_manager import MetricsCollector
+from src.core.exceptions import *
+from src.pipeline.enhanced_logging_service import EnhancedLoggingService
 
 warnings.filterwarnings('ignore')
 

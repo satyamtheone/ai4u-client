@@ -20,12 +20,12 @@ class ComponentFactory:
     def create_all_components(self, predictor, config: Dict):
         """Create and initialize all modular components"""
         # Import here to avoid circular imports
-        from pipeline.file_processing_module import FileProcessor
-        from pipeline.validation_analytics_module import ValidationAnalytics
-        from pipeline.results_enhancement_module import ResultsEnhancer
-        from pipeline.training_management_module import TrainingManager
-        from pipeline.reporting_module import ReportingManager
-        from pipeline.output_management_module import OutputManager
+        from src.pipeline.file_processing_module import FileProcessor
+        from src.pipeline.validation_analytics_module import ValidationAnalytics
+        from src.pipeline.results_enhancement_module import ResultsEnhancer
+        from src.pipeline.training_management_module import TrainingManager
+        from src.pipeline.reporting_module import ReportingManager
+        from src.pipeline.output_management_module import OutputManager
         
         components = {
             'file_processor': FileProcessor(config),

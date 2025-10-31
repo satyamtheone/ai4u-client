@@ -7,13 +7,13 @@
 ```bash
 # Option 1: Using Python directly
 cd /Users/anilkumargupta/Documents/study/ttt/ai4u/rto_shipment/rto_predictor
-python3 src/apis.py
+python3 src/apis/api_main.py
 
 # Option 2: Using uvicorn
-uvicorn src.apis:app --host 0.0.0.0 --port 8000 --reload
+uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --reload
 
 # Option 3: With specific configuration
-uvicorn src.apis:app --host 0.0.0.0 --port 8000 --workers 4 --log-level info
+uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --workers 4 --log-level info
 ```
 
 ### Accessing Documentation
@@ -814,7 +814,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 8000
 
-CMD ["uvicorn", "src.apis:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["uvicorn", "src.apis.api_main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 ```
 
 ```bash
@@ -826,7 +826,7 @@ docker run -d -p 8000:8000 -v $(pwd)/models:/app/models rto-api:latest
 
 ```bash
 # Use Gunicorn with Uvicorn workers
-gunicorn src.apis:app \
+gunicorn src.apis.api_main:app \
   --workers 4 \
   --worker-class uvicorn.workers.UvicornWorker \
   --bind 0.0.0.0:8000 \
