@@ -1,0 +1,321 @@
+<div class="predictions-page">
+  <div class="page-header">
+    <h2>🎯 RTO Prediction Engine</h2>
+    <p>Predict Return-to-Origin probability for orders using AI-powered models</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="prediction-tabs">
+    <button
+      class="prediction-tab"
+      [class.active]="activeTab === 'single'"
+      (click)="switchTab('single')">
+      📝 Single Order
+    </button>
+    <button
+      class="prediction-tab"
+      [class.active]="activeTab === 'batch'"
+      (click)="switchTab('batch')">
+      📋 Batch Orders
+    </button>
+    <button
+      class="prediction-tab"
+      [class.active]="activeTab === 'csv'"
+      (click)="switchTab('csv')">
+      📊 CSV Upload
+    </button>
+  </div>
+
+  <!-- Error Display -->
+  <div class="error-message" *ngIf="error">
+    <span>⚠️ {{ error }}</span>
+    <button (click)="error = null">✕</button>
+  </div>
+
+  <!-- Single Order Prediction -->
+  <div class="tab-content" *ngIf="activeTab === 'single'">
+    <div class="prediction-container">
+      <div class="input-section">
+        <div class="section-header">
+          <h3>Order Details (JSON)</h3>
+          <button class="btn-secondary" (click)="loadSampleSingle()">Load Sample</button>
+        </div>
+
+        <textarea
+          class="json-input"
+          [(ngModel)]="singleOrderData"
+          placeholder="Enter order data in JSON format..."
+          rows="20"></textarea>
+
+        <div class="button-group">
+          <button
+            class="btn-primary"
+            (click)="predictSingleOrder()"
+            [disabled]="loading">
+            {{ loading ? '⏳ Predicting...' : '🎯 Predict RTO' }}
+          </button>
+          <button
+            class="btn-secondary"
+            (click)="clearSingleResult()"
+            [disabled]="!singleResult">
+            Clear Result
+          </button>
+        </div>
+      </div>
+
+      <div class="result-section" *ngIf="singleResult">
+        <div class="section-header">
+          <h3>Prediction Result</h3>
+          <button class="btn-secondary" (click)="downloadResults(singleResult, 'single_prediction')">
+            💾 Download JSON
+          </button>
+        </div>
+
+        <div class="prediction-card" [ngClass]="getRiskLevelClass(singleResult.risk_level)">
+          <div class="result-header">
+            <div class="order-info">
+              <h4>{{ singleResult.order_number || 'Order' }}</h4>
+              <div class="prediction-badge" [style.background]="getRiskLevelColor(singleResult.risk_level)">
+                {{ singleResult.rto_prediction ? '⚠️ HIGH RTO RISK' : '✅ LOW RTO RISK' }}
+              </div>
+            </div>
+            <div class="probability-circle" [style.border-color]="getRiskLevelColor(singleResult.risk_level)">
+              <div class="probability-value">{{ (singleResult.rto_probability * 100).toFixed(1) }}%</div>
+              <div class="probability-label">RTO Probability</div>
+            </div>
+          </div>
+
+          <div class="result-details">
+            <div class="detail-item">
+              <span class="label">Risk Level:</span>
+              <span class="value" [style.color]="getRiskLevelColor(singleResult.risk_level)">
+                {{ singleResult.risk_level }}
+              </span>
+            </div>
+
+            <div class="detail-item" *ngIf="singleResult.confidence">
+              <span class="label">Confidence:</span>
+              <span class="value">{{ (singleResult.confidence * 100).toFixed(1) }}%</span>
+            </div>
+
+            <div class="detail-item" *ngIf="singleResult.processing_time_ms">
+              <span class="label">Processing Time:</span>
+              <span class="value">{{ singleResult.processing_time_ms.toFixed(2) }}ms</span>
+            </div>
+          </div>
+
+          <div class="risk-factors" *ngIf="singleResult.risk_factors && singleResult.risk_factors.length > 0">
+            <h5>⚠️ Risk Factors:</h5>
+            <ul>
+              <li *ngFor="let factor of singleResult.risk_factors">{{ factor }}</li>
+            </ul>
+          </div>
+
+          <div class="recommendations" *ngIf="singleResult.recommendations && singleResult.recommendations.length > 0">
+            <h5>💡 Recommendations:</h5>
+            <ul>
+              <li *ngFor="let rec of singleResult.recommendations">{{ rec }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch Prediction -->
+  <div class="tab-content" *ngIf="activeTab === 'batch'">
+    <div class="prediction-container">
+      <div class="input-section">
+        <div class="section-header">
+          <h3>Batch Orders (JSON Array)</h3>
+          <button class="btn-secondary" (click)="loadSampleBatch()">Load Sample</button>
+        </div>
+
+        <textarea
+          class="json-input"
+          [(ngModel)]="batchOrdersData"
+          placeholder="Enter array of orders in JSON format..."
+          rows="20"></textarea>
+
+        <div class="info-box">
+          <strong>ℹ️ Note:</strong> Maximum 1000 orders per batch. Format must be a JSON array of order objects.
+        </div>
+
+        <div class="button-group">
+          <button
+            class="btn-primary"
+            (click)="predictBatchOrders()"
+            [disabled]="loading">
+            {{ loading ? '⏳ Processing Batch...' : '🎯 Predict Batch' }}
+          </button>
+          <button
+            class="btn-secondary"
+            (click)="clearBatchResults()"
+            [disabled]="!batchResults">
+            Clear Results
+          </button>
+        </div>
+      </div>
+
+      <div class="result-section" *ngIf="batchResults">
+        <div class="section-header">
+          <h3>Batch Results</h3>
+          <button class="btn-secondary" (click)="downloadResults(batchResults, 'batch_predictions')">
+            💾 Download JSON
+          </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="summary-stats">
+          <div class="stat-card">
+            <div class="stat-value">{{ batchResults.total_orders || 0 }}</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ batchResults.successful_predictions || 0 }}</div>
+            <div class="stat-label">Successful</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ batchResults.processing_time_seconds?.toFixed(2) || 0 }}s</div>
+            <div class="stat-label">Processing Time</div>
+          </div>
+          <div class="stat-card" *ngIf="batchResults.summary">
+            <div class="stat-value" style="color: #ef4444;">
+              {{ batchResults.summary.high_risk_count || 0 }}
+            </div>
+            <div class="stat-label">High Risk</div>
+          </div>
+        </div>
+
+        <!-- Predictions List -->
+        <div class="predictions-list">
+          <div
+            class="prediction-item"
+            *ngFor="let pred of batchResults.predictions"
+            [ngClass]="getRiskLevelClass(pred.risk_level)">
+            <div class="prediction-item-header">
+              <span class="order-number">{{ pred.order_number }}</span>
+              <span class="probability" [style.color]="getRiskLevelColor(pred.risk_level)">
+                {{ (pred.rto_probability * 100).toFixed(1) }}%
+              </span>
+              <span class="risk-badge" [style.background]="getRiskLevelColor(pred.risk_level)">
+                {{ pred.risk_level }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSV Upload -->
+  <div class="tab-content" *ngIf="activeTab === 'csv'">
+    <div class="prediction-container">
+      <div class="input-section">
+        <div class="section-header">
+          <h3>Upload CSV File</h3>
+        </div>
+
+        <div class="csv-upload-area">
+          <div class="upload-box">
+            <div class="upload-icon">📁</div>
+            <p>Select a CSV file with order data</p>
+            <input
+              type="file"
+              id="csvFile"
+              accept=".csv"
+              (change)="onFileSelected($event)"
+              style="display: none;">
+            <label for="csvFile" class="btn-primary">Choose File</label>
+            <p class="file-name" *ngIf="selectedFile">
+              Selected: <strong>{{ selectedFile.name }}</strong>
+            </p>
+          </div>
+
+          <div class="csv-info">
+            <h4>CSV Format Requirements:</h4>
+            <ul>
+              <li>Must contain these columns: ORDER_NUMBER, CUSTOMER_NAME, CUSTOMER_PHONE, CUSTOMER_ADDRESS, CUSTOMER_CITY, CUSTOMER_STATE, PINCODE, PAYMENT_MODE, COURIER_NAME, WEIGHT, QTY, INVOICE_VALUE</li>
+              <li>PINCODE must be 6 digits</li>
+              <li>PAYMENT_MODE: COD or PREPAID</li>
+              <li>WEIGHT and INVOICE_VALUE must be numeric</li>
+              <li>Maximum file size: 10MB</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button
+            class="btn-primary"
+            (click)="predictFromCSV()"
+            [disabled]="!selectedFile || loading">
+            {{ loading ? '⏳ Processing CSV...' : '🎯 Predict from CSV' }}
+          </button>
+          <button
+            class="btn-secondary"
+            (click)="clearCSVResults()"
+            [disabled]="!csvResults">
+            Clear Results
+          </button>
+        </div>
+      </div>
+
+      <div class="result-section" *ngIf="csvResults">
+        <div class="section-header">
+          <h3>CSV Processing Results</h3>
+          <div class="button-group-inline">
+            <button class="btn-secondary" (click)="downloadResults(csvResults, 'csv_predictions')">
+              💾 Download JSON
+            </button>
+            <button class="btn-secondary" (click)="exportCSVResults()">
+              📊 Export CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="csv-results-summary">
+          <div class="summary-stats">
+            <div class="stat-card">
+              <div class="stat-value">{{ csvResults.results?.total_orders || 0 }}</div>
+              <div class="stat-label">Orders Processed</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ csvResults.results?.successful_predictions || 0 }}</div>
+              <div class="stat-label">Successful</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" style="color: #ef4444;">
+                {{ csvResults.results?.summary?.high_risk_count || 0 }}
+              </div>
+              <div class="stat-label">High Risk Orders</div>
+            </div>
+          </div>
+
+          <!-- Sample of predictions -->
+          <div class="predictions-preview" *ngIf="csvResults.results?.predictions">
+            <h4>Preview (First 10 predictions):</h4>
+            <div class="predictions-list">
+              <div
+                class="prediction-item"
+                *ngFor="let pred of csvResults.results.predictions.slice(0, 10)"
+                [ngClass]="getRiskLevelClass(pred.risk_level)">
+                <div class="prediction-item-header">
+                  <span class="order-number">{{ pred.order_number }}</span>
+                  <span class="probability" [style.color]="getRiskLevelColor(pred.risk_level)">
+                    {{ (pred.rto_probability * 100).toFixed(1) }}%
+                  </span>
+                  <span class="risk-badge" [style.background]="getRiskLevelColor(pred.risk_level)">
+                    {{ pred.risk_level }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p class="preview-note" *ngIf="csvResults.results.predictions.length > 10">
+              Showing 10 of {{ csvResults.results.predictions.length }} predictions. Download full results to see all.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
