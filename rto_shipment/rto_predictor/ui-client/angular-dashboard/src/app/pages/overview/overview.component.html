@@ -1,0 +1,117 @@
+<div class="overview-page">
+  <!-- Metrics Grid -->
+  <div class="metrics-grid">
+    <app-metric-card
+      [value]="modelAccuracy"
+      label="Model Accuracy"
+      color="#667eea"
+      trend="↗ +5.2% vs last quarter"
+      trendDirection="down">
+    </app-metric-card>
+
+    <app-metric-card
+      [value]="rtoRate"
+      label="Current RTO Rate"
+      color="#ef4444"
+      trend="↓ -3.1% vs industry avg"
+      trendDirection="down">
+    </app-metric-card>
+
+    <app-metric-card
+      [value]="costSavings"
+      label="Cost Savings (MTD)"
+      color="#10b981"
+      trend="↗ ROI: 340%"
+      trendDirection="down">
+    </app-metric-card>
+
+    <app-metric-card
+      [value]="riskDetection"
+      label="Risk Detection"
+      color="#f59e0b"
+      trend="↗ Early warning system"
+      trendDirection="down">
+    </app-metric-card>
+
+    <app-metric-card
+      [value]="avgResponseTime"
+      label="Avg Response Time"
+      color="#8b5cf6"
+      trend="↓ -12ms vs last week"
+      trendDirection="down">
+    </app-metric-card>
+
+    <app-metric-card
+      [value]="customerSatisfaction"
+      label="Customer Satisfaction"
+      color="#06b6d4"
+      trend="↗ +1.8% this month"
+      trendDirection="down">
+    </app-metric-card>
+  </div>
+
+  <!-- Content Grid -->
+  <div class="content-grid">
+    <!-- Chart Container -->
+    <div class="chart-container">
+      <h3>Risk Distribution & Trends</h3>
+      <div class="chart-placeholder">
+        <p>📊 Chart will be rendered here with Chart.js</p>
+        <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+          Integrate Chart.js to display:
+          <br>• Risk distribution over time
+          <br>• High/Medium/Low risk trends
+          <br>• Weekly comparison
+        </p>
+      </div>
+
+      <!-- Hourly Risk Pattern -->
+      <div style="margin-top: 25px;">
+        <h4 style="margin-bottom: 15px;">Hourly Risk Pattern</h4>
+        <div class="risk-heatmap">
+          <div *ngFor="let item of hourlyRiskData"
+               class="heatmap-cell"
+               [ngClass]="'risk-' + item.level">
+            {{ item.time }}<br>{{ item.risk }}%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Alerts -->
+    <div class="risk-alerts">
+      <h3 style="margin-bottom: 20px;">🚨 Live Risk Alerts</h3>
+
+      <app-alert-item
+        *ngFor="let alert of alerts"
+        [type]="alert.type"
+        [title]="alert.title"
+        [message]="alert.message"
+        [details]="alert.details">
+      </app-alert-item>
+    </div>
+  </div>
+
+  <!-- Additional Info -->
+  <div *ngIf="metrics" class="info-card">
+    <h3>System Metrics</h3>
+    <div class="metrics-details">
+      <div class="metric-row">
+        <span>Memory Usage:</span>
+        <strong>{{ metrics.memory_usage_mb?.toFixed(0) || 'N/A' }} MB</strong>
+      </div>
+      <div class="metric-row">
+        <span>CPU Usage:</span>
+        <strong>{{ metrics.cpu_percent?.toFixed(1) || 'N/A' }}%</strong>
+      </div>
+      <div class="metric-row">
+        <span>Predictions Count:</span>
+        <strong>{{ metrics.predictions_count?.toLocaleString('en-IN') || 'N/A' }}</strong>
+      </div>
+      <div class="metric-row">
+        <span>Circuit Breaker:</span>
+        <strong>{{ metrics.circuit_breaker_state || 'N/A' }}</strong>
+      </div>
+    </div>
+  </div>
+</div>

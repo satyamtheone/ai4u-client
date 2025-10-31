@@ -1,0 +1,64 @@
+.overview-page {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-placeholder {
+  min-height: 300px;
+  background: rgba(102, 126, 234, 0.05);
+  border: 2px dashed #667eea;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+.info-card h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.metrics-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 8px;
+}
+
+.metric-row span {
+  color: #666;
+}
+
+.metric-row strong {
+  color: #333;
+}
