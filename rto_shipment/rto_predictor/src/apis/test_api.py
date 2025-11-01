@@ -10,7 +10,7 @@ from typing import Dict, Any
 from datetime import datetime
 
 # Configuration
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8002"
 TIMEOUT = 30
 
 # Colors for terminal output
@@ -217,7 +217,7 @@ def main():
         # Note about CSV prediction
         print_info("CSV Prediction Test")
         print("  This test requires a CSV file")
-        print("  To test: curl -X POST http://localhost:8000/api/v1/predict/csv -F 'file=@data.csv'")
+        print("  To test: curl -X POST http://localhost:8002/api/v1/predict/csv -F 'file=@data.csv'")
 
     else:
         print_section("3. PREDICTION ENDPOINTS")
@@ -241,12 +241,12 @@ def main():
     # Note about training
     print_info("Model Training Test")
     print("  Training requires a CSV file with CURRENT_STATUS column")
-    print("  To test: curl -X POST http://localhost:8000/api/v1/train -F 'file=@training_data.csv'")
+    print("  To test: curl -X POST http://localhost:8002/api/v1/train -F 'file=@training_data.csv'")
 
     # Note about retraining
     print_info("Model Retraining Test")
     print("  Retraining requires an existing trained model")
-    print("  To test: curl -X POST http://localhost:8000/api/v1/retrain -F 'file=@new_data.csv'")
+    print("  To test: curl -X POST http://localhost:8002/api/v1/retrain -F 'file=@new_data.csv'")
 
     # ========================================================================
     # 5. ANALYTICS ENDPOINTS (Only if model is loaded)
@@ -318,12 +318,12 @@ def main():
     # Note about restore
     print_info("Restore Backup Test")
     print("  Restoring requires an existing backup")
-    print("  To test: curl -X POST http://localhost:8000/api/v1/restore/{backup_name}")
+    print("  To test: curl -X POST http://localhost:8002/api/v1/restore/{backup_name}")
 
     # Note about cleanup
     print_info("Cleanup Backups Test")
     print("  Cleanup removes old backups, keeping most recent N")
-    print("  To test: curl -X DELETE http://localhost:8000/api/v1/backups/cleanup?max_backups=5")
+    print("  To test: curl -X DELETE http://localhost:8002/api/v1/backups/cleanup?max_backups=5")
 
     # ========================================================================
     # SUMMARY
@@ -364,9 +364,9 @@ def main():
     print("="*60 + "\n")
 
     print("To run file upload tests:")
-    print("  1. Training: curl -X POST http://localhost:8000/api/v1/train -F 'file=@training_data.csv'")
-    print("  2. CSV Prediction: curl -X POST http://localhost:8000/api/v1/predict/csv -F 'file=@orders.csv'")
-    print("  3. Validation: curl -X POST http://localhost:8000/api/v1/validate -F 'predictions_file=@pred.csv' -F 'actual_outcomes_file=@actual.csv'")
+    print("  1. Training: curl -X POST http://localhost:8002/api/v1/train -F 'file=@training_data.csv'")
+    print("  2. CSV Prediction: curl -X POST http://localhost:8002/api/v1/predict/csv -F 'file=@orders.csv'")
+    print("  3. Validation: curl -X POST http://localhost:8002/api/v1/validate -F 'predictions_file=@pred.csv' -F 'actual_outcomes_file=@actual.csv'")
 
     print("\nTo view interactive API documentation:")
     print(f"  Swagger UI: {BASE_URL}/docs")

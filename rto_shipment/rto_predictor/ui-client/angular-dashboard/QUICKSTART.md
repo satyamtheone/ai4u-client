@@ -36,7 +36,7 @@ source .venv/bin/activate
 python3 src/apis/api_main.py
 ```
 
-✅ API running at: **http://localhost:8000**
+✅ API running at: **http://localhost:8002**
 
 ### Step 2: Start Angular Dashboard
 
@@ -128,7 +128,7 @@ Edit `src/environments/environment.ts`:
 
 ```typescript
 export const environment = {
-  apiUrl: 'http://localhost:8000',  // Change if backend on different host
+  apiUrl: 'http://localhost:8002',  // Change if backend on different host
   refreshInterval: 30000,            // Auto-refresh (30s)
   cacheEnabled: true,                // Enable caching
   cacheTTL: 30000,                   // Cache TTL (30s)
@@ -163,7 +163,7 @@ Replace chart placeholders with actual Chart.js visualizations. See README.md fo
 
 ```bash
 # Verify backend is running
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 
 # If not running, start it
 cd /Users/anilkumargupta/Documents/study/ttt/ai4u/rto_shipment/rto_predictor

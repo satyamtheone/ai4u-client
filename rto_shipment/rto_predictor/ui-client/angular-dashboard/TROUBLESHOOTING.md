@@ -40,7 +40,7 @@ npx ng serve --port 4300
 
 ```bash
 # Verify backend is running
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 
 # Expected response:
 # {"status":"healthy",...}
@@ -172,7 +172,7 @@ python3 -m http.server 8080
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000',  // Verify this matches your backend
+  apiUrl: 'http://localhost:8002',  // Verify this matches your backend
   apiTimeout: 30000,
   refreshInterval: 30000,
   cacheEnabled: true,
@@ -189,7 +189,7 @@ Before running the application, verify:
 - [ ] Node.js v18+ installed: `node --version`
 - [ ] npm installed: `npm --version`
 - [ ] Dependencies installed: `npm install` completed successfully
-- [ ] Backend API running: `curl http://localhost:8000/health` returns response
+- [ ] Backend API running: `curl http://localhost:8002/health` returns response
 - [ ] Port 4200 available: `lsof -i:4200` shows nothing
 - [ ] No TypeScript errors: `npx ng build` succeeds
 
@@ -231,7 +231,7 @@ When everything is working:
 ✅ Browser shows: Dashboard with header and navigation
 ✅ Header shows: "API: Healthy" (green indicator)
 ✅ Console shows: No errors
-✅ Network tab shows: Successful API calls to localhost:8000
+✅ Network tab shows: Successful API calls to localhost:8002
 
 ---
 

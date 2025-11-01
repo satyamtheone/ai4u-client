@@ -47,14 +47,14 @@ RUN mkdir -p models backups logs data
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
-    PORT=8000
+    PORT=8002
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8002/health || exit 1
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && \
@@ -63,4 +63,4 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 
 # Default command
-CMD ["uvicorn", "src.apis.api_main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.apis.api_main:app", "--host", "0.0.0.0", "--port", "8002"]

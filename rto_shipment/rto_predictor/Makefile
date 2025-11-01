@@ -139,11 +139,11 @@ python-shell:
 
 health:
 	@echo "Checking service health..."
-	@curl -s http://localhost:8000/health | python -m json.tool || echo "Backend not responding"
+	@curl -s http://localhost:8002/health | python -m json.tool || echo "Backend not responding"
 
 api-docs:
-	@echo "API Documentation: http://localhost:8000/docs"
-	@open http://localhost:8000/docs || xdg-open http://localhost:8000/docs || echo "Open http://localhost:8000/docs in your browser"
+	@echo "API Documentation: http://localhost:8002/docs"
+	@open http://localhost:8002/docs || xdg-open http://localhost:8002/docs || echo "Open http://localhost:8002/docs in your browser"
 
 # Maintenance
 clean:

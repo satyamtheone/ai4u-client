@@ -6,12 +6,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: builder  # Use builder stage for development tools
     volumes:
       # Mount source code for hot-reload
       - ./src:/app/src
       - ./scripts:/app/scripts
       - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
       - ./models:/app/models
       - ./backups:/app/backups
       - ./logs:/app/logs
@@ -24,12 +24,13 @@ services:
     command: >
       sh -c "
         echo 'Development mode - Hot reload enabled' &&
-        sleep 5 &&
+        python scripts/init_database.py &&
         python scripts/run_migrations.py upgrade &&
-        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+        echo 'Starting API server with hot-reload...' &&
+        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8002 --reload --log-level debug
       "
     ports:
-      - "8000:8000"
+      - "8002:8002"
       - "5678:5678"  # Debugger port
 
   postgres:
@@ -38,8 +39,6 @@ services:
     volumes:
       # Use named volume for dev data (can be easily cleared)
       - postgres_dev_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: rto_predictions_dev
 
   # Development database browser
   pgadmin:

@@ -45,7 +45,7 @@ angular-dashboard/
 
 - Node.js v18+ (currently v22.20.0 installed)
 - npm v9+ (currently v10.9.3 installed)
-- Backend API running on `http://localhost:8000`
+- Backend API running on `http://localhost:8002`
 
 ### 2. Install Dependencies
 
@@ -64,7 +64,7 @@ source .venv/bin/activate
 python3 src/apis/api_main.py
 ```
 
-API will be running at: **http://localhost:8000**
+API will be running at: **http://localhost:8002**
 
 ### 4. Run the Angular Development Server
 
@@ -125,7 +125,7 @@ Edit `src/environments/environment.ts`:
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000',  // Backend API URL
+  apiUrl: 'http://localhost:8002',  // Backend API URL
   apiTimeout: 30000,                 // 30 seconds
   refreshInterval: 30000,            // Auto-refresh every 30s
   cacheEnabled: true,                // Enable caching
@@ -219,7 +219,7 @@ ng lint
 **Problem**: Dashboard shows "API: Disconnected"
 
 **Solution**:
-1. Verify backend is running: `curl http://localhost:8000/health`
+1. Verify backend is running: `curl http://localhost:8002/health`
 2. Check CORS settings in backend
 3. Verify API URL in `environment.ts`
 

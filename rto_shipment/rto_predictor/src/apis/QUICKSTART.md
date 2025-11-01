@@ -40,10 +40,10 @@ python3 src/apis/api_main.py
 ### Option 2: Using Uvicorn (Recommended)
 ```bash
 # Development mode with auto-reload
-uvicorn src.apis.api_main:app --reload --host 0.0.0.0 --port 8000
+uvicorn src.apis.api_main:app --reload --host 0.0.0.0 --port 8002
 
 # Production mode with multiple workers
-uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8002 --workers 4
 ```
 
 ### Option 3: Using Gunicorn (Production)
@@ -51,11 +51,11 @@ uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --workers 4
 gunicorn src.apis.api_main:app \
   --workers 4 \
   --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000 \
+  --bind 0.0.0.0:8002 \
   --timeout 120
 ```
 
-**Server will be available at:** http://localhost:8000
+**Server will be available at:** http://localhost:8002
 
 ---
 
@@ -63,7 +63,7 @@ gunicorn src.apis.api_main:app \
 
 ### 1. Check Server Health
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 ```
 
 **Expected Response:**
@@ -79,8 +79,8 @@ curl http://localhost:8000/health
 ### 2. View API Documentation
 Open your browser and navigate to:
 
-- **Interactive API Docs (Swagger UI)**: http://localhost:8000/docs
-- **Alternative Docs (ReDoc)**: http://localhost:8000/redoc
+- **Interactive API Docs (Swagger UI)**: http://localhost:8002/docs
+- **Alternative Docs (ReDoc)**: http://localhost:8002/redoc
 
 ### 3. Train Your First Model
 
@@ -91,7 +91,7 @@ Open your browser and navigate to:
 # ORDER_NUMBER, CUSTOMER_PHONE, CUSTOMER_ADDRESS, PAYMENT_MODE,
 # COURIER_NAME, CURRENT_STATUS (required for training), etc.
 
-curl -X POST "http://localhost:8000/api/v1/train" \
+curl -X POST "http://localhost:8002/api/v1/train" \
   -F "file=@data/to_train/training_data.csv" \
   -F "description=Initial model training"
 ```
@@ -108,7 +108,7 @@ curl -X POST "http://localhost:8000/api/v1/train" \
 **Monitor Training Progress:**
 ```bash
 # Check health status to see if model is loaded
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 
 # When training completes, model_loaded will be true
 ```
@@ -122,7 +122,7 @@ curl http://localhost:8000/health
 ### Single Order Prediction
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/predict" \
+curl -X POST "http://localhost:8002/api/v1/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "ORDER_NUMBER": "ORD123456",
@@ -157,7 +157,7 @@ curl -X POST "http://localhost:8000/api/v1/predict" \
 ### Batch Prediction (Multiple Orders)
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/predict/batch" \
+curl -X POST "http://localhost:8002/api/v1/predict/batch" \
   -H "Content-Type: application/json" \
   -d '{
     "orders": [
@@ -171,7 +171,7 @@ curl -X POST "http://localhost:8000/api/v1/predict/batch" \
 ### CSV File Upload
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/predict/csv" \
+curl -X POST "http://localhost:8002/api/v1/predict/csv" \
   -F "file=@data/to_predict/orders.csv"
 ```
 
@@ -183,7 +183,7 @@ curl -X POST "http://localhost:8000/api/v1/predict/csv" \
 
 ```bash
 # Step 1: Upload today's orders for prediction
-curl -X POST "http://localhost:8000/api/v1/predict/csv" \
+curl -X POST "http://localhost:8002/api/v1/predict/csv" \
   -F "file=@data/today_orders.csv" \
   -o today_predictions.json
 
@@ -191,7 +191,7 @@ curl -X POST "http://localhost:8000/api/v1/predict/csv" \
 # Results saved in output/predictions_YYYYMMDD.json
 
 # Step 3: Check courier performance
-curl "http://localhost:8000/api/v1/analytics/courier-performance" \
+curl "http://localhost:8002/api/v1/analytics/courier-performance" \
   -o courier_report.json
 ```
 
@@ -202,24 +202,24 @@ curl "http://localhost:8000/api/v1/analytics/courier-performance" \
 # Prepare CSV with CURRENT_STATUS column
 
 # Retrain model with new data
-curl -X POST "http://localhost:8000/api/v1/retrain" \
+curl -X POST "http://localhost:8002/api/v1/retrain" \
   -F "file=@data/last_week_outcomes.csv"
 
 # Create backup before retraining
-curl -X POST "http://localhost:8000/api/v1/backup"
+curl -X POST "http://localhost:8002/api/v1/backup"
 ```
 
 ### 3. Monitoring & Reporting
 
 ```bash
 # Check system health
-curl "http://localhost:8000/health"
+curl "http://localhost:8002/health"
 
 # Get system metrics
-curl "http://localhost:8000/api/v1/metrics"
+curl "http://localhost:8002/api/v1/metrics"
 
 # Generate performance report
-curl "http://localhost:8000/api/v1/reports/performance" \
+curl "http://localhost:8002/api/v1/reports/performance" \
   -o performance_report.json
 ```
 
@@ -240,7 +240,7 @@ python3 test_api.py
   RTO PREDICTOR API TEST SUITE
 ============================================================
 
-Base URL: http://localhost:8000
+Base URL: http://localhost:8002
 
 ============================================================
   1. INFO ENDPOINTS
@@ -248,7 +248,7 @@ Base URL: http://localhost:8000
 
 ℹ Testing: Root Endpoint
   Method: GET
-  URL: http://localhost:8000/
+  URL: http://localhost:8002/
 ✓ Status: 200
   Response time: 0.15s
 
@@ -265,21 +265,21 @@ Success Rate: 100.0%
 
 ```bash
 # 1. Health Check
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 
 # 2. Single Prediction
-curl -X POST http://localhost:8000/api/v1/predict \
+curl -X POST http://localhost:8002/api/v1/predict \
   -H "Content-Type: application/json" \
   -d @sample_order.json
 
 # 3. Courier Analytics
-curl http://localhost:8000/api/v1/analytics/courier-performance
+curl http://localhost:8002/api/v1/analytics/courier-performance
 
 # 4. Pincode Analysis
-curl http://localhost:8000/api/v1/analytics/pincode/122001
+curl http://localhost:8002/api/v1/analytics/pincode/122001
 
 # 5. Create Backup
-curl -X POST http://localhost:8000/api/v1/backup
+curl -X POST http://localhost:8002/api/v1/backup
 ```
 
 ---
@@ -292,7 +292,7 @@ Create a file `client_example.py`:
 import requests
 import json
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8002"
 
 # 1. Check if API is ready
 health = requests.get(f"{BASE_URL}/health").json()
@@ -375,12 +375,12 @@ rto_predictor/
 **Solution:**
 ```bash
 # Train a model first
-curl -X POST "http://localhost:8000/api/v1/train" \
+curl -X POST "http://localhost:8002/api/v1/train" \
   -F "file=@data/training_data.csv"
 
 # Wait for training to complete (5-30 minutes)
 # Check status periodically
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 ```
 
 ### Issue: Port Already in Use
@@ -391,7 +391,7 @@ curl http://localhost:8000/health
 uvicorn src.apis.api_main:app --port 8001
 
 # Option 2: Kill existing process
-lsof -ti:8000 | xargs kill -9
+lsof -ti:8002 | xargs kill -9
 ```
 
 ### Issue: Import Errors
@@ -432,7 +432,7 @@ docker build -t rto-api:latest .
 # Run container
 docker run -d \
   --name rto-api \
-  -p 8000:8000 \
+  -p 8002:8002 \
   -v $(pwd)/models:/app/models \
   -v $(pwd)/output:/app/output \
   -v $(pwd)/logs:/app/logs \
@@ -447,7 +447,7 @@ docker logs -f rto-api
 Create `.env` file:
 ```bash
 API_HOST=0.0.0.0
-API_PORT=8000
+API_PORT=8002
 LOG_LEVEL=INFO
 MAX_BATCH_SIZE=1000
 ```
@@ -485,7 +485,7 @@ MAX_BATCH_SIZE=1000
 
 ## Resources
 
-- **API Documentation**: http://localhost:8000/docs
+- **API Documentation**: http://localhost:8002/docs
 - **Technical Documentation**: `TechnicalDocument.md`
 - **API Guide**: `src/API_GUIDE.md`
 - **Test Suite**: `test_api.py`
@@ -497,7 +497,7 @@ MAX_BATCH_SIZE=1000
 For issues or questions:
 1. Check API docs at `/docs`
 2. Review logs in `logs/` directory
-3. Run health check: `curl http://localhost:8000/health`
+3. Run health check: `curl http://localhost:8002/health`
 4. Run test suite: `python3 test_api.py`
 5. Refer to `TechnicalDocument.md` for detailed information
 

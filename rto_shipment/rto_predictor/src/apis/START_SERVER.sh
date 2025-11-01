@@ -36,12 +36,12 @@ fi
 
 # Start the server
 echo "Starting API server..."
-echo "Server will be available at: http://localhost:8000"
-echo "API Documentation: http://localhost:8000/docs"
+echo "Server will be available at: http://localhost:8002"
+echo "API Documentation: http://localhost:8002/docs"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
 # Start with auto-reload for development
-uvicorn src.apis.api_main:app --reload --host 0.0.0.0 --port 8000
+uvicorn src.apis.api_main:app --reload --host 0.0.0.0 --port 8002
 

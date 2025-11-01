@@ -59,11 +59,11 @@ source .venv/bin/activate
 python3 src/apis/api_main.py
 ```
 
-API will run at: **http://localhost:8000**
+API will run at: **http://localhost:8002**
 
 Verify it's working:
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 ```
 
 ### 2. Run the Angular Dashboard
@@ -196,7 +196,7 @@ Edit `src/environments/environment.ts`:
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000',  // Change if backend is on different host
+  apiUrl: 'http://localhost:8002',  // Change if backend is on different host
   apiTimeout: 30000,
   refreshInterval: 30000,            // Auto-refresh interval (ms)
   cacheEnabled: true,
@@ -303,7 +303,7 @@ All backend endpoints are integrated in `ApiService`:
 
 1. Verify backend is running:
    ```bash
-   curl http://localhost:8000/health
+   curl http://localhost:8002/health
    ```
 
 2. Check CORS settings in backend (already configured)

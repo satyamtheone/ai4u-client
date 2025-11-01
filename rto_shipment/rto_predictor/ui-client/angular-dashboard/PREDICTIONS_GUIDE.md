@@ -278,7 +278,7 @@ The component handles:
 - **Cause**: Missing required fields or API connection issue
 - **Fix**:
   - Verify all required fields are present
-  - Check backend API is running: `curl http://localhost:8000/health`
+  - Check backend API is running: `curl http://localhost:8002/health`
 
 ### "Please select a CSV file"
 

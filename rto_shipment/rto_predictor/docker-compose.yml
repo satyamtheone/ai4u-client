@@ -35,7 +35,7 @@ services:
 
       # API Configuration
       API_HOST: 0.0.0.0
-      API_PORT: 8000
+      API_PORT: 8002
 
       # Application Settings
       PYTHONUNBUFFERED: 1
@@ -48,7 +48,7 @@ services:
       ENABLE_SWAGGER: ${ENABLE_SWAGGER:-true}
       ENABLE_CORS: ${ENABLE_CORS:-true}
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_PORT:-8002}:8002"
     volumes:
       # Mount for model persistence
       - ./models:/app/models
@@ -62,7 +62,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -71,12 +71,10 @@ services:
       - rto-network
     command: >
       sh -c "
-        echo 'Waiting for database...' &&
-        sleep 5 &&
-        echo 'Running database migrations...' &&
+        python scripts/init_database.py &&
         python scripts/run_migrations.py upgrade &&
         echo 'Starting API server...' &&
-        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --workers 4
+        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8002 --workers 4
       "
 
   # Optional: PgAdmin for database management

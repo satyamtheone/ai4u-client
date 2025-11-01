@@ -10,19 +10,19 @@ cd /Users/anilkumargupta/Documents/study/ttt/ai4u/rto_shipment/rto_predictor
 python3 src/apis/api_main.py
 
 # Option 2: Using uvicorn
-uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8002 --reload
 
 # Option 3: With specific configuration
-uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --workers 4 --log-level info
+uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8002 --workers 4 --log-level info
 ```
 
 ### Accessing Documentation
 
 Once the server is running:
 
-- **Interactive API Docs (Swagger UI)**: http://localhost:8000/docs
-- **Alternative Docs (ReDoc)**: http://localhost:8000/redoc
-- **OpenAPI Schema**: http://localhost:8000/openapi.json
+- **Interactive API Docs (Swagger UI)**: http://localhost:8002/docs
+- **Alternative Docs (ReDoc)**: http://localhost:8002/redoc
+- **OpenAPI Schema**: http://localhost:8002/openapi.json
 
 ---
 
@@ -30,7 +30,7 @@ Once the server is running:
 
 ### Base URL
 ```
-http://localhost:8000
+http://localhost:8002
 ```
 
 ### Endpoint Categories
@@ -216,7 +216,7 @@ http://localhost:8000
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/predict" \
+curl -X POST "http://localhost:8002/api/v1/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "ORDER_NUMBER": "ORD123456",
@@ -271,7 +271,7 @@ curl -X POST "http://localhost:8000/api/v1/predict" \
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/predict/batch" \
+curl -X POST "http://localhost:8002/api/v1/predict/batch" \
   -H "Content-Type: application/json" \
   -d @batch_orders.json
 ```
@@ -298,7 +298,7 @@ curl -X POST "http://localhost:8000/api/v1/predict/batch" \
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/predict/csv" \
+curl -X POST "http://localhost:8002/api/v1/predict/csv" \
   -F "file=@data/orders.csv"
 ```
 
@@ -328,7 +328,7 @@ curl -X POST "http://localhost:8000/api/v1/predict/csv" \
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/train" \
+curl -X POST "http://localhost:8002/api/v1/train" \
   -F "file=@data/training_data.csv" \
   -F "description=Monthly model update"
 ```
@@ -355,7 +355,7 @@ curl -X POST "http://localhost:8000/api/v1/train" \
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/retrain" \
+curl -X POST "http://localhost:8002/api/v1/retrain" \
   -F "file=@data/new_training_data.csv"
 ```
 
@@ -418,7 +418,7 @@ curl -X POST "http://localhost:8000/api/v1/retrain" \
 
 **cURL Example:**
 ```bash
-curl "http://localhost:8000/api/v1/analytics/courier-performance"
+curl "http://localhost:8002/api/v1/analytics/courier-performance"
 ```
 
 #### GET `/api/v1/analytics/pincode/{pincode}` or `/api/v1/analytics/pincode`
@@ -470,10 +470,10 @@ curl "http://localhost:8000/api/v1/analytics/courier-performance"
 **cURL Examples:**
 ```bash
 # Specific pincode
-curl "http://localhost:8000/api/v1/analytics/pincode/122001"
+curl "http://localhost:8002/api/v1/analytics/pincode/122001"
 
 # All pincodes
-curl "http://localhost:8000/api/v1/analytics/pincode"
+curl "http://localhost:8002/api/v1/analytics/pincode"
 ```
 
 #### POST `/api/v1/validate`
@@ -511,7 +511,7 @@ curl "http://localhost:8000/api/v1/analytics/pincode"
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/validate" \
+curl -X POST "http://localhost:8002/api/v1/validate" \
   -F "predictions_file=@output/predictions_20250720.csv" \
   -F "actual_outcomes_file=@data/actual_outcomes.csv"
 ```
@@ -563,7 +563,7 @@ curl -X POST "http://localhost:8000/api/v1/validate" \
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/backup"
+curl -X POST "http://localhost:8002/api/v1/backup"
 ```
 
 #### GET `/api/v1/backups`
@@ -600,7 +600,7 @@ curl -X POST "http://localhost:8000/api/v1/backup"
 
 **cURL Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/restore/2025_07_22_10"
+curl -X POST "http://localhost:8002/api/v1/restore/2025_07_22_10"
 ```
 
 #### DELETE `/api/v1/backups/cleanup?max_backups=10`
@@ -624,7 +624,7 @@ curl -X POST "http://localhost:8000/api/v1/restore/2025_07_22_10"
 
 **cURL Example:**
 ```bash
-curl -X DELETE "http://localhost:8000/api/v1/backups/cleanup?max_backups=5"
+curl -X DELETE "http://localhost:8002/api/v1/backups/cleanup?max_backups=5"
 ```
 
 ---
@@ -670,7 +670,7 @@ All endpoints return standard error responses:
 import requests
 import json
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8002"
 
 # 1. Check health
 response = requests.get(f"{BASE_URL}/health")
@@ -738,7 +738,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = 'http://localhost:8002';
 
 async function main() {
     // 1. Health check
@@ -812,14 +812,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-EXPOSE 8000
+EXPOSE 8002
 
-CMD ["uvicorn", "src.apis.api_main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["uvicorn", "src.apis.api_main:app", "--host", "0.0.0.0", "--port", "8002", "--workers", "4"]
 ```
 
 ```bash
 docker build -t rto-api:latest .
-docker run -d -p 8000:8000 -v $(pwd)/models:/app/models rto-api:latest
+docker run -d -p 8002:8002 -v $(pwd)/models:/app/models rto-api:latest
 ```
 
 ### Production Configuration
@@ -829,7 +829,7 @@ docker run -d -p 8000:8000 -v $(pwd)/models:/app/models rto-api:latest
 gunicorn src.apis.api_main:app \
   --workers 4 \
   --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000 \
+  --bind 0.0.0.0:8002 \
   --timeout 120 \
   --access-logfile - \
   --error-logfile -

@@ -1046,13 +1046,13 @@ if __name__ == "__main__":
         python src/apis/api_main.py
 
     Or with uvicorn directly:
-        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --reload
+        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8002 --reload
     """
 
     uvicorn.run(
         "src.apis.api_main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8002,
         reload=True,
         log_level="info",
         access_log=True

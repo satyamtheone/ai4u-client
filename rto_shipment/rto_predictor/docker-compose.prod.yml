@@ -40,7 +40,7 @@ services:
         gunicorn src.apis.api_main:app
           --worker-class uvicorn.workers.UvicornWorker
           --workers 4
-          --bind 0.0.0.0:8000
+          --bind 0.0.0.0:8002
           --access-logfile /app/logs/access.log
           --error-logfile /app/logs/error.log
           --log-level warning

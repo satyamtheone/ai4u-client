@@ -500,7 +500,7 @@ class HealthMonitoringService:
 
 ### Base URL
 ```
-http://localhost:8000
+http://localhost:8002
 ```
 
 ### Authentication
@@ -934,7 +934,7 @@ recommendations = generate_recommendations(order_data, probability)
 
   "api_config": {
     "host": "0.0.0.0",
-    "port": 8000,
+    "port": 8002,
     "reload": false,
     "max_batch_size": 1000
   }
@@ -981,7 +981,7 @@ Create a `.env` file:
 ```bash
 # API Configuration
 API_HOST=0.0.0.0
-API_PORT=8000
+API_PORT=8002
 API_WORKERS=4
 
 # Model Configuration
@@ -1067,7 +1067,7 @@ pipeline.train_initial_model('data/to_train/training_data.csv')
 "
 
 # 6. Start API server
-uvicorn api_server:app --host 0.0.0.0 --port 8000
+uvicorn api_server:app --host 0.0.0.0 --port 8002
 ```
 
 ### Production Deployment
@@ -1099,14 +1099,14 @@ COPY . .
 RUN mkdir -p data models output logs backups
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+  CMD curl -f http://localhost:8002/health || exit 1
 
 # Start application
-CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8002", "--workers", "4"]
 ```
 
 Build and run:
@@ -1118,7 +1118,7 @@ docker build -t rto-predictor:latest .
 # Run container
 docker run -d \
   --name rto-predictor \
-  -p 8000:8000 \
+  -p 8002:8002 \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/models:/app/models \
   -v $(pwd)/output:/app/output \
@@ -1156,7 +1156,7 @@ spec:
       - name: rto-predictor
         image: rto-predictor:latest
         ports:
-        - containerPort: 8000
+        - containerPort: 8002
         env:
         - name: LOG_LEVEL
           value: "INFO"
@@ -1177,13 +1177,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8000
+            port: 8002
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
-            port: 8000
+            port: 8002
           initialDelaySeconds: 5
           periodSeconds: 5
       volumes:
@@ -1204,7 +1204,7 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: 8000
+    targetPort: 8002
   type: LoadBalancer
 ```
 
@@ -1382,13 +1382,13 @@ Example:
 #### Monitoring Endpoints
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:8002/health
 
 # System metrics
-curl http://localhost:8000/metrics  # (if implemented)
+curl http://localhost:8002/metrics  # (if implemented)
 
 # Model info
-curl http://localhost:8000/model/info  # (if implemented)
+curl http://localhost:8002/model/info  # (if implemented)
 ```
 
 ### Alert Configuration
@@ -1712,7 +1712,7 @@ validator.validate_input_data(df)
 
 ```bash
 # 1. Check system health
-curl http://localhost:8000/health | jq
+curl http://localhost:8002/health | jq
 
 # 2. View recent logs
 tail -n 100 logs/rto_pipeline.log
@@ -1725,7 +1725,7 @@ print(pipeline.predictor.get_health_status())
 "
 
 # 4. Test single prediction
-curl -X POST http://localhost:8000/predict \
+curl -X POST http://localhost:8002/predict \
   -H "Content-Type: application/json" \
   -d @test_order.json
 
@@ -1736,7 +1736,7 @@ df -h
 ps aux | grep python | head -1
 
 # 7. Check port availability
-lsof -i :8000
+lsof -i :8002
 
 # 8. Validate configuration
 python3 -c "
@@ -1882,7 +1882,7 @@ export LOG_LEVEL=DEBUG
 import requests
 
 class RTOPredictorClient:
-    def __init__(self, base_url="http://localhost:8000"):
+    def __init__(self, base_url="http://localhost:8002"):
         self.base_url = base_url
 
     def predict_single(self, order_data):
@@ -1916,7 +1916,7 @@ print(f"RTO Probability: {result['rto_probability']}")
 #### JavaScript Client
 ```javascript
 class RTOPredictorClient {
-    constructor(baseURL = 'http://localhost:8000') {
+    constructor(baseURL = 'http://localhost:8002') {
         this.baseURL = baseURL;
     }
 
