@@ -27,7 +27,8 @@ from pathlib import Path as FilePath
 import traceback
 import asyncio
 
-# Import the production pipeline
+# Import the functional API
+from src import functional_api
 from src.main import ProductionRTOPipelineManager, ProductionRTOPredictor
 
 # Configure logging
@@ -425,16 +426,8 @@ async def api_info():
 async def health_check():
     """Comprehensive health check endpoint"""
     try:
-        if pipeline_manager is None:
-            return {
-                "status": "unhealthy",
-                "model_loaded": False,
-                "model_status": "not_initialized",
-                "timestamp": datetime.now().isoformat(),
-                "version": "2.0.0"
-            }
-
-        health_status = pipeline_manager.health_check()
+        # Use functional API
+        health_status = functional_api.get_system_health()
 
         return {
             "status": health_status.get('overall_status', 'unknown'),
@@ -524,24 +517,15 @@ async def predict_single_order(order: OrderInput):
     global prediction_count
 
     try:
-        check_model_loaded()
-
-        # Convert to DataFrame
-        df = pd.DataFrame([order.dict()])
-
-        # Make prediction
+        # Use functional API - automatically saves to DB
         logger.info(f"Predicting for order: {order.ORDER_NUMBER}")
-        results = pipeline_manager.predictor.predict(df)
+        result = functional_api.predict_single_order(
+            order.dict(),
+            save_to_db=True
+        )
 
-        if results['predictions']:
-            prediction_count += 1
-            return {
-                **results['predictions'][0],
-                "processing_time_ms": results.get('processing_time_ms', 0),
-                "model_version": results.get('model_version', 'unknown')
-            }
-        else:
-            raise HTTPException(status_code=500, detail="Prediction generation failed")
+        prediction_count += 1
+        return result
 
     except HTTPException:
         raise
@@ -561,38 +545,25 @@ async def predict_batch_orders(request: BatchPredictionRequest):
     global prediction_count
 
     try:
-        check_model_loaded()
-
         if len(request.orders) > 1000:
             raise HTTPException(
                 status_code=413,
                 detail="Batch size too large. Maximum 1000 orders per request"
             )
 
-        start_time_pred = datetime.now()
-
-        # Convert to DataFrame
+        # Convert to list of dicts
         orders_data = [order.dict() for order in request.orders]
-        df = pd.DataFrame(orders_data)
 
-        logger.info(f"Batch prediction for {len(df)} orders")
+        logger.info(f"Batch prediction for {len(orders_data)} orders")
 
-        # Make predictions
-        results = pipeline_manager.predictor.predict(df)
+        # Use functional API - automatically saves to DB
+        results = functional_api.predict_batch_orders(
+            orders_data,
+            save_to_db=True
+        )
 
-        processing_time = (datetime.now() - start_time_pred).total_seconds()
         prediction_count += len(request.orders)
-
-        return {
-            "predictions": results['predictions'],
-            "summary": results['summary'],
-            "total_orders": len(request.orders),
-            "successful_predictions": len(results['predictions']),
-            "failed_predictions": len(request.orders) - len(results['predictions']),
-            "processing_time_seconds": processing_time,
-            "timestamp": datetime.now().isoformat(),
-            "model_version": results.get('model_version', 'unknown')
-        }
+        return results
 
     except HTTPException:
         raise
@@ -613,8 +584,6 @@ async def predict_from_csv(file: UploadFile = File(...)):
     global prediction_count
 
     try:
-        check_model_loaded()
-
         if not file.filename.endswith('.csv'):
             raise HTTPException(
                 status_code=400,
@@ -628,10 +597,13 @@ async def predict_from_csv(file: UploadFile = File(...)):
         try:
             logger.info(f"Processing CSV file: {file.filename}")
 
-            # Process the CSV
-            results = pipeline_manager.process_new_orders(tmp_file_path)
+            # Use functional API - automatically saves to DB
+            results = functional_api.predict_from_csv_file(
+                tmp_file_path,
+                save_to_db=True
+            )
 
-            prediction_count += len(results.get('predictions', []))
+            prediction_count += results.get('total_orders', 0)
 
             return {
                 "filename": file.filename,
@@ -829,18 +801,9 @@ async def retrain_model_task(new_data_path: Optional[str], job_id: str, descript
 async def get_model_info():
     """Get current model information"""
     try:
-        check_model_loaded()
-
-        model_info = {
-            "model_loaded": True,
-            "model_type": type(pipeline_manager.predictor.model).__name__,
-            "model_version": getattr(pipeline_manager.predictor.model_trainer, 'model_version', 'unknown'),
-            "feature_count": len(pipeline_manager.predictor.feature_columns) if pipeline_manager.predictor.feature_columns else 0,
-            "last_training": pipeline_manager.predictor.health_status.get('last_training'),
-            "training_score": pipeline_manager.predictor.model_trainer.last_training_score,
-            "feature_importance": pipeline_manager.predictor.model_trainer.get_feature_importance(),
-            "timestamp": datetime.now().isoformat()
-        }
+        # Use functional API
+        model_info = functional_api.get_model_info()
+        model_info["timestamp"] = datetime.now().isoformat()
 
         return model_info
 
@@ -859,9 +822,8 @@ async def get_model_info():
 async def get_courier_performance():
     """Get comprehensive courier performance analysis"""
     try:
-        check_model_loaded()
-
-        report = pipeline_manager.predictor.get_courier_performance_report()
+        # Use functional API
+        report = functional_api.get_courier_analytics()
 
         return {
             "courier_performance": report,
@@ -885,9 +847,8 @@ async def get_pincode_analysis(pincode: Optional[str] = None):
     - If no pincode: Get top problematic pincodes
     """
     try:
-        check_model_loaded()
-
-        analysis = pipeline_manager.predictor.get_pincode_analysis(pincode)
+        # Use functional API
+        analysis = functional_api.get_pincode_analytics(pincode)
 
         return {
             "pincode_analysis": analysis,
@@ -906,11 +867,9 @@ async def get_pincode_analysis(pincode: Optional[str] = None):
 async def generate_performance_report():
     """Generate comprehensive performance report"""
     try:
-        if pipeline_manager is None:
-            raise HTTPException(status_code=503, detail="Pipeline not initialized")
-
         logger.info("Generating performance report...")
-        report = pipeline_manager.generate_performance_report()
+        # Use functional API
+        report = functional_api.get_performance_report()
 
         return {
             "report": report,

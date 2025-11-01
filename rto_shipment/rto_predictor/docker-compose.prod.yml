@@ -1,0 +1,93 @@
+# Docker Compose for Production Environment
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  postgres:
+    restart: always
+    environment:
+      # Use secrets in production
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      # Production data - ensure backups!
+      - postgres_prod_data:/var/lib/postgresql/data
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  backend:
+    restart: always
+    environment:
+      # Production settings
+      LOG_LEVEL: WARNING
+      ENABLE_SWAGGER: "false"  # Disable in production
+      PYTHONOPTIMIZE: 2
+    # Don't mount source code in production
+    volumes:
+      - ./models:/app/models:ro  # Read-only
+      - ./backups:/app/backups
+      - ./logs:/app/logs
+    command: >
+      sh -c "
+        python scripts/run_migrations.py upgrade &&
+        gunicorn src.apis.api_main:app
+          --worker-class uvicorn.workers.UvicornWorker
+          --workers 4
+          --bind 0.0.0.0:8000
+          --access-logfile /app/logs/access.log
+          --error-logfile /app/logs/error.log
+          --log-level warning
+      "
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+      # Restart policy
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Nginx reverse proxy (optional but recommended for production)
+  nginx:
+    image: nginx:alpine
+    container_name: rto-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - backend
+    networks:
+      - rto-network
+    profiles:
+      - with-nginx
+
+# Secrets (use Docker secrets or external secret management)
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+
+volumes:
+  postgres_prod_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/rto_predictions/postgres  # Update with your production path

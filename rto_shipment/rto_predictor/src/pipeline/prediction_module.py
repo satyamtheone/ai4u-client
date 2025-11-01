@@ -13,6 +13,28 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def convert_numpy_types(obj):
+    """
+    Recursively convert numpy types to Python native types for JSON serialization
+    """
+    if isinstance(obj, dict):
+        return {convert_numpy_types(k): convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif pd.isna(obj):
+        return None
+    else:
+        return obj
+
+
 class PredictionAnalyzer:
     """
     Handles prediction generation, explanations, recommendations, and similarity analysis
@@ -161,17 +183,17 @@ class PredictionAnalyzer:
     
     def generate_summary(self, df: pd.DataFrame, predictions: np.ndarray, probabilities: np.ndarray) -> Dict:
         """Generate summary of predictions and insights"""
-        
+
         try:
             total_orders = len(predictions)
             predicted_rto = np.sum(predictions)
             avg_risk = np.mean(probabilities)
-            
+
             # Risk distribution
             high_risk = np.sum(probabilities > 0.7)
             medium_risk = np.sum((probabilities >= 0.3) & (probabilities <= 0.7))
             low_risk = np.sum(probabilities < 0.3)
-            
+
             # Courier analysis
             courier_risk = {}
             if 'COURIER_NAME' in df.columns:
@@ -179,12 +201,12 @@ class PredictionAnalyzer:
                     courier_mask = df['COURIER_NAME'] == courier
                     courier_orders = np.sum(courier_mask)
                     courier_avg_risk = np.mean(probabilities[courier_mask])
-                    courier_risk[courier] = {
+                    courier_risk[str(courier)] = {
                         'orders': int(courier_orders),
                         'avg_risk': float(courier_avg_risk)
                     }
-            
-            return {
+
+            summary = {
                 'total_orders': int(total_orders),
                 'predicted_rto': int(predicted_rto),
                 'rto_rate': float(predicted_rto / total_orders),
@@ -194,52 +216,69 @@ class PredictionAnalyzer:
                     'medium_risk': int(medium_risk),
                     'low_risk': int(low_risk)
                 },
+                'high_risk_count': int(high_risk),
                 'courier_risk_analysis': courier_risk,
                 'summary_timestamp': datetime.now().isoformat()
             }
-            
+
+            # Convert all numpy types to Python native types
+            return convert_numpy_types(summary)
+
         except Exception as e:
             logger.error(f"Error generating summary: {e}")
             return {
-                'total_orders': len(predictions),
+                'total_orders': int(len(predictions)),
                 'error': str(e),
                 'summary_timestamp': datetime.now().isoformat()
             }
     
     def process_predictions(self, df_processed: pd.DataFrame, predictions: np.ndarray, probabilities: np.ndarray) -> List[Dict]:
         """Process predictions and generate detailed results"""
-        
+
         results = []
         for i, (pred, prob) in enumerate(zip(predictions, probabilities)):
             try:
                 order_data = df_processed.iloc[i]
-                
+
+                # Safely get and convert values
+                def safe_get(key, default, converter=str):
+                    value = order_data.get(key, default)
+                    if pd.isna(value):
+                        return default if isinstance(default, (str, int, float)) else None
+                    try:
+                        return converter(value)
+                    except:
+                        return default
+
                 result = {
-                    'order_index': i,
-                    'order_number': str(order_data.get('ORDER_NUMBER', f'ORDER_{i}')),
-                    'order_current_status': str(order_data.get('CURRENT_STATUS', 'Unknown')),
-                    'payment_mode': str(order_data.get('PAYMENT_MODE', 'Unknown')),
-                    'cod_value': float(order_data.get('COLLECTABLE_AMOUNT', 0)),
-                    'order_created_at': str(order_data.get('ORDER_CREATION_DATE', 'Unknown')),
+                    'order_index': int(i),
+                    'order_number': safe_get('ORDER_NUMBER', f'ORDER_{i}', str),
+                    'order_current_status': safe_get('CURRENT_STATUS', 'Unknown', str),
+                    'payment_mode': safe_get('PAYMENT_MODE', 'Unknown', str),
+                    'cod_value': safe_get('COLLECTABLE_AMOUNT', 0.0, float),
+                    'order_created_at': safe_get('ORDER_CREATION_DATE', 'Unknown', str),
                     'rto_prediction': bool(pred),
                     'rto_probability': float(prob),
-                    'risk_level': self.get_risk_level(prob),
-                    'explanation': self.generate_explanation(order_data, prob),
-                    'recommendations': self.generate_recommendations(order_data, prob),
+                    'risk_level': self.get_risk_level(float(prob)),
+                    'explanation': self.generate_explanation(order_data, float(prob)),
+                    'recommendations': self.generate_recommendations(order_data, float(prob)),
                     'similar_orders': self.find_similar_orders(order_data),
                     'prediction_timestamp': datetime.now().isoformat()
                 }
+
+                # Convert all numpy types
+                result = convert_numpy_types(result)
                 results.append(result)
-                
+
             except Exception as e:
                 logger.error(f"Error processing order {i}: {e}")
                 # Add minimal result for failed orders
                 results.append({
-                    'order_index': i,
+                    'order_index': int(i),
                     'error': str(e),
                     'rto_prediction': False,
                     'rto_probability': 0.5,
                     'risk_level': 'Medium'
                 })
-        
+
         return results

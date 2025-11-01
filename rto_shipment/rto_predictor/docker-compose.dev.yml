@@ -1,0 +1,52 @@
+# Docker Compose for Development Environment
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder  # Use builder stage for development tools
+    volumes:
+      # Mount source code for hot-reload
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./alembic:/app/alembic
+      - ./models:/app/models
+      - ./backups:/app/backups
+      - ./logs:/app/logs
+    environment:
+      # Development settings
+      LOG_LEVEL: DEBUG
+      ENABLE_SWAGGER: "true"
+      ENABLE_CORS: "true"
+      PYTHONDONTWRITEBYTECODE: 1
+    command: >
+      sh -c "
+        echo 'Development mode - Hot reload enabled' &&
+        sleep 5 &&
+        python scripts/run_migrations.py upgrade &&
+        uvicorn src.apis.api_main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+      "
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # Debugger port
+
+  postgres:
+    ports:
+      - "5432:5432"
+    volumes:
+      # Use named volume for dev data (can be easily cleared)
+      - postgres_dev_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: rto_predictions_dev
+
+  # Development database browser
+  pgadmin:
+    profiles: []  # Remove profile requirement for dev
+    ports:
+      - "5050:80"
+
+volumes:
+  postgres_dev_data:
+    driver: local
