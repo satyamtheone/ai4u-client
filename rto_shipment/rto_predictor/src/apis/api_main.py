@@ -59,32 +59,62 @@ class RiskLevelEnum(str, Enum):
 
 
 class OrderInput(BaseModel):
-    """Single order input model"""
+    """Single order input model (aligned with system JSON schema)"""
+
     ORDER_NUMBER: str = Field(..., description="Unique order number", min_length=1)
-    CLIENT_NAME: Optional[str] = Field(None, description="Client name")
+    CURRENT_STATUS: Optional[str] = Field(None, description="Current order status")
+    ORDER_CREATION_DATE: Optional[datetime] = Field(None, description="Order creation timestamp")
+    LAST_UPDATED_DATE: Optional[datetime] = Field(None, description="Last updated timestamp")
+    DELIVERY_DATE: Optional[datetime] = Field(None, description="Actual delivery date if available")
+    CLIENT: Optional[str] = Field(None, description="Client name")
+    COURIER_NAME: str = Field(..., description="Courier partner name")
+    AIRWAYBILL: Optional[str] = Field(None, description="AWB number")
+    PICKUP_DATE: Optional[datetime] = Field(None, description="Pickup timestamp")
+    PICKUP_CITY: Optional[str] = Field(None, description="Pickup city")
+    PICKUP_PINCODE: Optional[int] = Field(None, description="Pickup pincode")
     CUSTOMER_NAME: str = Field(..., description="Customer name")
     CUSTOMER_PHONE: str = Field(..., description="Customer phone number", min_length=10, max_length=15)
     CUSTOMER_ADDRESS: str = Field(..., description="Customer delivery address", min_length=10)
-    CUSTOMER_CITY: str = Field(..., description="City name")
-    CUSTOMER_STATE: str = Field(..., description="State name")
-    PINCODE: str = Field(..., description="6-digit pincode", pattern=r"^\d{6}$")
+    CUSTOMER_CITY: str = Field(..., description="Customer city")
+    CUSTOMER_STATE: str = Field(..., description="Customer state")
+    PINCODE: str = Field(..., description="6-digit destination pincode", pattern=r"^\d{6}$")
+    ZONE: Optional[str] = Field(None, description="Delivery zone or area classification")
+    BLACKLIST_REASON: Optional[str] = Field(None, description="Reason for blacklisting, if any")
+    BLACKLIST_RISK: Optional[str] = Field(None, description="Risk category")
     PAYMENT_MODE: str = Field(..., description="Payment mode (COD/PREPAID)")
-    COURIER_NAME: str = Field(..., description="Courier partner name")
+    EDD: Optional[str] = Field(None, description="Expected delivery date (YYYY-MM-DD)")
     ITEM_DESCRIPTION: Optional[str] = Field(None, description="Product description")
-    WEIGHT: float = Field(..., description="Package weight in kg", gt=0)
+    WEIGHT: float = Field(..., description="Package weight (kg)", gt=0)
     QTY: int = Field(..., description="Quantity of items", gt=0)
-    INVOICE_VALUE: float = Field(..., description="Order value", ge=0)
-    ORDER_CREATION_DATE: Optional[str] = Field(None, description="Order creation timestamp")
-    COLLECTABLE_AMOUNT: Optional[float] = Field(None, description="COD amount", ge=0)
-    EDD: Optional[str] = Field(None, description="Expected delivery date")
-    ZONE: Optional[str] = Field(None, description="Delivery zone")
-    CURRENT_STATUS: Optional[str] = Field(None, description="Current order status (for training)")
+    INVOICE_VALUE: float = Field(..., description="Invoice value", ge=0)
+    COLLECTABLE_AMOUNT: Optional[float] = Field(None, description="COD collectable amount", ge=0)
+    TAT: Optional[int] = Field(None, description="Turnaround time in days")
+    RAD_DATE: Optional[datetime] = Field(None, description="Reached at destination timestamp")
+    FIRST_INTRANSIT_DATE: Optional[datetime] = Field(None, description="First in-transit timestamp")
+    ATTEMPT_COUNT: Optional[int] = Field(None, description="Number of delivery attempts")
+    FIRST_ATTEMPT_DATE: Optional[datetime] = Field(None, description="First delivery attempt date")
+    FIRST_ATTEMPT_REMARK: Optional[str] = Field(None, description="First attempt remark")
+    SECOND_ATTEMPT_DATE: Optional[str] = Field(None, description="Second attempt date")
+    SECOND_ATTEMPT_REMARK: Optional[str] = Field(None, description="Second attempt remark")
+    THIRD_ATTEMPT_DATE: Optional[str] = Field(None, description="Third attempt date")
+    THIRD_ATTEMPT_REMARK: Optional[str] = Field(None, description="Third attempt remark")
+    FIRST_ATTEMPT_DELIVERY: Optional[str] = Field(None, description="Whether delivered in first attempt")
+    LAST_ATTEMPT_DATE: Optional[datetime] = Field(None, description="Last attempt date")
+    LAST_ATTEMPT_REMARK: Optional[str] = Field(None, description="Last attempt remark")
+    HIGH_AGEING_DAYS: Optional[float] = Field(None, description="High ageing days count")
+    UNDEL_REASON: Optional[str] = Field(None, description="Reason for undelivered status")
+    PICK_TO_DELIVERY_DAYS: Optional[str] = Field(None, description="Pickup to delivery duration (e.g. '0D 0H')")
+    PICK_TO_ATTEMPT_SLA: Optional[str] = Field(None, description="Pickup to attempt SLA status")
+    PICK_TO_DELIVERY_SLA: Optional[str] = Field(None, description="Pickup to delivery SLA status")
+    WHATSAPP_NOTIFICATION: Optional[str] = Field(None, description="WhatsApp notification status")
+    RTO_STATUS: Optional[str] = Field(None, description="RTO status (YES/NO)")
+    REMARKS: Optional[str] = Field(None, description="Additional remarks")
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "ORDER_NUMBER": "ORD123456",
-                "CLIENT_NAME": "ABC Corp",
+                "CLIENT": "ABC Corp",
                 "CUSTOMER_NAME": "John Doe",
                 "CUSTOMER_PHONE": "9876543210",
                 "CUSTOMER_ADDRESS": "123 Main St, Sector 15, Near Metro Station",
@@ -99,7 +129,8 @@ class OrderInput(BaseModel):
                 "INVOICE_VALUE": 2499.50,
                 "ORDER_CREATION_DATE": "2025-07-22T09:00:00Z",
                 "COLLECTABLE_AMOUNT": 2499.50,
-                "ZONE": "North"
+                "ZONE": "North",
+                "CURRENT_STATUS": "O-DELIVERED"
             }
         }
     )

@@ -286,10 +286,10 @@ class ProductionRTOPredictor:
         # Update health status
         self.health_status['model_loaded'] = True
         self.health_status['last_training'] = datetime.now().isoformat()
-        
-        # Save model snapshot
-        self.model_trainer.save_model_snapshot()
-        
+
+        # Save model snapshot with label encoders
+        self.model_trainer.save_model_snapshot(label_encoders=self.data_preprocessor.label_encoders)
+
         logger.info("Model training completed successfully")
         
         return {
@@ -420,14 +420,19 @@ class ProductionRTOPredictor:
     # Delegate model management methods to ModelTrainer
     def load_model_snapshot(self, date: str = None):
         """Load model snapshot from specific date or latest"""
-        self.model_trainer.load_model_snapshot(date)
-        
+        label_encoders = self.model_trainer.load_model_snapshot(date)
+
         # Update preprocessor components
         self.data_preprocessor.scaler = self.model_trainer.scaler
-        
+
+        # Restore label encoders if available
+        if label_encoders is not None:
+            self.data_preprocessor.label_encoders = label_encoders
+            logger.info(f"Restored {len(label_encoders)} label encoders to preprocessor")
+
         # Update health status
         self.health_status['model_loaded'] = True
-        
+
         logger.info("Model snapshot loaded successfully")
     
     # Backup and recovery methods

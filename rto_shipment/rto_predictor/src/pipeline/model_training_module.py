@@ -183,45 +183,51 @@ class ModelTrainer:
             logger.error(f"Error getting feature importance: {e}")
             return {}
     
-    def save_model_snapshot(self):
+    def save_model_snapshot(self, label_encoders=None):
         """Save model snapshot with timestamp and versioning"""
-        
+
         timestamp = datetime.now().strftime("%Y_%m_%d_%H")
         snapshot_dir = Path(self.pipeline_config.model_dir) / timestamp
         snapshot_dir.mkdir(exist_ok=True)
-        
+
         try:
             # Save model and preprocessors
             joblib.dump(self.model, snapshot_dir / "model.pkl")
             joblib.dump(self.scaler, snapshot_dir / "scaler.pkl")
             joblib.dump(self.feature_columns, snapshot_dir / "feature_columns.pkl")
-            
+
+            # Save label encoders if provided
+            if label_encoders is not None:
+                joblib.dump(label_encoders, snapshot_dir / "label_encoders.pkl")
+                logger.info(f"Saved {len(label_encoders)} label encoders")
+
             # Save configuration
             config_data = {
                 'model_config': {
                     'retrain_threshold': self.model_config.retrain_threshold,
                     'min_training_samples': self.model_config.min_training_samples
                 },
-                'model_version': timestamp
+                'model_version': timestamp,
+                'has_encoders': label_encoders is not None
             }
-            
+
             with open(snapshot_dir / "config.json", 'w') as f:
                 json.dump(config_data, f, indent=2)
-            
+
             # Create symlink to latest (relative path)
             latest_link = Path(self.pipeline_config.model_dir) / "latest"
             if latest_link.exists() or latest_link.is_symlink():
                 latest_link.unlink()
             latest_link.symlink_to(timestamp)
-            
+
             # Store model version
             self.model_version = timestamp
-            
+
             logger.info(f"Model snapshot saved to {snapshot_dir}")
-            
+
             # Cleanup old snapshots
             self.cleanup_old_snapshots()
-            
+
         except Exception as e:
             logger.error(f"Error saving model snapshot: {e}")
     
@@ -248,9 +254,9 @@ class ModelTrainer:
     
     def load_model_snapshot(self, date: str = None):
         """Load model snapshot from specific date or latest"""
-        
+
         model_dir = Path(self.pipeline_config.model_dir)
-        
+
         if date is None:
             # Use latest symlink if available
             latest_link = model_dir / "latest"
@@ -266,22 +272,33 @@ class ModelTrainer:
             snapshot_dir = model_dir / date
             if not snapshot_dir.exists():
                 raise ModelNotFoundError(f"No snapshot found for date {date}")
-        
+
         try:
             # Load model and preprocessors
             self.model = joblib.load(snapshot_dir / "model.pkl")
             self.scaler = joblib.load(snapshot_dir / "scaler.pkl")
             self.feature_columns = joblib.load(snapshot_dir / "feature_columns.pkl")
-            
+
+            # Load label encoders if available
+            label_encoders_file = snapshot_dir / "label_encoders.pkl"
+            label_encoders = None
+            if label_encoders_file.exists():
+                label_encoders = joblib.load(label_encoders_file)
+                logger.info(f"Loaded {len(label_encoders)} label encoders")
+            else:
+                logger.warning("No label encoders found in snapshot - predictions may fail")
+
             # Load configuration if available
             config_file = snapshot_dir / "config.json"
             if config_file.exists():
                 with open(config_file, 'r') as f:
                     config_data = json.load(f)
                     self.model_version = config_data.get('model_version', 'unknown')
-            
+
             logger.info(f"Model snapshot loaded from {snapshot_dir}")
-            
+
+            return label_encoders
+
         except Exception as e:
             logger.error(f"Error loading model snapshot: {e}")
             raise ModelNotFoundError(f"Failed to load model: {e}")

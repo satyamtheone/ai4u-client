@@ -1,0 +1,135 @@
+<div class="training-container">
+  <div class="training-header">
+    <h2>Model Training Center</h2>
+    <p>Train and improve the RTO prediction model with your historical data</p>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="training-card">
+    <h3>Upload Training Data</h3>
+
+    <!-- Requirements Info Box -->
+    <div class="info-box">
+      <h4>Training Data Requirements:</h4>
+      <ul>
+        <li>CSV file with historical order data</li>
+        <li>Must include columns: ORDER_NUMBER, CUSTOMER_PHONE, PINCODE, PAYMENT_MODE, COURIER_NAME, WEIGHT, QTY, INVOICE_VALUE, RTO_STATUS</li>
+        <li>Minimum 500 records recommended</li>
+        <li>RTO_STATUS should be "YES" or "NO"</li>
+        <li>Recent data (last 6-12 months) works best</li>
+      </ul>
+      <p class="ref-data">
+        Reference: <code>rto_predictor/data/to_train/training_data_2025_05_23.csv</code>
+      </p>
+    </div>
+
+    <!-- Upload Area -->
+    <div
+      class="upload-area"
+      [class.dragover]="dragOver"
+      (click)="fileInput.click()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)">
+      <div class="upload-icon">📁</div>
+      <h3>Click to upload or drag and drop</h3>
+      <p>CSV file (max 50MB)</p>
+    </div>
+
+    <input
+      #fileInput
+      type="file"
+      accept=".csv"
+      style="display: none;"
+      (change)="onFileSelected($event)">
+
+    <!-- File Info -->
+    <div class="file-info" *ngIf="fileInfo">
+      <h4>Selected File:</h4>
+      <p class="file-name">{{ fileInfo.name }}</p>
+      <p class="file-size">Size: {{ fileInfo.size }}</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button
+        class="btn btn-primary"
+        [disabled]="!selectedFile || training"
+        (click)="startTraining()">
+        🚀 Start Training
+      </button>
+      <button
+        class="btn btn-secondary"
+        (click)="resetForm()">
+        🔄 Reset
+      </button>
+    </div>
+
+    <!-- Progress Container -->
+    <div class="progress-container" *ngIf="training || statusMessage">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progress"></div>
+      </div>
+      <div
+        class="status-message"
+        [class.info]="statusType === 'info'"
+        [class.success]="statusType === 'success'"
+        [class.error]="statusType === 'error'">
+        {{ statusMessage }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Card -->
+  <div class="training-card results-card" *ngIf="trainingResult">
+    <h3>✅ Training Complete!</h3>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="metric-value">{{ getModelName() }}</div>
+        <div class="metric-label">Best Model</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ getTestScore() }}</div>
+        <div class="metric-label">Test Accuracy (AUC)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ trainingTime || '-' }}</div>
+        <div class="metric-label">Training Time</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ getTrainingSamples() }}</div>
+        <div class="metric-label">Training Samples</div>
+      </div>
+    </div>
+
+    <div class="model-details">
+      <h4>Model Performance Details</h4>
+      <div class="detail-row">
+        <span class="detail-label">Model Version:</span>
+        <span class="detail-value">{{ getModelVersion() }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Training Timestamp:</span>
+        <span class="detail-value">{{ getTimestamp() }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Status:</span>
+        <span class="detail-value status-active">✓ Active</span>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button
+        class="btn btn-primary"
+        routerLink="/">
+        📊 Go to Dashboard
+      </button>
+      <button
+        class="btn btn-secondary"
+        (click)="resetForm()">
+        🔄 Train Another Model
+      </button>
+    </div>
+  </div>
+</div>

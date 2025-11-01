@@ -57,6 +57,9 @@ import { environment } from '../environments/environment';
           <a routerLink="/ai-insights" routerLinkActive="active" class="tab-button">
             🤖 AI Insights
           </a>
+          <a routerLink="/model-training" routerLinkActive="active" class="tab-button">
+            🧠 Model Training
+          </a>
         </div>
 
         <!-- Router Outlet for Page Components -->
@@ -136,6 +139,9 @@ export class AppComponent implements OnInit, OnDestroy {
             break;
           case '6':
             window.location.hash = '/ai-insights';
+            break;
+          case '7':
+            window.location.hash = '/model-training';
             break;
         }
       }

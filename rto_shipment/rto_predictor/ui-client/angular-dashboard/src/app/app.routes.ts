@@ -26,6 +26,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/ai-insights/ai-insights.component').then(m => m.AiInsightsComponent)
   },
   {
+    path: 'model-training',
+    loadComponent: () => import('./pages/model-training/model-training.component').then(m => m.ModelTrainingComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }
