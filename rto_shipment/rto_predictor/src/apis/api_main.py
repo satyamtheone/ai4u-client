@@ -277,6 +277,7 @@ pipeline_manager: Optional[ProductionRTOPipelineManager] = None
 start_time = datetime.now()
 prediction_count = 0
 error_count = 0
+training_jobs: Dict[str, Dict[str, Any]] = {}  # Store training job results
 
 # ============================================================================
 # STARTUP AND SHUTDOWN EVENTS
@@ -711,18 +712,32 @@ async def train_model(
 
 
 async def train_model_task(training_file_path: str, job_id: str, description: Optional[str]):
-    """Background task for model training"""
+    """Background task for model training - Uses refactored TrainingService"""
     try:
-        logger.info(f"Starting training job: {job_id}")
+        logger.info(f"🚀 Starting training job: {job_id}")
 
         if description:
-            logger.info(f"Job description: {description}")
+            logger.info(f"📝 Job description: {description}")
 
-        # Train model
-        results = pipeline_manager.train_initial_model(training_file_path)
+        # Use refactored functional API which uses TrainingService
+        results = functional_api.train_model(
+            training_data_path=training_file_path,
+            save_to_db=True
+        )
 
-        logger.info(f"✓ Training completed - Best model: {results.get('best_model', 'Unknown')}")
-        logger.info(f"✓ Training accuracy: {results.get('test_accuracy', 0):.2%}")
+        # Store training results for later retrieval (in global dict)
+        # global training_jobs
+        training_jobs[job_id] = {
+            'job_id': job_id,
+            'status': 'completed',
+            'results': results,
+            'completed_at': datetime.now().isoformat()
+        }
+
+        logger.info(f"✅ Training completed - Best model: {results.get('best_model', 'Unknown')}")
+        logger.info(f"📊 Training accuracy: {results.get('accuracy', 0):.2%}")
+        logger.info(f"📦 Model version: {results.get('model_version')}")
+        logger.info(f"📈 Training samples: {results.get('training_samples')}")
 
         # Clean up temporary file
         if os.path.exists(training_file_path):
@@ -731,14 +746,76 @@ async def train_model_task(training_file_path: str, job_id: str, description: Op
         return results
 
     except Exception as e:
-        logger.error(f"Training job {job_id} failed: {e}")
+        logger.error(f"❌ Training job {job_id} failed: {e}")
         logger.error(traceback.format_exc())
+
+        # Store error in training jobs
+        # global training_jobs
+        training_jobs[job_id] = {
+            'job_id': job_id,
+            'status': 'failed',
+            'error': str(e),
+            'completed_at': datetime.now().isoformat()
+        }
 
         # Clean up on error
         if os.path.exists(training_file_path):
             os.unlink(training_file_path)
 
         raise
+
+
+@app.get("/api/v1/train/{job_id}", tags=["Model Management"], response_model=Dict[str, Any])
+async def get_training_results(job_id: str = PathParam(..., description="Training job ID")):
+    """
+    Get training job results by job_id
+
+    Returns:
+    - Training results including model metrics, version, and status
+    """
+    try:
+        global training_jobs
+
+        if job_id not in training_jobs:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Training job {job_id} not found"
+            )
+
+        job_data = training_jobs[job_id]
+
+        if job_data['status'] == 'completed':
+            results = job_data['results']
+            return {
+                'job_id': job_id,
+                'status': 'completed',
+                'best_model': results.get('best_model'),
+                'model_type': results.get('best_model'),
+                'accuracy': results.get('accuracy'),
+                'test_accuracy': results.get('accuracy'),
+                'training_samples': results.get('training_samples'),
+                'model_version': results.get('model_version'),
+                'feature_count': len(results.get('feature_importance', {})),
+                'feature_importance': results.get('feature_importance', {}),
+                'model_results': results.get('model_results', {}),
+                'timestamp': results.get('timestamp'),
+                'completed_at': job_data.get('completed_at'),
+                'description': results.get('description')
+            }
+        else:
+            # Return error status
+            return {
+                'job_id': job_id,
+                'status': job_data['status'],
+                'error': job_data.get('error'),
+                'completed_at': job_data.get('completed_at')
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving training results: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/v1/retrain", tags=["Model Management"], response_model=Dict[str, Any])

@@ -317,26 +317,51 @@ def train_model(
             description="Model trained via functional API"
         )
 
+        # Extract detailed metrics from model_results
+        best_model_name = results.get('best_model', 'Unknown')
+        model_results = results.get('model_results', {})
+        best_model_metrics = model_results.get(best_model_name, {})
+
+        # Extract classification report for best model
+        classification_report = best_model_metrics.get('classification_report', {})
+
+        # Extract metrics (classification_report has '0', '1', 'accuracy', 'macro avg', 'weighted avg')
+        weighted_avg = classification_report.get('weighted avg', {})
+        macro_avg = classification_report.get('macro avg', {})
+
+        # Extract test AUC score
+        test_auc = best_model_metrics.get('test_auc', results.get('best_score', 0))
+        cv_mean = best_model_metrics.get('cv_mean', 0)
+
+        # Add extracted metrics to results for API consumption
+        results['test_accuracy'] = test_auc  # Use AUC as test accuracy
+        results['cv_accuracy'] = cv_mean
+        results['precision'] = weighted_avg.get('precision', 0)
+        results['recall'] = weighted_avg.get('recall', 0)
+        results['f1_score'] = weighted_avg.get('f1-score', 0)
+        results['roc_auc'] = test_auc
+        results['feature_count'] = len(results.get('feature_importance', {}))
+
         # Save metadata to database
         if save_to_db and results.get('success'):
             try:
                 db = get_db()
                 db.save_model_metadata({
                     'model_version': results.get('model_version', f"v{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"),
-                    'model_type': results.get('best_model', 'Unknown'),
-                    'training_accuracy': results.get('train_accuracy'),
-                    'test_accuracy': results.get('test_accuracy'),
-                    'precision_score': results.get('precision'),
-                    'recall_score': results.get('recall'),
-                    'f1_score': results.get('f1'),
-                    'roc_auc_score': results.get('roc_auc'),
+                    'model_type': best_model_name,
+                    'training_accuracy': cv_mean,
+                    'test_accuracy': test_auc,
+                    'precision_score': weighted_avg.get('precision'),
+                    'recall_score': weighted_avg.get('recall'),
+                    'f1_score': weighted_avg.get('f1-score'),
+                    'roc_auc_score': test_auc,
                     'training_samples': results.get('training_samples'),
-                    'feature_count': results.get('feature_count'),
+                    'feature_count': len(results.get('feature_importance', {})),
                     'feature_importance': results.get('feature_importance'),
                     'is_production': True,
-                    'notes': 'Model trained via functional API using TrainingService'
+                    'notes': f'Model trained via functional API using TrainingService - {best_model_name}'
                 })
-                logger.info("Model metadata saved to database")
+                logger.info(f"✓ Model metadata saved to database - {best_model_name} (AUC: {test_auc:.4f})")
             except Exception as e:
                 logger.error(f"Failed to save model metadata: {e}")
 

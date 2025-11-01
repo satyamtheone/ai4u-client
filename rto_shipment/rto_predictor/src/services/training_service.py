@@ -181,28 +181,65 @@ class TrainingService:
             Preprocessed DataFrame with features
         """
         try:
-            # Step 1: Handle missing values first
+            # Check if data is already preprocessed (has encoded columns and RTO_TARGET)
+            encoded_cols = [col for col in df.columns if col.endswith('_ENCODED')]
+            is_already_preprocessed = len(encoded_cols) > 0 and 'RTO_TARGET' in df.columns
+
+            if is_already_preprocessed:
+                logger.info(f"✓ Data is already preprocessed (found {len(encoded_cols)} encoded columns)")
+
+                # Drop RTO_STATUS if it exists (shouldn't be a feature)
+                if 'RTO_STATUS' in df.columns:
+                    df = df.drop(columns=['RTO_STATUS'])
+                    logger.info(f"✓ Dropped RTO_STATUS column")
+
+                # Just select numeric columns and RTO_TARGET
+                numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+                if 'RTO_TARGET' in numeric_cols:
+                    numeric_cols.remove('RTO_TARGET')
+
+                # Keep only numeric columns + RTO_TARGET
+                df = df[numeric_cols + ['RTO_TARGET']]
+
+                # Fill any missing values
+                df = df.fillna(0)
+
+                logger.info(f"✓ Selected {len(numeric_cols)} numeric features for training")
+                return df
+
+            # If not preprocessed, run full pipeline
+            logger.info("📊 Running full preprocessing pipeline...")
+
+            # Step 1: Create RTO_TARGET from RTO_STATUS
+            if 'RTO_TARGET' not in df.columns and 'RTO_STATUS' in df.columns:
+                df['RTO_TARGET'] = df['RTO_STATUS'].apply(
+                    lambda x: 1 if isinstance(x, str) and ('RTO' in x.upper() or 'RETURN' in x.upper()) else 0
+                )
+                df = df.drop(columns=['RTO_STATUS'])
+                logger.info(f"✓ Created RTO_TARGET from RTO_STATUS")
+
+            # Step 2: Handle missing values first
             df = self.data_preprocessor.handle_missing_values(df)
 
-            # Step 2: Clean text fields
+            # Step 3: Clean text fields
             df = self.data_preprocessor.clean_text_fields(df)
 
-            # Step 3: Process phone numbers (creates PHONE_LENGTH, PHONE_VALID, etc.)
+            # Step 4: Process phone numbers (creates PHONE_LENGTH, PHONE_VALID, etc.)
             df = self.data_preprocessor.process_phone_numbers(df)
 
-            # Step 4: Process addresses (creates ADDRESS_LENGTH, ADDRESS_WORD_COUNT, ADDRESS_RISK_KEYWORDS)
+            # Step 5: Process addresses (creates ADDRESS_LENGTH, ADDRESS_WORD_COUNT, ADDRESS_RISK_KEYWORDS)
             df = self.data_preprocessor.process_addresses(df)
 
-            # Step 5: Create customer features
+            # Step 6: Create customer features
             df = self.data_preprocessor.create_customer_features(df)
 
-            # Step 6: Create all other features (temporal, geographic, etc.)
+            # Step 7: Create all other features (temporal, geographic, etc.)
             df = self.data_preprocessor.create_features(df)
 
-            # Step 7: Encode categorical variables (create new encoders for training)
+            # Step 8: Encode categorical variables (create new encoders for training)
             df = self.data_preprocessor.encode_categorical(df, is_training=True)
 
-            # Step 8: Handle any remaining missing values after feature creation
+            # Step 9: Handle any remaining missing values after feature creation
             df = df.fillna(0)
 
             logger.info(f"✓ Training data preprocessing completed: {df.shape[0]} rows, {df.shape[1]} features")
