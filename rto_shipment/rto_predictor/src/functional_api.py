@@ -2,6 +2,8 @@
 Functional API for RTO Prediction System
 Provides simple function-based interface that can be used in APIs and workflows
 Automatically stores results in PostgreSQL database
+
+REFACTORED: Now uses independent services for better modularity
 """
 
 import pandas as pd
@@ -11,36 +13,41 @@ from datetime import datetime
 import uuid
 import time
 
-from src.main import ProductionRTOPredictor, ProductionRTOPipelineManager
+# Import new refactored services
+from src.services import get_container, ServiceContainer
+from src.services import TrainingService, PredictionService, AnalyticsService
 from src.database.database_service import get_database, DatabaseService
 from src.pipeline.dataclass_configurations import ModelConfig, PreprocessingConfig, PipelineConfig
 
 logger = logging.getLogger(__name__)
 
 # Global instances (lazy initialization)
-_predictor_instance: Optional[ProductionRTOPredictor] = None
-_pipeline_manager_instance: Optional[ProductionRTOPipelineManager] = None
+_service_container: Optional[ServiceContainer] = None
 _db_service: Optional[DatabaseService] = None
 
 
-def get_predictor() -> ProductionRTOPredictor:
-    """Get or create predictor instance (singleton)"""
-    global _predictor_instance
-    if _predictor_instance is None:
-        _predictor_instance = ProductionRTOPredictor()
-        try:
-            _predictor_instance.load_model_snapshot()
-        except Exception as e:
-            logger.warning(f"Model not loaded: {e}")
-    return _predictor_instance
+def get_services() -> ServiceContainer:
+    """Get or create service container instance (singleton)"""
+    global _service_container
+    if _service_container is None:
+        _service_container = get_container()
+        logger.info("Service container initialized")
+    return _service_container
 
 
-def get_pipeline_manager() -> ProductionRTOPipelineManager:
-    """Get or create pipeline manager instance (singleton)"""
-    global _pipeline_manager_instance
-    if _pipeline_manager_instance is None:
-        _pipeline_manager_instance = ProductionRTOPipelineManager()
-    return _pipeline_manager_instance
+def get_prediction_service() -> PredictionService:
+    """Get prediction service from container"""
+    return get_services().get_prediction_service()
+
+
+def get_training_service() -> TrainingService:
+    """Get training service from container"""
+    return get_services().get_training_service()
+
+
+def get_analytics_service() -> AnalyticsService:
+    """Get analytics service from container"""
+    return get_services().get_analytics_service()
 
 
 def get_db() -> DatabaseService:
@@ -49,6 +56,28 @@ def get_db() -> DatabaseService:
     if _db_service is None:
         _db_service = get_database()
     return _db_service
+
+
+# ============================================================================
+# BACKWARD COMPATIBILITY HELPERS
+# ============================================================================
+
+def get_predictor():
+    """
+    DEPRECATED: For backward compatibility only
+    Use get_prediction_service() instead
+    """
+    logger.warning("get_predictor() is deprecated. Use get_prediction_service() instead.")
+    return get_prediction_service()
+
+
+def get_pipeline_manager():
+    """
+    DEPRECATED: For backward compatibility only
+    Use get_training_service() instead
+    """
+    logger.warning("get_pipeline_manager() is deprecated. Use get_training_service() instead.")
+    return get_training_service()
 
 
 # ============================================================================
@@ -61,6 +90,8 @@ def predict_single_order(
 ) -> Dict[str, Any]:
     """
     Predict RTO probability for a single order
+
+    REFACTORED: Now uses independent PredictionService
 
     Args:
         order_data: Dictionary containing order details
@@ -85,51 +116,50 @@ def predict_single_order(
     start_time = time.time()
 
     try:
-        predictor = get_predictor()
+        # Use new PredictionService
+        prediction_service = get_prediction_service()
 
-        # Convert to DataFrame
-        df = pd.DataFrame([order_data])
+        # Use service's predict_single method
+        prediction = prediction_service.predict_single(order_data)
 
-        # Make prediction
-        results = predictor.predict(df)
+        prediction['processing_time_ms'] = (time.time() - start_time) * 1000
 
-        if results['predictions']:
-            prediction = results['predictions'][0]
-            prediction['processing_time_ms'] = (time.time() - start_time) * 1000
+        # Save to database
+        if save_to_db:
+            try:
+                db = get_db()
 
-            # Save to database
-            if save_to_db:
-                try:
-                    db = get_db()
-                    pred_id = db.save_prediction({
-                        'order_number': order_data.get('ORDER_NUMBER'),
-                        'customer_name': order_data.get('CUSTOMER_NAME'),
-                        'customer_phone': order_data.get('CUSTOMER_PHONE'),
-                        'customer_address': order_data.get('CUSTOMER_ADDRESS'),
-                        'customer_city': order_data.get('CUSTOMER_CITY'),
-                        'customer_state': order_data.get('CUSTOMER_STATE'),
-                        'pincode': order_data.get('PINCODE'),
-                        'payment_mode': order_data.get('PAYMENT_MODE'),
-                        'courier_name': order_data.get('COURIER_NAME'),
-                        'weight': order_data.get('WEIGHT'),
-                        'quantity': order_data.get('QTY'),
-                        'invoice_value': order_data.get('INVOICE_VALUE'),
-                        'collectable_amount': order_data.get('COLLECTABLE_AMOUNT'),
-                        'rto_prediction': prediction['rto_prediction'],
-                        'rto_probability': prediction['rto_probability'],
-                        'risk_level': prediction['risk_level'],
-                        'model_version': results.get('model_version'),
-                        'processing_time_ms': prediction['processing_time_ms'],
-                        'risk_factors': prediction.get('risk_factors'),
-                        'recommendations': prediction.get('recommendations')
-                    })
-                    prediction['db_id'] = pred_id
-                except Exception as e:
-                    logger.error(f"Failed to save prediction to database: {e}")
+                # Get model info from service
+                model_info = prediction_service.get_model_info()
 
-            return prediction
-        else:
-            raise Exception("Prediction generation failed")
+                pred_id = db.save_prediction({
+                    'order_number': order_data.get('ORDER_NUMBER'),
+                    'customer_name': order_data.get('CUSTOMER_NAME'),
+                    'customer_phone': order_data.get('CUSTOMER_PHONE'),
+                    'customer_address': order_data.get('CUSTOMER_ADDRESS'),
+                    'customer_city': order_data.get('CUSTOMER_CITY'),
+                    'customer_state': order_data.get('CUSTOMER_STATE'),
+                    'pincode': order_data.get('PINCODE'),
+                    'payment_mode': order_data.get('PAYMENT_MODE'),
+                    'courier_name': order_data.get('COURIER_NAME'),
+                    'weight': order_data.get('WEIGHT'),
+                    'quantity': order_data.get('QTY'),
+                    'invoice_value': order_data.get('INVOICE_VALUE'),
+                    'collectable_amount': order_data.get('COLLECTABLE_AMOUNT'),
+                    'rto_prediction': prediction['rto_prediction'],
+                    'rto_probability': prediction['rto_probability'],
+                    'risk_level': prediction['risk_level'],
+                    'model_version': model_info.get('version'),
+                    'processing_time_ms': prediction['processing_time_ms'],
+                    'risk_factors': prediction.get('explanation'),
+                    'recommendations': prediction.get('recommendations')
+                })
+                prediction['db_id'] = pred_id
+                logger.info(f"Prediction saved to database with ID: {pred_id}")
+            except Exception as e:
+                logger.error(f"Failed to save prediction to database: {e}")
+
+        return prediction
 
     except Exception as e:
         logger.error(f"Prediction error: {e}")
@@ -143,6 +173,8 @@ def predict_batch_orders(
 ) -> Dict[str, Any]:
     """
     Predict RTO probability for multiple orders
+
+    REFACTORED: Now uses independent PredictionService
 
     Args:
         orders: List of order dictionaries
@@ -163,23 +195,22 @@ def predict_batch_orders(
     batch_id = f"BATCH_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
 
     try:
-        predictor = get_predictor()
+        # Use new PredictionService
+        prediction_service = get_prediction_service()
 
-        # Convert to DataFrame
-        df = pd.DataFrame(orders)
+        # Use service's predict_batch method
+        results = prediction_service.predict_batch(orders)
 
-        # Make predictions
-        results = predictor.predict(df)
-
-        # Add processing time
+        # Add processing time and batch ID
         processing_time = time.time() - start_time
         results['processing_time_seconds'] = processing_time
         results['batch_id'] = batch_id
 
         # Save to database
-        if save_to_db and results['predictions']:
+        if save_to_db and results.get('predictions'):
             try:
                 db = get_db()
+                model_info = prediction_service.get_model_info()
 
                 # Prepare predictions for database
                 db_predictions = []
@@ -200,8 +231,8 @@ def predict_batch_orders(
                         'rto_prediction': pred['rto_prediction'],
                         'rto_probability': pred['rto_probability'],
                         'risk_level': pred['risk_level'],
-                        'model_version': results.get('model_version'),
-                        'risk_factors': pred.get('risk_factors'),
+                        'model_version': model_info.get('version'),
+                        'risk_factors': pred.get('explanation'),
                         'recommendations': pred.get('recommendations')
                     }
                     db_predictions.append(db_pred)
@@ -263,6 +294,8 @@ def train_model(
     """
     Train a new RTO prediction model
 
+    REFACTORED: Now uses independent TrainingService
+
     Args:
         training_data_path: Path to training CSV file
         model_config: Optional model configuration
@@ -275,13 +308,17 @@ def train_model(
         >>> results = train_model("training_data.csv")
     """
     try:
-        manager = get_pipeline_manager()
+        # Use new TrainingService
+        training_service = get_training_service()
 
-        # Train model
-        results = manager.train_initial_model(training_data_path)
+        # Train model from CSV
+        results = training_service.train_from_csv(
+            csv_path=training_data_path,
+            description="Model trained via functional API"
+        )
 
         # Save metadata to database
-        if save_to_db and results:
+        if save_to_db and results.get('success'):
             try:
                 db = get_db()
                 db.save_model_metadata({
@@ -297,7 +334,7 @@ def train_model(
                     'feature_count': results.get('feature_count'),
                     'feature_importance': results.get('feature_importance'),
                     'is_production': True,
-                    'notes': 'Model trained via functional API'
+                    'notes': 'Model trained via functional API using TrainingService'
                 })
                 logger.info("Model metadata saved to database")
             except Exception as e:
@@ -317,6 +354,8 @@ def retrain_model(
     """
     Retrain model with new data or based on performance degradation
 
+    REFACTORED: Now uses independent TrainingService
+
     Args:
         new_data_path: Optional path to new training data
         save_to_db: Whether to save model metadata to database
@@ -325,12 +364,21 @@ def retrain_model(
         Dictionary containing retraining results if retrained, None otherwise
     """
     try:
-        manager = get_pipeline_manager()
+        # Use new TrainingService for retraining
+        training_service = get_training_service()
 
-        # Retrain model
-        results = manager.daily_retrain(new_data_path)
+        if new_data_path:
+            # Retrain with new data
+            results = training_service.train_from_csv(
+                csv_path=new_data_path,
+                description="Model retrained via functional API"
+            )
+        else:
+            # Just use existing training method
+            logger.warning("Retrain without new data not fully implemented in new service yet")
+            return None
 
-        if results and save_to_db:
+        if results and results.get('success') and save_to_db:
             try:
                 db = get_db()
                 db.save_model_metadata({
@@ -339,7 +387,7 @@ def retrain_model(
                     'training_accuracy': results.get('train_accuracy'),
                     'test_accuracy': results.get('test_accuracy'),
                     'is_production': True,
-                    'notes': 'Model retrained via functional API'
+                    'notes': 'Model retrained via functional API using TrainingService'
                 })
             except Exception as e:
                 logger.error(f"Failed to save retrain metadata: {e}")
@@ -359,12 +407,15 @@ def get_courier_analytics() -> Dict[str, Any]:
     """
     Get courier performance analytics
 
+    REFACTORED: Now uses independent AnalyticsService
+
     Returns:
         Dictionary containing courier performance data
     """
     try:
-        predictor = get_predictor()
-        return predictor.get_courier_performance_report()
+        # Use new AnalyticsService
+        analytics_service = get_analytics_service()
+        return analytics_service.get_courier_performance()
     except Exception as e:
         logger.error(f"Courier analytics error: {e}")
         raise
@@ -374,6 +425,8 @@ def get_pincode_analytics(pincode: Optional[str] = None) -> Dict[str, Any]:
     """
     Get pincode-level risk analytics
 
+    REFACTORED: Now uses independent AnalyticsService
+
     Args:
         pincode: Optional specific pincode to analyze
 
@@ -381,8 +434,9 @@ def get_pincode_analytics(pincode: Optional[str] = None) -> Dict[str, Any]:
         Dictionary containing pincode analytics
     """
     try:
-        predictor = get_predictor()
-        return predictor.get_pincode_analysis(pincode)
+        # Use new AnalyticsService
+        analytics_service = get_analytics_service()
+        return analytics_service.get_pincode_analysis(pincode)
     except Exception as e:
         logger.error(f"Pincode analytics error: {e}")
         raise
@@ -392,12 +446,15 @@ def get_performance_report() -> Dict[str, Any]:
     """
     Get comprehensive performance report
 
+    REFACTORED: Now uses independent AnalyticsService
+
     Returns:
         Dictionary containing full performance report
     """
     try:
-        manager = get_pipeline_manager()
-        return manager.generate_performance_report()
+        # Use new AnalyticsService for business insights
+        analytics_service = get_analytics_service()
+        return analytics_service.get_business_insights()
     except Exception as e:
         logger.error(f"Performance report error: {e}")
         raise
@@ -480,26 +537,43 @@ def update_prediction_outcome(
 # ============================================================================
 
 def get_system_health() -> Dict[str, Any]:
-    """Get current system health status"""
+    """
+    Get current system health status
+
+    REFACTORED: Now uses ServiceContainer for status
+    """
     try:
-        manager = get_pipeline_manager()
-        return manager.health_check()
+        container = get_services()
+        service_status = container.get_service_status()
+
+        # Combine with database health
+        db_healthy = True
+        try:
+            db = get_db()
+            db_healthy = db is not None
+        except:
+            db_healthy = False
+
+        return {
+            'status': 'healthy' if all(s['status'] == 'available' for s in service_status.values()) else 'degraded',
+            'services': service_status,
+            'database_connected': db_healthy,
+            'timestamp': datetime.utcnow().isoformat()
+        }
     except Exception as e:
         logger.error(f"Health check error: {e}")
         raise
 
 
 def get_model_info() -> Dict[str, Any]:
-    """Get current model information"""
+    """
+    Get current model information
+
+    REFACTORED: Now uses PredictionService
+    """
     try:
-        predictor = get_predictor()
-        return {
-            'model_loaded': predictor.model is not None,
-            'model_type': type(predictor.model).__name__ if predictor.model else None,
-            'feature_count': len(predictor.feature_columns) if predictor.feature_columns else 0,
-            'last_training': predictor.health_status.get('last_training'),
-            'training_score': predictor.model_trainer.last_training_score
-        }
+        prediction_service = get_prediction_service()
+        return prediction_service.get_model_info()
     except Exception as e:
         logger.error(f"Model info error: {e}")
         raise
@@ -513,28 +587,44 @@ def initialize_system(database_url: Optional[str] = None) -> None:
     """
     Initialize the prediction system and database
 
+    REFACTORED: Now initializes new service container
+
     Args:
         database_url: Optional PostgreSQL connection string
     """
     try:
         # Initialize database
         global _db_service
-        _db_service = DatabaseService(database_url)
+        if database_url:
+            _db_service = DatabaseService(database_url)
+        else:
+            _db_service = get_database()
 
-        # Load predictor
-        get_predictor()
+        # Initialize service container (loads services)
+        container = get_services()
 
-        logger.info("System initialized successfully")
+        logger.info("System initialized successfully with new services")
+        logger.info(f"Services available: {list(container.get_service_status().keys())}")
     except Exception as e:
         logger.error(f"System initialization error: {e}")
         raise
 
 
 def shutdown_system() -> None:
-    """Gracefully shutdown the system and close connections"""
+    """
+    Gracefully shutdown the system and close connections
+
+    REFACTORED: Now handles new service container
+    """
     try:
+        # Close database connections
         if _db_service:
             _db_service.close()
+
+        # Reset service container
+        global _service_container
+        _service_container = None
+
         logger.info("System shutdown complete")
     except Exception as e:
         logger.error(f"Shutdown error: {e}")

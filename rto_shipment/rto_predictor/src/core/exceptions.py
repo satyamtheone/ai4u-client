@@ -22,3 +22,11 @@ class DataQualityError(RTOPipelineError):
 class ServiceUnavailableError(RTOPipelineError):
     """Service is temporarily unavailable"""
     pass
+
+class PredictionError(RTOPipelineError):
+    """Prediction operation failed"""
+    pass
+
+class TrainingError(RTOPipelineError):
+    """Model training operation failed"""
+    pass
