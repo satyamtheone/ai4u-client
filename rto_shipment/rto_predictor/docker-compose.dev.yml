@@ -15,6 +15,7 @@ services:
       - ./models:/app/models
       - ./backups:/app/backups
       - ./logs:/app/logs
+      - ./output:/app/output
     environment:
       # Development settings
       LOG_LEVEL: DEBUG

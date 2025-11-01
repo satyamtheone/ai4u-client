@@ -125,6 +125,7 @@
   <!-- Batch Prediction -->
   <div class="tab-content" *ngIf="activeTab === 'batch'">
     <div class="prediction-container">
+      <!-- Input Section -->
       <div class="input-section">
         <div class="section-header">
           <h3>Batch Orders (JSON Array)</h3>
@@ -157,12 +158,20 @@
         </div>
       </div>
 
+      <!-- Result Section -->
       <div class="result-section" *ngIf="batchResults">
         <div class="section-header">
           <h3>Batch Results</h3>
           <button class="btn-secondary" (click)="downloadResults(batchResults, 'batch_predictions')">
             💾 Download JSON
           </button>
+        </div>
+
+        <!-- Batch Metadata -->
+        <div class="meta-info">
+          <div>🧠 <strong>Model Version:</strong> {{ batchResults.model_version }}</div>
+          <div>🆔 <strong>Batch ID:</strong> {{ batchResults.batch_id }}</div>
+          <div>📅 <strong>Timestamp:</strong> {{ batchResults.timestamp | date: 'medium' }}</div>
         </div>
 
         <!-- Summary Stats -->
@@ -193,6 +202,7 @@
             class="prediction-item"
             *ngFor="let pred of batchResults.predictions"
             [ngClass]="getRiskLevelClass(pred.risk_level)">
+            
             <div class="prediction-item-header">
               <span class="order-number">{{ pred.order_number }}</span>
               <span class="probability" [style.color]="getRiskLevelColor(pred.risk_level)">
@@ -201,6 +211,24 @@
               <span class="risk-badge" [style.background]="getRiskLevelColor(pred.risk_level)">
                 {{ pred.risk_level }}
               </span>
+            </div>
+
+            <!-- Prediction Details -->
+            <div class="prediction-details">
+              <p class="explanation">
+                <strong>🧩 Explanation:</strong> {{ pred.explanation }}
+              </p>
+
+              <div *ngIf="pred.recommendations?.length">
+                <strong>💡 Recommendations:</strong>
+                <ul class="recommendation-list">
+                  <li *ngFor="let rec of pred.recommendations">{{ rec }}</li>
+                </ul>
+              </div>
+
+              <p class="timestamp">
+                <strong>⏱️ Predicted At:</strong> {{ pred.prediction_timestamp | date:'medium' }}
+              </p>
             </div>
           </div>
         </div>

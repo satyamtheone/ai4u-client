@@ -15,6 +15,8 @@ from src.pipeline.data_preprocessing_module import DataPreprocessor
 from src.pipeline.model_training_module import ModelTrainer
 from src.pipeline.data_validation_module import DataValidator
 from src.pipeline.dataclass_configurations import ModelConfig, PreprocessingConfig, PipelineConfig
+from src.pipeline.performance_analytics_module import PerformanceAnalytics
+from src.pipeline.prediction_module import PredictionAnalyzer
 from src.core.exceptions import *
 
 logger = logging.getLogger(__name__)
@@ -59,6 +61,8 @@ class TrainingService:
         self.data_validator = DataValidator(self.preprocessing_config)
         self.data_preprocessor = DataPreprocessor(self.preprocessing_config)
         self.model_trainer = ModelTrainer(self.model_config, self.pipeline_config)
+        self.performance_analytics = PerformanceAnalytics()
+        self.prediction_analyzer = PredictionAnalyzer()
 
         logger.info("✓ TrainingService initialized (independent)")
 
@@ -84,7 +88,7 @@ class TrainingService:
             validation_result = self.data_validator.validate_data(df, is_training=True)
             if not validation_result['valid']:
                 raise DataValidationError(f"Validation failed: {validation_result['errors']}")
-
+            print("✓ Data validation passed")
             # Step 2: Check for required RTO_STATUS column
             if 'RTO_STATUS' not in df.columns:
                 raise DataValidationError("Training data must contain RTO_STATUS column")
@@ -93,19 +97,37 @@ class TrainingService:
             logger.info("📊 Preprocessing training data...")
             processed_df = self._preprocess_training_data(df)
 
+            # Save processed training data for debugging
+            timestamp = datetime.now().strftime('%Y%m%d%H')
+            processed_data_path = Path(self.pipeline_config.output_dir) / f"processed_training_data_{timestamp}.csv"
+            processed_df.to_csv(processed_data_path, index=False)
+            logger.info(f"Processed training data saved to: {processed_data_path}")
+            
             # Step 4: Log class balance
             self._log_class_balance(processed_df)
 
             # Step 5: Prepare features and target
-            feature_columns = [col for col in processed_df.columns if col != 'RTO_TARGET']
-            X = processed_df[feature_columns].values
+            X = self.data_preprocessor.prepare_features(processed_df)
             y = processed_df['RTO_TARGET'].values
-
+            feature_columns = self.data_preprocessor.feature_columns
             logger.info(f"📈 Training with {len(feature_columns)} features")
 
             # Step 6: Train model
             training_result = self.model_trainer.train_model_internal(X, y, feature_columns)
+            import numpy as np
+            import json
+            training_result = json.loads(json.dumps(training_result, default=lambda o: o.item() if isinstance(o, (np.generic,)) else o))
 
+            # Store historical data for similarity matching
+            self.prediction_analyzer.historical_data = processed_df.copy()
+            
+            # Calculate performance metrics
+            self.performance_analytics.calculate_performance_metrics(processed_df)
+            
+            # Share performance data with prediction analyzer
+            self.prediction_analyzer.courier_performance = self.performance_analytics.courier_performance
+            self.prediction_analyzer.pincode_stats = self.performance_analytics.pincode_stats
+            
             # Step 7: Save model via repository
             model_version = self.model_repo.save_model(
                 model=self.model_trainer.model,
@@ -114,14 +136,14 @@ class TrainingService:
                 label_encoders=self.data_preprocessor.label_encoders,
                 metadata={
                     'model_type': training_result.get('best_model', 'Unknown'),
-                    'accuracy': training_result.get('best_score', 0.0),
+                    'accuracy': float(training_result.get('best_score', 0.0)),
                     'training_samples': len(df),
                     'description': description
                 }
             )
 
             logger.info(f"✅ Training completed. Best model: {training_result.get('best_model')}")
-
+            print("✅ Training completed", training_result)
             return {
                 'success': True,
                 'model': training_result.get('best_model'),
@@ -172,82 +194,70 @@ class TrainingService:
 
     def _preprocess_training_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Preprocess training data - Complete preprocessing pipeline
-
-        Args:
-            df: Raw training data
-
-        Returns:
-            Preprocessed DataFrame with features
+        Training data preprocessing aligned exactly with working preprocess_data pipeline,
+        but simplified (no transaction_manager / metrics_collector).
         """
         try:
-            # Check if data is already preprocessed (has encoded columns and RTO_TARGET)
-            encoded_cols = [col for col in df.columns if col.endswith('_ENCODED')]
-            is_already_preprocessed = len(encoded_cols) > 0 and 'RTO_TARGET' in df.columns
+            logger.info("Starting training data preprocessing (aligned with working pipeline)...")
 
-            if is_already_preprocessed:
-                logger.info(f"✓ Data is already preprocessed (found {len(encoded_cols)} encoded columns)")
+            # ✅ Step 3: Copy DataFrame to avoid mutation
+            df = df.copy()
 
-                # Drop RTO_STATUS if it exists (shouldn't be a feature)
-                if 'RTO_STATUS' in df.columns:
-                    df = df.drop(columns=['RTO_STATUS'])
-                    logger.info(f"✓ Dropped RTO_STATUS column")
+            # ✅ Step 4: Core preprocessing steps (same order as working version)
+            processing_steps = [
+                ("handle_missing_values", self.data_preprocessor.handle_missing_values),
+                ("create_temporal_features", self.data_preprocessor.create_temporal_features),
+                ("create_geographic_features", lambda x: self.data_preprocessor.create_geographic_features(
+                    x, getattr(self, "performance_analytics", None) and getattr(self.performance_analytics, "pincode_stats", None)
+                )),
+                ("create_features", self.data_preprocessor.create_features),
+                ("create_attempt_features", self.data_preprocessor.create_attempt_features),
+                ("create_customer_features", self.data_preprocessor.create_customer_features),
+                ("clean_text_fields", self.data_preprocessor.clean_text_fields),
+                ("process_phone_numbers", self.data_preprocessor.process_phone_numbers),
+                ("process_addresses", self.data_preprocessor.process_addresses),
+            ]
 
-                # Just select numeric columns and RTO_TARGET
-                numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-                if 'RTO_TARGET' in numeric_cols:
-                    numeric_cols.remove('RTO_TARGET')
+            for step_name, step_func in processing_steps:
+                try:
+                    logger.debug(f"➡️ Running preprocessing step: {step_name}")
+                    df = step_func(df)
+                except Exception as e:
+                    logger.error(f"❌ Error in preprocessing step {step_name}: {e}")
+                    raise
 
-                # Keep only numeric columns + RTO_TARGET
-                df = df[numeric_cols + ['RTO_TARGET']]
+            # ✅ Step 5: Create target variable (only for training)
+            if "RTO_TARGET" not in df.columns:
+                if "CURRENT_STATUS" in df.columns:
+                    df["RTO_TARGET"] = df["CURRENT_STATUS"].apply(self.data_preprocessor.create_target)
+                    logger.info("✓ Created RTO_TARGET from CURRENT_STATUS")
+                elif "RTO_STATUS" in df.columns:
+                    df["RTO_TARGET"] = df["RTO_STATUS"].apply(self.data_preprocessor.create_target)
+                    logger.info("✓ Created RTO_TARGET from RTO_STATUS")
 
-                # Fill any missing values
-                df = df.fillna(0)
-
-                logger.info(f"✓ Selected {len(numeric_cols)} numeric features for training")
-                return df
-
-            # If not preprocessed, run full pipeline
-            logger.info("📊 Running full preprocessing pipeline...")
-
-            # Step 1: Create RTO_TARGET from RTO_STATUS
-            if 'RTO_TARGET' not in df.columns and 'RTO_STATUS' in df.columns:
-                df['RTO_TARGET'] = df['RTO_STATUS'].apply(
-                    lambda x: 1 if isinstance(x, str) and ('RTO' in x.upper() or 'RETURN' in x.upper()) else 0
-                )
-                df = df.drop(columns=['RTO_STATUS'])
-                logger.info(f"✓ Created RTO_TARGET from RTO_STATUS")
-
-            # Step 2: Handle missing values first
-            df = self.data_preprocessor.handle_missing_values(df)
-
-            # Step 3: Clean text fields
-            df = self.data_preprocessor.clean_text_fields(df)
-
-            # Step 4: Process phone numbers (creates PHONE_LENGTH, PHONE_VALID, etc.)
-            df = self.data_preprocessor.process_phone_numbers(df)
-
-            # Step 5: Process addresses (creates ADDRESS_LENGTH, ADDRESS_WORD_COUNT, ADDRESS_RISK_KEYWORDS)
-            df = self.data_preprocessor.process_addresses(df)
-
-            # Step 6: Create customer features
-            df = self.data_preprocessor.create_customer_features(df)
-
-            # Step 7: Create all other features (temporal, geographic, etc.)
-            df = self.data_preprocessor.create_features(df)
-
-            # Step 8: Encode categorical variables (create new encoders for training)
+            # ✅ Step 6: Encode categorical variables
             df = self.data_preprocessor.encode_categorical(df, is_training=True)
 
-            # Step 9: Handle any remaining missing values after feature creation
+            # ✅ Step 7: Handle outliers
+            df = self.data_preprocessor.handle_outliers(df)
+
+            # ✅ Step 8: Scale features safely (only numeric)
+            if hasattr(self.data_preprocessor, "scaler") and self.data_preprocessor.scaler is not None:
+                numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+                if "RTO_TARGET" in numeric_cols:
+                    numeric_cols.remove("RTO_TARGET")
+                df[numeric_cols] = self.data_preprocessor.scaler.fit_transform(df[numeric_cols])
+
+            # ✅ Step 9: Final cleanup
             df = df.fillna(0)
 
-            logger.info(f"✓ Training data preprocessing completed: {df.shape[0]} rows, {df.shape[1]} features")
+            logger.info(f"✅ Training data preprocessing complete: {df.shape}")
             return df
 
         except Exception as e:
-            logger.error(f"❌ Preprocessing failed: {e}")
-            raise DataValidationError(f"Data preprocessing failed: {str(e)}") from e
+            logger.error(f"❌ Training preprocessing failed: {e}", exc_info=True)
+            raise DataValidationError(f"Training preprocessing failed: {str(e)}") from e
+
 
     def _log_class_balance(self, df: pd.DataFrame, target_col: str = 'RTO_TARGET'):
         """

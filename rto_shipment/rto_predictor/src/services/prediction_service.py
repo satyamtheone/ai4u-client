@@ -214,16 +214,16 @@ class PredictionService:
             # Format batch results
             predictions_list = []
             for i, order in enumerate(orders):
-                print("result['predictions'][i]", result['predictions'][i])
                 predictions_list.append(result['predictions'][i])
-
+            print("result['predictions']", result)
             return {
                 'success': True,
                 'predictions': predictions_list,
+                'total_orders': len(orders),
+                'successful_predictions': len(predictions_list),
                 'summary': {
                     'total_orders': len(orders),
                     'high_risk_count': result['high_risk_count'],
-                    'average_probability': float(np.mean(result['rto_probability'])),
                     'processing_time_ms': result['processing_time_ms']
                 },
                 'model_version': result['model_version'],

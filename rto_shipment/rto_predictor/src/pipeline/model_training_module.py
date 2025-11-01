@@ -61,17 +61,18 @@ class ModelTrainer:
         # Validate minimum training samples
         if len(X) < self.model_config.min_training_samples:
             raise ValueError(f"Insufficient training data: {len(X)} < {self.model_config.min_training_samples}")
-        
         # Split data with stratification
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42, stratify=y
         )
-        
         # Scale features
         self.scaler = StandardScaler()
+        print("Unscaled features:", X_train.shape, X_test.shape)
+        print("Unscaled features:1", X.shape, y.shape, len(feature_columns),feature_columns)
         X_train_scaled = self.scaler.fit_transform(X_train)
+        print("Scaled features1:", X_train_scaled.shape, X_test.shape)
         X_test_scaled = self.scaler.transform(X_test)
-        
+        print("Scaled features:", X_train_scaled.shape, X_test_scaled.shape)
         # Train multiple models and select the best
         models = {
             'RandomForest': RandomForestClassifier(
@@ -92,7 +93,10 @@ class ModelTrainer:
         
         for name, model in models.items():
             logger.info(f"Training {name}...")
-            
+            print(f"Training {name}...", X_train.shape, y_train.shape)
+            print(f"Training {name}...", X_test.shape, y_test.shape)
+            print(f"Training {name}...", X_train_scaled.shape, y_train.shape)
+            print(f"Training {name}...", X_test_scaled.shape, y_test.shape)
             try:
                 # Cross-validation
                 cv_scores = cross_val_score(
