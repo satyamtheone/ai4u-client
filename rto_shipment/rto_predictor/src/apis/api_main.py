@@ -29,7 +29,7 @@ import asyncio
 
 # Import the functional API
 from src import functional_api
-from src.main import ProductionRTOPipelineManager, ProductionRTOPredictor
+from src.main import ProductionRTOPipelineManager
 
 # Configure logging
 logging.basicConfig(

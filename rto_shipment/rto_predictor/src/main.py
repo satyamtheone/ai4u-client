@@ -4,20 +4,12 @@ import logging
 import warnings
 import time
 import psutil
-import threading
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Any, Optional, Union
+from datetime import datetime
+from typing import Dict, Any, Optional, Union
 from pathlib import Path
-import json
-from dataclasses import dataclass, field
-from contextlib import contextmanager
-import functools
 import traceback
 
 # Data processing
-from scipy.spatial.distance import cosine
-import re
-from collections import defaultdict
 from src.pipeline.data_preprocessing_module import DataPreprocessor
 from src.pipeline.model_training_module import ModelTrainer
 from src.pipeline.prediction_module import PredictionAnalyzer
@@ -835,7 +827,7 @@ def main():
 
 if __name__ == "__main__":
     # Setup logging first
-    from pipeline.enhanced_logging_service import EnhancedLoggingService
+    from src.pipeline.enhanced_logging_service import EnhancedLoggingService
     logging_service = EnhancedLoggingService()
     logger = logging_service.setup_production_logging('logs')
 

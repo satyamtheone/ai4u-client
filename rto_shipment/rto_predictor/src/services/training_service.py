@@ -5,6 +5,7 @@ No dependencies on Prediction or Analytics services
 
 import pandas as pd
 import numpy as np
+import json
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -114,8 +115,6 @@ class TrainingService:
 
             # Step 6: Train model
             training_result = self.model_trainer.train_model_internal(X, y, feature_columns)
-            import numpy as np
-            import json
             training_result = json.loads(json.dumps(training_result, default=lambda o: o.item() if isinstance(o, (np.generic,)) else o))
 
             # Store historical data for similarity matching
@@ -199,11 +198,7 @@ class TrainingService:
         """
         try:
             logger.info("Starting training data preprocessing (aligned with working pipeline)...")
-
-            # ✅ Step 3: Copy DataFrame to avoid mutation
             df = df.copy()
-
-            # ✅ Step 4: Core preprocessing steps (same order as working version)
             processing_steps = [
                 ("handle_missing_values", self.data_preprocessor.handle_missing_values),
                 ("create_temporal_features", self.data_preprocessor.create_temporal_features),
@@ -226,7 +221,6 @@ class TrainingService:
                     logger.error(f"❌ Error in preprocessing step {step_name}: {e}")
                     raise
 
-            # ✅ Step 5: Create target variable (only for training)
             if "RTO_TARGET" not in df.columns:
                 if "CURRENT_STATUS" in df.columns:
                     df["RTO_TARGET"] = df["CURRENT_STATUS"].apply(self.data_preprocessor.create_target)
@@ -235,20 +229,16 @@ class TrainingService:
                     df["RTO_TARGET"] = df["RTO_STATUS"].apply(self.data_preprocessor.create_target)
                     logger.info("✓ Created RTO_TARGET from RTO_STATUS")
 
-            # ✅ Step 6: Encode categorical variables
             df = self.data_preprocessor.encode_categorical(df, is_training=True)
 
-            # ✅ Step 7: Handle outliers
             df = self.data_preprocessor.handle_outliers(df)
 
-            # ✅ Step 8: Scale features safely (only numeric)
             if hasattr(self.data_preprocessor, "scaler") and self.data_preprocessor.scaler is not None:
                 numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
                 if "RTO_TARGET" in numeric_cols:
                     numeric_cols.remove("RTO_TARGET")
                 df[numeric_cols] = self.data_preprocessor.scaler.fit_transform(df[numeric_cols])
 
-            # ✅ Step 9: Final cleanup
             df = df.fillna(0)
 
             logger.info(f"✅ Training data preprocessing complete: {df.shape}")
