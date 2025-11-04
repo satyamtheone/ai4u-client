@@ -238,7 +238,7 @@ export const OrganizationDashboard: React.FC = () => {
               <div className="app bg-white text-black ">
                 <div className="flex justify-center w-full">
                   <div className="flex  flex-col items-center justify-center">
-                    <h2 className="text-[28px] font-semibold dark:text-white  text-black mb-2">
+                    <h2 className="text-[28px] font-semibold dark:text-white text-center  text-black mb-2">
                       Welcome to Organization section
                     </h2>
                     <p className="text-[16px] dark:text-darkBackGround-400 text-gray-600  mb-8">

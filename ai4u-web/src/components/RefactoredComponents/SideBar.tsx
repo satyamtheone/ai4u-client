@@ -1,6 +1,4 @@
 import {
-  ArrowBigLeft,
-  ArrowBigRight,
   Brain,
   LogOut,
   Plus,
@@ -94,7 +92,7 @@ const SideBar = () => {
              : "w-16"
          }`}
     >
-      <div className="absolute z-50 -right-4 top-5">
+      <div className="absolute z-50 -right-4 top-3">
         <SidebarButton
           isOpen={showSidebar}
           onToggle={() => setShowSidebar(!showSidebar)}
@@ -103,7 +101,7 @@ const SideBar = () => {
         />
       </div>
       {/* Logo */}
-      <div className="flex items-center gap-3 p-4 pb-5 border-b border-[#333] cursor-pointer">
+      <div className=" p-2 px-4 flex flex-nowrap items-center min-w-max gap-3  border-b border-[#333] cursor-pointer">
         <div
           className="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white
          bg-gradient-to-br from-blue-600 to-violet-500"

@@ -28,7 +28,7 @@ const ThemeToggleButton: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className={`flex items-center gap-2 md:px-2 px-1 max-w-min md:py-2 py-1 rounded-full 
+      className={`flex items-center gap-2 px-2 max-w-min py-2  rounded-full 
                 transition-all duration-600 
                  shadow-md hover:shadow-lg hover:scale-105 animate-fadeInBackdrop ${
                    theme === "dark" ? "bg-white" : "bg-gray-800 "

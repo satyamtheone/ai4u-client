@@ -20,20 +20,19 @@ const ChatHeader = ({ isConnected }: { isConnected: boolean }) => {
   };
   return (
     <div
-      className={`flex max-md:flex-col items-center justify-between   border-b border-darkBackGround-700 dark:bg-darkBackGround-950 ${
-        isAuthenticated ? "md:px-6 px-2 md:py-[20px] py-2.5" : "p-4"
+      className={`flex items-center justify-between   border-b border-darkBackGround-700 dark:bg-darkBackGround-950 ${
+        isAuthenticated ? "md:px-6 px-2  py-2.5" : "p-4"
       } `}
     >
       {/* Left Section */}
-      <div className="flex items-center md:gap-4 gap-2  max-md:justify-around w-full">
+      <div className="flex items-center md:gap-4 gap-2 w-full">
         <h1 className="md:text-xl  text-lg font-semibold  m-0">
           🤖 AI4U - Learn While You Code
         </h1>
-        <span></span>
       </div>
 
       {/* Connection Status */}
-      <div className="flex items-center gap-2 text-sm pr-7">
+      <div className="flex items-center gap-2 text-sm ">
         <div
           className={`w-3 h-3 rounded-full ${
             isConnected ? "bg-emerald-500" : "bg-red-500"
@@ -41,7 +40,7 @@ const ChatHeader = ({ isConnected }: { isConnected: boolean }) => {
         ></div>
 
         <span
-          className={`font-medium ${
+          className={`font-medium max-md:hidden ${
             isConnected ? "text-emerald-500" : "text-red-500"
           }`}
         >
