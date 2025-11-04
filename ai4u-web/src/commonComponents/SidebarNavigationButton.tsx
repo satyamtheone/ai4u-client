@@ -33,7 +33,7 @@ const SidebarNavigationButton: React.FC<SidebarButtonProps> = ({
         ${isActive ? "bg-blue-600 text-white" : ""}`}
     >
       <span className={`${!showSidebar && "pl-[1px]"}`}>{item.icon}</span>
-      {showSidebar && <span>{item.label}</span>}
+      {showSidebar && <span className="text-nowrap">{item.label}</span>}
     </button>
   );
 };

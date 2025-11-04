@@ -87,9 +87,11 @@ const SideBar = () => {
 
   return (
     <div
-      className={` flex flex-col flex-shrink-0 absolute h-full transition-[width] duration-300 ease-in-out  border-r
+      className={` flex flex-col flex-shrink-0 absolute h-full z-50  transition-[width] duration-300 ease-in-out border-r
          dark:bg-darkBackGround-950 dark:border-darkBackGround-700 bg-white border-gray-300 text-black dark:text-white ${
-           showSidebar ? "w-64   z-50" : "w-16"
+           showSidebar
+             ? "w-64 shadow-[10px_0_15px_-3px_rgba(0,0,0,0.3)] ease-linear"
+             : "w-16"
          }`}
     >
       <div className="absolute z-50 -right-4 top-5">
@@ -140,19 +142,23 @@ const SideBar = () => {
         )}
       </div>
 
-      <div className={` p-4  ${showSidebar && "flex justify-end"}`}>
-        <ThemeToggleButton />
+      <div className={`flex justify-end `}>
+        <div className="p-3">
+          <ThemeToggleButton />
+        </div>
       </div>
 
       {/* User Section */}
       <div className=" md:h-[108px] h-[72px] border-t border-[#333] flex flex-col justify-around ">
         <div className="flex flex-col md:gap-4 gap-2 px-4">
-          {showSidebar && (
-            <div className="flex items-center gap-2 px-4 text-xs text-gray-400">
-              <User size={16} />
-              <span className="capitalize">{userDisplayName}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 px-4 text-xs text-gray-400">
+            {showSidebar && (
+              <>
+                <User size={16} />
+                <span className="capitalize">{userDisplayName}</span>
+              </>
+            )}
+          </div>
 
           {isAuthenticated ? (
             <DynamicButton
@@ -161,7 +167,6 @@ const SideBar = () => {
               icon={!showSidebar && <User size={20} />}
               onClick={() => handleLogout()}
               submitColor="bg-red-500 hover:bg-red-600"
-              className={`${showSidebar && "max-md:py-0"}`}
             />
           ) : (
             <DynamicButton
@@ -169,7 +174,6 @@ const SideBar = () => {
               variant="submit"
               icon={!showSidebar && <User size={20} />}
               onClick={() => handleLogin()}
-              className={`${showSidebar && "max-md:py-0"}`}
             />
           )}
         </div>

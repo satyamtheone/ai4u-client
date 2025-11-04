@@ -62,10 +62,10 @@ const DynamicButton: React.FC<ButtonProps> = ({
   return (
     <button
       {...props}
-      className={`${base} ${variantStyles} ${widthStyle} ${className}  `}
+      className={`${base} ${variantStyles} ${widthStyle} ${className}`}
     >
       {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-      <div className={`flex items-center gap-2 ${iconPosition}`}>
+      <div className={`flex items-center text-nowrap gap-2 ${iconPosition}`}>
         {icon && <span>{icon}</span>}
         {label}
       </div>
