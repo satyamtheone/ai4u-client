@@ -5,16 +5,14 @@ import SideBar from "./components/RefactoredComponents/SideBar";
 export default function AppLayout() {
   return (
     <div className="min-h-screen transition-all duration-100 ">
-      {/* Fixed left sidebar */}
-      <aside className=" inset-y-0 left-0 ">
-        <SideBar />
-      </aside>
-
       {/* Right side content */}
-      <div className="ml-16   ">
-        <main>
-          <Outlet />
-        </main>
+      <div className="flex w-full">
+        <SideBar />
+        <div className="w-full  ">
+          <main>
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -85,14 +85,18 @@ const SideBar = () => {
 
   return (
     <div
-      className={` flex flex-col flex-shrink-0 absolute h-full z-50  transition-[width] duration-300 ease-in-out border-r
+      className={` group flex flex-col flex-shrink-0 relative h-screen  z-50  transition-[width] duration-300 ease-in-out border-r
          dark:bg-darkBackGround-950 dark:border-darkBackGround-700 bg-white border-gray-300 text-black dark:text-white ${
            showSidebar
-             ? "w-64 shadow-[10px_0_15px_-3px_rgba(0,0,0,0.3)] ease-linear"
+             ? "w-64 max-md:shadow-[10px_0_15px_-3px_rgba(0,0,0,0.3)] max-md:absolute ease-linear"
              : "w-16"
          }`}
     >
-      <div className="absolute z-50 -right-4 top-3">
+      <div
+        className={` absolute z-50 -right-4 top-3 ${
+          showSidebar ? "" : "hidden group-hover:block"
+        }  `}
+      >
         <SidebarButton
           isOpen={showSidebar}
           onToggle={() => setShowSidebar(!showSidebar)}
