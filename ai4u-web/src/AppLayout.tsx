@@ -8,7 +8,7 @@ export default function AppLayout() {
       {/* Right side content */}
       <div className="flex w-full">
         <SideBar />
-        <div className="w-full  ">
+        <div className="w-full  overflow-scroll">
           <main>
             <Outlet />
           </main>

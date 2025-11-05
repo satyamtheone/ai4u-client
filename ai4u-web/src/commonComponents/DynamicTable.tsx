@@ -1,6 +1,8 @@
 import React from "react";
 import { Card } from "../components/shared/Card";
 import { Button } from "../components/shared/Button";
+import DynamicButton from "./DynamicButton";
+import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 
 type Column<T> = {
   key: keyof T | string;
@@ -133,27 +135,29 @@ export function DynamicTable<T extends object>({
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
             Page {pagination.page} of {pagination.total_pages}{" "}
-            <span className="mx-2">•</span>
-            Showing {start}-{end} of {pagination.total}
+            <span className="max-md:hidden">
+              <span className="mx-2">•</span>
+              Showing {start}-{end} of {pagination.total}
+            </span>
           </p>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+            <DynamicButton
+              label={<span className="max-md:hidden">Prev</span>}
+              variant="pill"
               onClick={pagination.onPrev}
               disabled={pagination.page <= 1}
-            >
-              Prev
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              icon={<ArrowBigLeft size={20} className="md:hidden" />}
+            />
+            <DynamicButton
+              label={<span className="max-md:hidden">Next</span>}
+              variant="pill"
               onClick={pagination.onNext}
               disabled={pagination.page >= pagination.total_pages}
-            >
-              Next
-            </Button>
+              className="py-0"
+              icon={<ArrowBigRight size={20} className="md:hidden" />}
+              iconPosition="flex-row-reverse"
+            />
           </div>
         </div>
       )}
