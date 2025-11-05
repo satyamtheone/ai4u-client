@@ -1,12 +1,11 @@
 // src/components/App.tsx - V1 Design with Optional Authentication
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { setLearningGatesEnabled } from "../store/configSlice";
 import { addNotification } from "../store/uiSlice";
 import { sendMessage, addMessage } from "../store/chatSlice";
 import { startQuiz } from "../store/quizSlice";
 import QuizOverlay from "./QuizOverlay";
-import NotificationContainer from "./NotificationContainer";
 import { useAuth } from "./auth/AuthProvider";
 import { suggestedTopics } from "./RefactoredComponents/Constants";
 import LoadingScreen from "./RefactoredComponents/LoadingScreen";
@@ -22,11 +21,10 @@ const App: React.FC = () => {
     (state) => state.config
   );
   const { messages, isLoading, error } = useAppSelector((state) => state.chat);
-  const { isActive: quizActive, stats } = useAppSelector((state) => state.quiz);
+  const { isActive: quizActive } = useAppSelector((state) => state.quiz);
 
   const [inputMessage, setInputMessage] = useState("");
   const [bypassAuth, setBypassAuth] = useState(false);
-  const navigate = useNavigate();
 
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
 
@@ -37,6 +35,12 @@ const App: React.FC = () => {
   const learningGateService = useAppSelector(
     (state) => (state.config as any).learningGateService
   );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      dispatch(setLearningGatesEnabled(false));
+    }
+  }, [isAuthenticated]);
 
   const handleSendMessage = async () => {
     if (
@@ -149,10 +153,12 @@ const App: React.FC = () => {
         <ChatHeader isConnected={isConnected} />
 
         {/* Learning Progress */}
-        <LearningProgress
-          handleToggleLearningGates={handleToggleLearningGates}
-          learningGatesEnabled={learningGatesEnabled}
-        />
+        {isAuthenticated && (
+          <LearningProgress
+            handleToggleLearningGates={handleToggleLearningGates}
+            learningGatesEnabled={learningGatesEnabled}
+          />
+        )}
 
         {/* Chat Area */}
         <div className="flex flex-col overflow-hidden relative h-full">

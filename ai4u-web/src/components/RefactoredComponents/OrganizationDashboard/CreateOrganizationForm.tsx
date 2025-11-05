@@ -7,11 +7,8 @@ import {
   Link as LinkIcon,
   Hash,
 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../../../hooks/redux";
-import {
-  CreateOrganizationRequest,
-  CreateOrganizationResponse,
-} from "../../../services/api/OrganizationService";
+import { useAppDispatch } from "../../../hooks/redux";
+import { CreateOrganizationRequest } from "../../../services/api/OrganizationService";
 import { addNotification } from "../../../store/uiSlice";
 import { FormInput } from "../../shared/FormInput";
 import DynamicButton from "../../../commonComponents/DynamicButton";
@@ -20,16 +17,17 @@ import { FormSelect } from "../../../commonComponents/FormSelect";
 import { companySizeOptions, industryOptions } from "../Constants";
 import { FormTextArea } from "../../../commonComponents/FormTextArea";
 import { FormLabelHeader } from "../../../commonComponents/FormLabelHeader";
+import {
+  organizationApi,
+  useCreateOrganizationMutation,
+} from "../../../services/api/organizationApi";
 
-const CreateOrganizationForm: React.FC<{
-  onSuccess?: (res: CreateOrganizationResponse) => void;
-}> = ({ onSuccess }) => {
+const CreateOrganizationForm: React.FC = () => {
   const { closeDialog } = useDialog();
   const dispatch = useAppDispatch();
 
-  const organizationService = useAppSelector(
-    (state) => (state.config as any).organizationService
-  );
+  const [createOrganization, { isLoading: isCreating }] =
+    useCreateOrganizationMutation();
 
   const [formData, setFormData] = useState<CreateOrganizationRequest>({
     name: "",
@@ -92,37 +90,19 @@ const CreateOrganizationForm: React.FC<{
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !organizationService ||
-      typeof organizationService.createOrganization !== "function"
-    ) {
-      setErrors({
-        submit: "OrganizationService not initialized yet. Please try again.",
-      });
-      return;
-    }
-
     if (!validateForm()) return;
 
     try {
       setIsLoading(true);
-      const res = await organizationService.createOrganization(formData);
 
-      if (res.success) {
-        setIsSuccess(true);
-        onSuccess?.(res);
-      } else {
-        setErrors({ submit: res.message || "Failed to create organization" });
+      const org = await createOrganization(formData).unwrap(); // org: Organization
+      if (!org) {
+        setErrors({ submit: "Failed to create organization" });
+        return;
       }
-    } catch (error) {
-      setErrors({
-        submit:
-          error instanceof Error
-            ? error.message
-            : "Failed to create organization. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
+
+      setIsSuccess(true);
+
       dispatch(
         addNotification({
           type: "success",
@@ -131,6 +111,18 @@ const CreateOrganizationForm: React.FC<{
       );
 
       closeDialog();
+    } catch (error: any) {
+      setErrors({
+        submit:
+          error?.data?.message ||
+          error?.message ||
+          "Failed to create organization. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+      dispatch(
+        organizationApi.util.invalidateTags([{ type: "Organizations" }])
+      );
     }
   };
 

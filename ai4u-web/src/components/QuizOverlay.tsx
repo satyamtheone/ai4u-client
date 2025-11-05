@@ -14,6 +14,7 @@ import QuizResults from "./QuizResults";
 import ModalProvider from "../commonComponents/Dialog/ModalProvider";
 import QuizFormModal from "./RefactoredComponents/QuizComponents/QuizFormModal";
 import { toAnswerType } from "./RefactoredComponents/Constants";
+import { learningApi } from "../services/api/learningApi";
 
 const QuizOverlay: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -94,19 +95,12 @@ const QuizOverlay: React.FC = () => {
       };
     });
 
-    console.log("Submitting quiz answers:", answers); // Debug log
-
     try {
       const result = await dispatch(submitQuizAnswers(answers));
 
       if (submitQuizAnswers.fulfilled.match(result)) {
         setResults(result.payload);
         setShowResults(true);
-
-        // Process pending message after successful quiz submission
-        // setTimeout(() => {
-        //   processPendingMessage();
-        // }, 3000);
       }
     } catch (error) {
       console.error("Quiz submission failed:", error);
@@ -116,6 +110,8 @@ const QuizOverlay: React.FC = () => {
           message: "Failed to submit quiz answers",
         })
       );
+    } finally {
+      dispatch(learningApi.util.invalidateTags([{ type: "Stats" }]));
     }
   };
 
@@ -126,11 +122,6 @@ const QuizOverlay: React.FC = () => {
       if (skipQuiz.fulfilled.match(result)) {
         setResults(result.payload);
         setShowResults(true);
-
-        //Process pending message after skip
-        // setTimeout(() => {
-        //   processPendingMessage();
-        // }, 2000);
       }
     } catch (error) {
       console.error("Quiz skip failed:", error);

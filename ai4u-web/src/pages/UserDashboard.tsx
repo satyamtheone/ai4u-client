@@ -10,13 +10,11 @@ import UserDashboardStats from "../components/RefactoredComponents/UserDashboard
 import UserDetails from "../components/RefactoredComponents/UserDashboard/UserDetails";
 import { LearningStats } from "../components/RefactoredComponents/UserDashboard/UserCourseDetails";
 import LearningInsights from "../components/RefactoredComponents/UserDashboard/LearningInsights";
+import { useLazyGetCurrentUserAnalyticsQuery } from "../services/api/learningApi";
 
 const UserDashboard: React.FC = () => {
-  const learningService = useAppSelector(
-    (state) => (state.config as any).learningService
-  );
-
-  const { user, isAuthenticated, organization } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const [fetchAnalytics] = useLazyGetCurrentUserAnalyticsQuery();
 
   const [currentAnalytics, setCurrentAnalytics] = useState<
     UserLearningAnalyticsResponse | undefined
@@ -32,24 +30,17 @@ const UserDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    if (
-      !learningService ||
-      typeof learningService.getCurrentUserAnalytics !== "function"
-    ) {
-      console.warn("LearningService not initialized yet");
-      return;
-    }
     const fetchUSerAnalytics = async () => {
       try {
-        const stats = await learningService.getCurrentUserAnalytics(user?.id);
-        setCurrentAnalytics(stats as UserLearningAnalyticsResponse);
+        const stats = await fetchAnalytics(String(user?.id));
+        setCurrentAnalytics(stats.data as UserLearningAnalyticsResponse);
       } catch (err) {
         console.error("❌ Failed to fetch learning stats:", err);
       }
     };
 
     fetchUSerAnalytics();
-  }, [learningService, isAuthenticated]);
+  }, [isAuthenticated]);
 
   return (
     <div className="md:p-6 p-2 space-y-6 overflow-scroll h-screen w-full animate-chatInBot">

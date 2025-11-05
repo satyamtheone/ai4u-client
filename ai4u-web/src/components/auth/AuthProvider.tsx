@@ -5,7 +5,6 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { AuthService } from "../../services/api/AuthService";
 import { StorageService } from "../../services/utils/StorageService";
 import {
   User,
@@ -15,10 +14,18 @@ import {
   UserType,
 } from "../../types/auth/Auth";
 
+import {
+  useLoginMutation,
+  useRegisterMutation,
+  useLogoutMutation,
+  useLazyGetCurrentUserQuery,
+  useLazyGetMyOrganizationsQuery,
+} from "../../services/api/authApi";
+
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
+  userLogin: (credentials: LoginCredentials) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -29,67 +36,71 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  // RTK Query hooks
+  const [login] = useLoginMutation();
+  const [registerMut] = useRegisterMutation();
+  const [logoutMut] = useLogoutMutation();
+  const [fetchMe] = useLazyGetCurrentUserQuery();
+  const [fetchMyOrgs] = useLazyGetMyOrganizationsQuery();
+
+  const storageService = new StorageService();
+
   const [state, setState] = useState<AuthState>({
-    user: null,
-    access_token: null,
+    user: undefined,
+    access_token: undefined,
     isAuthenticated: false,
     isLoading: true,
     error: null,
     organization: undefined,
   });
 
-  const authService = new AuthService();
-  const storageService = new StorageService();
-
   useEffect(() => {
     initializeAuth();
-    console.log("AuthProvider mounted and initialized", authService);
   }, []);
 
   const initializeAuth = async () => {
     try {
       const token = storageService.getToken();
       if (token) {
-        authService.setToken(token);
-        storageService.setToken(token); // Ensure token is
-
         await refreshUser();
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
     } catch (error) {
       console.error("Auth initialization failed:", error);
-      logout();
+      await logout();
     }
   };
 
-  const login = async (credentials: LoginCredentials) => {
+  const userLogin = async (credentials: LoginCredentials) => {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      console.log("credentials", credentials);
 
-      const response = await authService.login(credentials);
-      const access_token = response.access_token;
-      authService.setToken(access_token);
-      storageService.setToken(access_token);
-      const user = await authService.getCurrentUser();
-      const orgRes = await authService.getMyOrganizations();
+      const resp = await login(credentials).unwrap();
 
-      const organization = orgRes?.data?.[0];
+      const token = resp?.access_token ?? resp?.access_token ?? null;
+
+      if (token) {
+        storageService.setToken(token);
+      }
+
+      const user = await fetchMe().unwrap();
+      const orgRes = await fetchMyOrgs().unwrap();
+      const organization = orgRes?.[0] ?? null;
 
       setState({
         user,
-        access_token,
+        access_token: token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
         organization,
       });
-    } catch (error) {
+    } catch (error: any) {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : "Login failed",
+        error: error?.data?.message || error?.message || "Login failed",
       }));
       throw error;
     }
@@ -99,63 +110,77 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const response = await authService.register(userData);
-      const { access_token, user } = response;
+      const resp = await registerMut(userData).unwrap();
+      const token = resp?.access_token ?? resp?.access_token ?? null;
 
-      authService.setToken(access_token);
-      storageService.setToken(access_token);
+      if (token) {
+        storageService.setToken(token);
+      }
+
+      const user = resp?.user ?? (await fetchMe().unwrap());
+
+      const orgRes = await fetchMyOrgs().unwrap();
+      const organization = orgRes?.[0] ?? null;
 
       setState({
         user,
-        access_token,
+        access_token: token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        organization,
       });
-    } catch (error) {
+    } catch (error: any) {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : "Registration failed",
+        error: error?.data?.message || error?.message || "Registration failed",
       }));
       throw error;
     }
   };
 
-  const logout = () => {
-    authService.setToken(null);
-    storageService.clearTokens();
-
-    setState({
-      user: null,
-      access_token: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-    });
+  const logout = async () => {
+    try {
+      await logoutMut()
+        .unwrap()
+        .catch(() => undefined);
+    } finally {
+      storageService.clearTokens();
+      setState({
+        user: undefined,
+        access_token: undefined,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+        organization: undefined,
+      });
+    }
   };
 
   const refreshUser = async () => {
     try {
-      const user = await authService.getCurrentUser();
-      const orgRes = await authService.getMyOrganizations();
-      const organization = orgRes?.data?.[0];
+      const user = await fetchMe().unwrap();
+      const orgRes = await fetchMyOrgs().unwrap();
+      const organization = orgRes?.[0] ?? null;
+
       setState((prev) => ({
         ...prev,
         user,
         organization,
         isAuthenticated: true,
         isLoading: false,
+        error: null,
       }));
     } catch (error) {
       console.error("Failed to refresh user:", error);
-      logout();
+      await logout();
     }
   };
 
   const contextValue: AuthContextType = {
     ...state,
-    login,
+    userLogin,
     register,
     logout,
     refreshUser,

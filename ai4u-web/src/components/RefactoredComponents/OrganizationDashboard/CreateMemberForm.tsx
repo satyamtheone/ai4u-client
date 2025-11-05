@@ -18,14 +18,14 @@ import { FormSelect } from "../../../commonComponents/FormSelect";
 import { FormLabelHeader } from "../../../commonComponents/FormLabelHeader";
 import { useDialog } from "../../../commonComponents/Dialog/DialogProvider";
 import { addNotification } from "../../../store/uiSlice";
+import {
+  organizationApi,
+  useCreateOrganizationMemberMutation,
+} from "../../../services/api/organizationApi";
 
-const CreateMemberForm: React.FC<{
-  onSuccess?: (res: CreateMemberResponse) => void;
-}> = ({ onSuccess }) => {
-  // Pull OrganizationService from Redux (like IndividualSignup pulls auth stuff)
-  const organizationService = useAppSelector(
-    (state) => (state.config as any).organizationService
-  );
+const CreateMemberForm: React.FC = () => {
+  const [createMember, { isLoading: isCreating }] =
+    useCreateOrganizationMemberMutation();
 
   // Form state
   const [formData, setFormData] = useState<CreateMemberRequest>({
@@ -43,7 +43,7 @@ const CreateMemberForm: React.FC<{
   const [errors, setErrors] = useState<
     Partial<CreateMemberRequest & { submit: string }>
   >({});
-  const [isLoading, setIsLoading] = useState(false);
+
   const [isSuccess, setIsSuccess] = useState(false);
   const { closeDialog } = useDialog();
   const dispatch = useAppDispatch();
@@ -103,47 +103,34 @@ const CreateMemberForm: React.FC<{
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Service not ready fallback note
-    if (
-      !organizationService ||
-      typeof organizationService.createOrganizationMember !== "function"
-    ) {
-      setErrors({
-        submit: "OrganizationService not initialized yet. Please try again.",
-      });
-      return;
-    }
-
     if (!validateForm()) return;
 
     try {
-      setIsLoading(true);
+      const res = await createMember(formData).unwrap();
 
-      const res = await organizationService.createOrganizationMember(formData);
-
-      if (res.success) {
-        setIsSuccess(true);
-        onSuccess?.(res);
-        // setFormData({ ...formData, first_name: "", last_name: "", email: "", phone: "", password: "" });
-      } else {
-        setErrors({ submit: res.message || "Failed to create member" });
+      if (!res?.success) {
+        setErrors({ submit: res?.message || "Failed to create member" });
+        return;
       }
-    } catch (error) {
-      setErrors({
-        submit:
-          error instanceof Error
-            ? error.message
-            : "Failed to create member. Please try again.",
-      });
-    } finally {
+
+      setIsSuccess(true);
+
       dispatch(
         addNotification({
           type: "success",
           message: `${formData.first_name} ${formData.last_name} is added successfully`,
         })
       );
-      setIsLoading(false);
       closeDialog();
+    } catch (error: any) {
+      setErrors({
+        submit:
+          error?.data?.message ||
+          error?.message ||
+          "Failed to create member. Please try again.",
+      });
+    } finally {
+      dispatch(organizationApi.util.invalidateTags([{ type: "Members" }]));
     }
   };
 
@@ -244,7 +231,7 @@ const CreateMemberForm: React.FC<{
         {/* Submit button */}
         <DynamicButton
           type="submit"
-          loading={isLoading}
+          loading={isCreating}
           className="w-full"
           label={isSuccess ? "Member Created ✅" : "Create Member"}
         />

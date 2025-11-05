@@ -3,6 +3,10 @@ import chatSlice from "./chatSlice";
 import quizSlice from "./quizSlice";
 import configSlice from "./configSlice";
 import uiSlice from "./uiSlice";
+import { authApi } from "../services/api/authApi";
+import { setupListeners } from "@reduxjs/toolkit/query";
+import { learningApi } from "../services/api/learningApi";
+import { organizationApi } from "../services/api/organizationApi";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +14,9 @@ export const store = configureStore({
     quiz: quizSlice,
     config: configSlice,
     ui: uiSlice,
+    [authApi.reducerPath]: authApi.reducer,
+    [learningApi.reducerPath]: learningApi.reducer,
+    [organizationApi.reducerPath]: organizationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -35,8 +42,12 @@ export const store = configureStore({
           "config.organizationService",
         ],
       },
-    }),
+    })
+      .concat(authApi.middleware)
+      .concat(learningApi.middleware)
+      .concat(organizationApi.middleware),
 });
+setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

@@ -92,9 +92,9 @@ export interface GoogleAuthResponse {
 
 // Auth state
 export interface AuthState {
-  user: User | null;
+  user: User | undefined;
   organization?: Organization;
-  access_token: string | null;
+  access_token: string | undefined;
   refreshToken?: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;

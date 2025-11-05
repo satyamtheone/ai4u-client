@@ -3,19 +3,15 @@ import { useEffect } from "react";
 import { useAppDispatch } from "../hooks/redux";
 import { ConfigManager } from "../services/ConfigManager";
 import { BackendService } from "../services/BackendService";
-import { LearningService } from "../services/api/LearningService";
 import { LearningGateService } from "../services/LearningGateService";
 import {
   setConfig,
   setBackendService,
   setLearningGateService,
-  setLearningService,
   setConnectionStatus,
   setLearningGatesEnabled,
-  setOrganizationService,
 } from "../store/configSlice";
 import { addNotification } from "../store/uiSlice";
-import { OrganizationService } from "../services/api/OrganizationService";
 
 export default function AppInitializer() {
   const dispatch = useAppDispatch();
@@ -29,12 +25,6 @@ export default function AppInitializer() {
 
         const backendService = new BackendService(initialConfig.backendUrl);
         dispatch(setBackendService(backendService));
-
-        const learningService = new LearningService();
-        dispatch(setLearningService(learningService));
-
-        const organizationService = new OrganizationService();
-        dispatch(setOrganizationService(organizationService));
 
         const learningGateService = new LearningGateService({
           enabled: true,

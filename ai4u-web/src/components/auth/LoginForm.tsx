@@ -11,6 +11,7 @@ import { LoginCredentials } from "../../types/auth/Auth";
 import { FormLabelHeader } from "../../commonComponents/FormLabelHeader";
 import LoginFormInputs from "../RefactoredComponents/LoginFormComponents/LoginFormInputs";
 import LoginFormFooter from "../RefactoredComponents/LoginFormComponents/LoginFormFooter";
+import { useLoginMutation } from "../../services/api/authApi";
 
 interface LoginFormProps {
   onSwitchToIndividualSignup: () => void;
@@ -32,7 +33,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     Partial<LoginCredentials & { submit: string }>
   >({});
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+
+  const { userLogin } = useAuth();
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginCredentials> = {};
@@ -64,7 +66,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setErrors({});
 
     try {
-      await login(formData);
+      await userLogin(formData);
 
       // Successful login - user will be redirected by AuthGuard
     } catch (error) {

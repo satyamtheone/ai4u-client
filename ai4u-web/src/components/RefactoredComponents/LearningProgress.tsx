@@ -2,8 +2,7 @@ import { QuizStats } from "../../store/quizSlice";
 import { LearningBoxes } from "./Constants";
 import StatBoxes from "./ChatComponents/StatBoxes";
 import DynamicDropDown from "../../commonComponents/DynamicDropDown";
-import { useAppSelector } from "../../hooks/redux";
-import { useEffect, useState } from "react";
+import { useGetLearningStatsQuery } from "../../services/api/learningApi";
 
 const LearningProgress = ({
   handleToggleLearningGates,
@@ -12,32 +11,9 @@ const LearningProgress = ({
   handleToggleLearningGates: () => void;
   learningGatesEnabled: boolean;
 }) => {
-  const [currentStats, setCurrentStats] = useState<Partial<QuizStats>>({});
-  const learningService = useAppSelector(
-    (state) => (state.config as any).learningService
-  );
+  const { data: learningStats } = useGetLearningStatsQuery();
+  const currentStats: QuizStats = learningStats ?? ({} as QuizStats);
 
-  useEffect(() => {
-    // Guard: don’t call before the service exists
-    if (
-      !learningService ||
-      typeof learningService.getLearningStats !== "function"
-    ) {
-      console.warn("LearningService not initialized yet");
-      return;
-    }
-    const fetchLearningStats = async () => {
-      try {
-        console.log("Fetching learning stats...");
-        const stats = await learningService.getLearningStats();
-        setCurrentStats(stats as QuizStats);
-      } catch (err) {
-        console.error("❌ Failed to fetch learning stats:", err);
-      }
-    };
-
-    fetchLearningStats();
-  }, [learningService]);
   return (
     <DynamicDropDown
       title="🎓 Learning Progress"
@@ -59,18 +35,11 @@ const LearningProgress = ({
         {LearningBoxes.map((details, i) => {
           const key = details.value?.toLowerCase().trim();
           const statValue =
-            key && key in currentStats
+            key && currentStats && key in currentStats
               ? currentStats[key as keyof QuizStats]
               : 0;
 
-          return (
-            <StatBoxes
-              details={details}
-              value={statValue}
-              key={i}
-              // isActive={details.title === "Responses Left"}
-            />
-          );
+          return <StatBoxes details={details} value={statValue} key={i} />;
         })}
       </div>
     </DynamicDropDown>

@@ -32,7 +32,7 @@ const ChatHeader = ({ isConnected }: { isConnected: boolean }) => {
       </div>
 
       {/* Connection Status */}
-      <div className="flex items-center gap-2 text-sm ">
+      <div className="flex items-center gap-2 text-sm pr-2">
         <div
           className={`w-3 h-3 rounded-full ${
             isConnected ? "bg-emerald-500" : "bg-red-500"

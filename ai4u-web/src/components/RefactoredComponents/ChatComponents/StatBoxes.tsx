@@ -1,5 +1,4 @@
 import { StatsBoxProps } from "../../../commonComponents/Types";
-import { LearningActivity } from "../../../services/api/LearningService";
 
 const StatBoxes = ({
   details,

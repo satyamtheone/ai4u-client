@@ -51,7 +51,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
     {}
   );
   const [isLoading, setIsLoading] = useState(false);
-  const { register, login } = useAuth();
+  const { register, userLogin } = useAuth();
 
   const validateStep1 = (): boolean => {
     const {
@@ -186,7 +186,7 @@ export const OrganizationSignup: React.FC<OrganizationSignupProps> = ({
 
       await register(registerData);
       //after register we have to login the user
-      await login({
+      await userLogin({
         email: formData.adminEmail,
         password: formData.adminPassword,
       });

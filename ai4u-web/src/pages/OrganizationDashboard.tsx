@@ -18,6 +18,8 @@ import OrganizationDetails from "../components/RefactoredComponents/Organization
 import { Card } from "../components/shared/Card";
 import DynamicButton from "../commonComponents/DynamicButton";
 import CreateOrganizationForm from "../components/RefactoredComponents/OrganizationDashboard/CreateOrganizationForm";
+import { useGetAllMembersQuery } from "../services/api/organizationApi";
+import { useGetMyOrganizationsQuery } from "../services/api/authApi";
 
 export interface DashboardStats {
   totalMembers: number;
@@ -46,64 +48,69 @@ export const OrganizationDashboard: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const { openDialog, closeDialog } = useDialog();
-  const organizationService = useAppSelector(
-    (state) => (state.config as any).organizationService
-  );
 
-  // State for users and pagination
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [myOrganization, setMyOrganization] = useState<Organization>();
+  // pagination state you already have
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
-    page_size: 50,
+    page_size: 4,
     total_pages: 0,
   });
 
+  // local UI state
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [myOrganization, setMyOrganization] = useState<
+    Organization | undefined
+  >();
+
+  // 🔹 RTK Query hooks (auto-refetch on arg change)
+  const {
+    data: membersData,
+    isFetching: membersFetching,
+    isError: membersError,
+  } = useGetAllMembersQuery({
+    page: pagination.page,
+    page_size: pagination.page_size,
+  });
+
+  const {
+    data: orgsData,
+    isFetching: orgsFetching,
+    isError: orgsError,
+  } = useGetMyOrganizationsQuery();
+
+  // 🔹 Sync hook data into your existing local state
   useEffect(() => {
-    if (
-      !organizationService ||
-      typeof organizationService.getAllMembers !== "function" ||
-      typeof organizationService.getMyOrganizations !== "function"
-    ) {
-      console.warn("OrganizationService not initialized yet");
-      return;
+    setLoading(orgsFetching);
+
+    if (membersData) {
+      setUsers(membersData.items ?? []);
+      setPagination((prev) => ({
+        ...prev,
+        total: membersData.total ?? 0,
+        total_pages: membersData.total_pages ?? 1,
+        // keep current page & page_size from prev
+      }));
     }
 
-    const fetchUsersAndOrgs = async () => {
-      try {
-        setLoading(true);
+    if (orgsData) {
+      const org = orgsData?.[0];
+      setMyOrganization(org);
+    }
+  }, [membersData, orgsData, membersFetching, orgsFetching]);
 
-        // Fetch both in parallel
-        const [membersRes, orgsRes] = await Promise.all([
-          organizationService.getAllMembers(),
-          organizationService.getMyOrganizations(),
-        ]);
+  // (Optional) handle errors
+  useEffect(() => {
+    if (membersError || orgsError) {
+      setLoading(false);
+      console.error("❌ Error fetching users/organizations", {
+        membersError,
+        orgsError,
+      });
+    }
+  }, [membersError, orgsError]);
 
-        // ✅ Set members
-        if (membersRes?.items) {
-          setUsers(membersRes.items);
-          setPagination({
-            total: membersRes.total || 0,
-            page: pagination.page,
-            page_size: pagination.page_size,
-            total_pages: membersRes.total_pages || 1,
-          });
-        }
-
-        if (orgsRes) {
-          const org = orgsRes?.data?.[0] || orgsRes?.items?.[0] || orgsRes?.[0];
-          setMyOrganization(org);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching users and organizations:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsersAndOrgs();
-  }, []);
+  // Example: pagination handlers
 
   const handleAddMember = () => {
     openDialog({
@@ -179,7 +186,7 @@ export const OrganizationDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="md:p-6 p-2 space-y-6 overflow-scroll h-screen animate-chatInBot">
+    <div className="md:p-6 p-2 space-y-6 overflow-scroll h-screen w-full animate-chatInBot">
       {loading ? (
         <>
           <Card className="h-[237px] animate-pulse bg-slate-200">
@@ -223,14 +230,36 @@ export const OrganizationDashboard: React.FC = () => {
               </div>
               <OrganizationDashboardStats stats={stats} />
               {myOrganization && <OrganizationDetails org={myOrganization} />}
-              <div className="w-full">
-                <DynamicTable
-                  title="Organization Members"
-                  columns={columns}
-                  data={users}
-                  loading={loading}
-                  className="h-[435px] overflow-auto"
-                />
+              <div className="">
+                {membersFetching ? (
+                  <Card className="h-[435px] animate-pulse bg-slate-200">
+                    <></>
+                  </Card>
+                ) : (
+                  <DynamicTable
+                    title="Organization Members"
+                    columns={columns}
+                    data={users}
+                    loading={loading}
+                    className="h-[435px] overflow-scroll"
+                    pagination={{
+                      total: pagination.total,
+                      page: pagination.page,
+                      page_size: pagination.page_size,
+                      total_pages: pagination.total_pages,
+                      onPrev: () =>
+                        setPagination((p) => ({
+                          ...p,
+                          page: Math.max(1, p.page - 1),
+                        })),
+                      onNext: () =>
+                        setPagination((p) => ({
+                          ...p,
+                          page: Math.min(p.total_pages || p.page, p.page + 1),
+                        })),
+                    }}
+                  />
+                )}
               </div>
             </>
           ) : (

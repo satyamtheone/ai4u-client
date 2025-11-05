@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "../shared/Button";
-import { AuthService } from "../../services/api/AuthService";
 import { GoogleIcon } from "../RefactoredComponents/Constants";
+import { useGetGoogleAuthUrlQuery } from "../../services/api/authApi";
 
 interface GoogleAuthButtonProps {
   onSuccess?: () => void;
@@ -17,15 +17,16 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   disabled = false,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const authService = new AuthService();
+
+  const { data } = useGetGoogleAuthUrlQuery();
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
 
     try {
-      const response = await authService.getGoogleAuthUrl();
+      const response = data;
 
-      if (response.authUrl) {
+      if (response?.authUrl) {
         // Store callback handlers in sessionStorage to retrieve after redirect
         if (onSuccess || onError) {
           sessionStorage.setItem(
