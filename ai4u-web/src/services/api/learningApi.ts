@@ -1,11 +1,8 @@
-// ai4u-web/src/services/api/learningApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { apiConfig } from "../../config/apiConfig";
 import { API_ENDPOINTS } from "../../utils/constants/apiEndpoints";
 
-// Reuse your existing types that are already defined/exported in LearningService.ts
 import type {
-  Course,
   Quiz,
   QuizAttempt,
   UserProgress,
@@ -13,7 +10,7 @@ import type {
   ChatMessage,
   QuizQuestion,
   UserLearningAnalyticsResponse,
-} from "./LearningService";
+} from "../../commonComponents/Types";
 
 // Keep using your existing StorageService for Authorization so nothing breaks
 import { StorageService } from "../utils/StorageService";
@@ -300,7 +297,6 @@ export const learningApi = createApi({
           url: API_ENDPOINTS.LEARNING.ADMIN.BULK_IMPORT,
           method: "POST",
           body: formData,
-          // DO NOT set Content-Type for FormData; browser will add boundary
         };
       },
       transformResponse: (resp: ApiResponse<{ message?: string }> | any) => ({

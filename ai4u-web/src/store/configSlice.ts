@@ -2,8 +2,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AI4UConfig } from "../types";
 import { BackendService } from "../services/BackendService";
 import { LearningGateService } from "../services/LearningGateService";
-import { LearningService } from "../services/api/LearningService";
-import { OrganizationService } from "../services/api/OrganizationService";
 
 interface ConfigState {
   config: AI4UConfig;
@@ -12,8 +10,6 @@ interface ConfigState {
   isConnected: boolean;
   connectionMessage: string;
   learningGatesEnabled: boolean;
-  learningService?: LearningService;
-  organizationService?: OrganizationService;
 }
 
 const initialState: ConfigState = {

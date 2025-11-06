@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { BookOpen, Calendar } from "lucide-react";
 import { useAuth } from "../components/auth/AuthProvider";
-import { Card } from "../components/shared/Card";
-import { Button } from "../components/shared/Button";
-import { UserLearningAnalyticsResponse } from "../services/api/LearningService";
-import { useAppSelector } from "../hooks/redux";
 
 import UserDashboardStats from "../components/RefactoredComponents/UserDashboard/UserDashboardStats";
 import UserDetails from "../components/RefactoredComponents/UserDashboard/UserDetails";
 import { LearningStats } from "../components/RefactoredComponents/UserDashboard/UserCourseDetails";
 import LearningInsights from "../components/RefactoredComponents/UserDashboard/LearningInsights";
-import { useLazyGetCurrentUserAnalyticsQuery } from "../services/api/learningApi";
+import { useGetCurrentUserAnalyticsQuery } from "../services/api/learningApi";
 
 const UserDashboard: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
-  const [fetchAnalytics] = useLazyGetCurrentUserAnalyticsQuery();
-
-  const [currentAnalytics, setCurrentAnalytics] = useState<
-    UserLearningAnalyticsResponse | undefined
-  >();
+  const { user } = useAuth();
+  const { data: currentAnalytics } = useGetCurrentUserAnalyticsQuery(
+    String(user?.id)
+  );
 
   const [stats, setStats] = useState<LearningStats>({
     totalCourses: 0,
@@ -28,19 +21,6 @@ const UserDashboard: React.FC = () => {
     weeklyGoal: 0,
     weeklyProgress: 0,
   });
-
-  useEffect(() => {
-    const fetchUSerAnalytics = async () => {
-      try {
-        const stats = await fetchAnalytics(String(user?.id));
-        setCurrentAnalytics(stats.data as UserLearningAnalyticsResponse);
-      } catch (err) {
-        console.error("❌ Failed to fetch learning stats:", err);
-      }
-    };
-
-    fetchUSerAnalytics();
-  }, [isAuthenticated]);
 
   return (
     <div className="md:p-6 p-2 space-y-6 overflow-scroll h-screen w-full animate-chatInBot">
